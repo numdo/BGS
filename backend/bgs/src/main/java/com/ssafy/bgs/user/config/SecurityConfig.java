@@ -19,29 +19,38 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        // 1. CSRF 비활성화
+        // 1. CSRF 비활성화 (REST API 형태)
         http.csrf(csrf -> csrf.disable());
 
         // 2. URL별 권한 설정
+        // 소셜 로그인 관련 엔드포인트 (예: Kakao)는 '/api/auth/**'로 관리하고,
+        // 로컬 회원가입 API 등은 '/api/users/signup' 등으로 별도 관리
         http.authorizeHttpRequests(auth -> auth
-                // 로그인, 회원가입은 누구나 접근
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/users/signup").permitAll()
-                .requestMatchers("/api/users/login").permitAll()
-                // 그외 요청은 인증 필요
+                // 필요에 따라 로컬 로그인 API를 사용한다면 permitAll 처리
+                //.requestMatchers("/api/users/login").permitAll()
                 .anyRequest().authenticated()
         );
 
-        // 3. 폼 로그인 비활성 (REST API)
+        // 3. OAuth2 로그인 사용 시 (Spring Security OAuth2 Client)
+        // properties 파일에 이미 Kakao 관련 설정이 되어 있으므로, oauth2Login을 활성화합니다.
+//        http.oauth2Login(oauth2 -> oauth2
+//                // 로그인 성공 후 기본 리다이렉트 URL 또는 successHandler를 설정할 수 있습니다.
+//                .defaultSuccessUrl("/home", true)
+//        );
+
+        // 4. 폼 로그인 비활성화 및 기본 HTTP Basic 인증 설정
         http.formLogin(form -> form.disable());
         http.httpBasic(Customizer.withDefaults());
 
-        // 4. JWT 필터 추가 (UsernamePasswordAuthenticationFilter 전에 실행)
+        // 5. JWT 필터 추가 (보호 API에 대해 JWT 인증 진행)
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
-    // BCryptPasswordEncoder 빈 등록
+
+    // BCryptPasswordEncoder 빈 등록 (JWT 및 로컬 로그인 시 필요)
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

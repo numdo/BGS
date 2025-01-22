@@ -1,6 +1,7 @@
 package com.ssafy.bgs.user.service;
 
 
+import com.ssafy.bgs.user.dto.request.KakaoSignupRequestDto;
 import com.ssafy.bgs.user.dto.request.UserSignupRequestDto;
 import com.ssafy.bgs.user.dto.request.UserUpdateRequestDto;
 import com.ssafy.bgs.user.dto.response.LoginResponseDto;
@@ -74,6 +75,38 @@ public class UserService {
 
         // 6. 응답 DTO 변환
         return toUserResponseDto(savedUser);
+    }
+    public UserResponseDto kakaoSignup(Integer userId, KakaoSignupRequestDto kakaoSignupRequestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        user.setName(kakaoSignupRequestDto.getName());
+        // 로컬 로그인을 허용한다면, 비밀번호 저장 (BCrypt)
+        if (kakaoSignupRequestDto.getPassword() != null && !kakaoSignupRequestDto.getPassword().isBlank()) {
+            String encodedPassword = passwordEncoder.encode(kakaoSignupRequestDto.getPassword());
+            user.setPassword(encodedPassword);
+        }
+
+        if (kakaoSignupRequestDto.getBirthDate() != null) {
+            user.setBirthDate(kakaoSignupRequestDto.getBirthDate());
+        }
+
+        if (kakaoSignupRequestDto.getSex() != null && kakaoSignupRequestDto.getSex().length() > 0) {
+            user.setSex(kakaoSignupRequestDto.getSex().charAt(0));  // DB는 Character
+        }
+
+        if (kakaoSignupRequestDto.getHeight() != null) {
+            user.setHeight(kakaoSignupRequestDto.getHeight());
+        }
+
+        if (kakaoSignupRequestDto.getWeight() != null) {
+            user.setWeight(kakaoSignupRequestDto.getWeight());
+        }
+
+        // 4) 저장
+        User updatedUser = userRepository.save(user);
+
+        // 5) 응답 DTO 변환
+        return toUserResponseDto(updatedUser);
     }
     /**
      * 전체 회원 조회 (페이지네이션)

@@ -19,6 +19,9 @@ public class User {
     @Column(name = "user_id", nullable = false)
     private Integer id;
 
+    @Column(name = "kakao_id")
+    private Long kakaoId;
+
     @Column(name = "email", length = 128)
     private String email;
 
@@ -31,7 +34,7 @@ public class User {
     @Column(name = "name", length = 10)
     private String name;
 
-    @Column(name = "nickname", length = 10)
+    @Column(name = "nickname", length = 50)
     private String nickname;
 
     @Column(name = "birth_date")

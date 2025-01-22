@@ -1,6 +1,7 @@
 package com.ssafy.bgs.user.controller;
 
 
+import com.ssafy.bgs.user.dto.request.KakaoSignupRequestDto;
 import com.ssafy.bgs.user.dto.request.LoginRequestDto;
 import com.ssafy.bgs.user.dto.request.UserSignupRequestDto;
 import com.ssafy.bgs.user.dto.request.UserUpdateRequestDto;
@@ -34,6 +35,18 @@ public class UserController {
         }
     }
 
+    @PatchMapping("/{userId}/kakao-signup")
+    public ResponseEntity<?> kakaoSignup(
+            @PathVariable Integer userId,
+            @RequestBody KakaoSignupRequestDto kakaoSignupRequestDto
+    ) {
+        try {
+            UserResponseDto result = userService.kakaoSignup(userId, kakaoSignupRequestDto);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
     /**
      * 전체 회원 조회 (페이지네이션)
      * [GET] /api/users?page=1&pageSize=10
