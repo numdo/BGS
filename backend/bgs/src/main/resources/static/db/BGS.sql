@@ -6,6 +6,7 @@ CREATE TABLE `comments` (
 	`diary_id`	INT	NOT NULL	COMMENT '일지ID',
 	`content`	VARCHAR(255)	NULL	COMMENT '댓글 내용',
 	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '댓글 작성일시',
+	`modified_at`	TIMESTAMP	NULL	DEFAULT NULL	COMMENT '댓글 최근 수정일시',
 	`deleted`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '삭제여부'
 );
 
@@ -20,7 +21,7 @@ DROP TABLE IF EXISTS `following`;
 
 CREATE TABLE `following` (
 	`follower_id`	INT	NOT NULL	COMMENT '팔로우 받은 사람 ID',
-	`foloowee_id`	INT	NOT NULL	COMMENT '팔로우 하는 사람 ID'
+	`followee_id`	INT	NOT NULL	COMMENT '팔로우 하는 사람 ID'
 );
 
 DROP TABLE IF EXISTS `places`;
@@ -39,20 +40,20 @@ CREATE TABLE `places` (
 DROP TABLE IF EXISTS `hashtags`;
 
 CREATE TABLE `hashtags` (
-	`diary_id`	INT	NOT NULL	COMMENT '일지ID',
-	`tag`	VARCHAR(255) NULL	COMMENT '태그명'
+	`tag`	VARCHAR(255)	NOT NULL	COMMENT '태그ID',
+	`diary_id`	INT	NOT NULL	COMMENT '일지ID'
 );
 
 DROP TABLE IF EXISTS `images`;
 
 CREATE TABLE `images` (
 	`image_id`	INT	NOT NULL	COMMENT '미디어 아이디',
-	`url`	VARCHAR(255) NULL	COMMENT 'S3 주소',
-	`extension`	CHAR(4) NULL	COMMENT '이미지 확장자 jpg, png, ...',
-	`created_at`	TIMESTAMP NULL	DEFAULT NOW()	COMMENT '이미지 생성일시',
-	`deleted`	BOOLEAN NULL	DEFAULT FALSE	COMMENT '삭제여부',
-	`usage_type`	VARCHAR(255) NULL	COMMENT '이미지 사용처 구분 ITEM, DIARY, WORKOUT, MACHINE, PROFILE, BACKGROUND, EVALUATION, GYM',
-	`usage_id`	INT	NOT NULL	COMMENT '미디어가 해당하는 테이블의 아이디'
+	`url`	VARCHAR(255)	NULL	COMMENT 'S3 주소',
+	`extension`	CHAR(4)	NULL	COMMENT '이미지 확장자 jpg, png, ...',
+	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '이미지 생성일시',
+	`deleted`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '삭제여부',
+	`usage_type`	VARCHAR(255)	NULL	COMMENT '이미지 사용처 구분 ITEM, DIARY, WORKOUT, MACHINE, PROFILE, BACKGROUND, EVALUATION, GYM',
+	`usage_id`	INT	NULL	COMMENT '미디어가 해당하는 테이블의 아이디'
 );
 
 DROP TABLE IF EXISTS `items`;
@@ -74,7 +75,7 @@ CREATE TABLE `guestbooks` (
 	`owner_id`	INT	NOT NULL	COMMENT '마이짐 주인 ID',
 	`guest_id`	INT	NOT NULL	COMMENT '방문자 ID',
 	`content`	VARCHAR(255)	NULL	COMMENT '방명록 내용',
-	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT 'YYYY-mm-dd HH:MM:SS',
+	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '방명록 작성일시',
 	`deleted`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '방명록 삭제 여부'
 );
 
@@ -83,7 +84,7 @@ DROP TABLE IF EXISTS `diaries`;
 CREATE TABLE `diaries` (
 	`diary_id`	INT	NOT NULL	COMMENT '일지ID',
 	`user_id`	INT	NOT NULL	COMMENT '회원ID',
-	`workout_date`	DATE NULL	COMMENT '운동한 날자',
+	`workout_date`	DATE	NULL	COMMENT '운동한 날자',
 	`content`	TEXT	NULL	COMMENT '운동일지 본문',
 	`allowed_scope`	CHAR(1)	NULL	COMMENT 'A, F, M',
 	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '운동일지 생성 시간',
@@ -115,12 +116,12 @@ CREATE TABLE `evaluations` (
 	`evaluation_id`	INT	NOT NULL	COMMENT '평가 ID',
 	`user_id`	INT	NOT NULL	COMMENT '회원 ID',
 	`content`	TEXT	NULL	COMMENT '본문 내용',
-	`created_at`	TIMESTAMP	NULL	COMMENT 'YYYY-mm-dd HH:MM:SS',
-	`modified_at`	TIMESTAMP	NULL	COMMENT 'YYYY-mm-dd HH:MM:SS',
 	`weight`	DECIMAL(4, 1)	NULL	COMMENT '인증받을 무게',
 	`workout_type`	CHAR(5)	NULL	COMMENT '3대 운동 종류 DEAD, SQUAT, BENCH',
 	`opened`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '투표시작여부',
 	`closed`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '투표종료여부',
+	`created_at`	TIMESTAMP	NULL	COMMENT '평가 생성일시',
+	`modified_at`	TIMESTAMP	NULL	COMMENT '평가 최근 수정일시',
 	`deleted`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '평가 게시물 삭제 여부, 투표가 시작되면 삭제 불가'
 );
 
@@ -146,18 +147,19 @@ DROP TABLE IF EXISTS `gyms`;
 
 CREATE TABLE `gyms` (
 	`gym_id`	INT	NOT NULL	COMMENT '헬스장ID',
-	`gym_name`	VARCHAR(255) NULL	COMMENT '헬스장 이름',
-	`gym_address`	VARCHAR(255) NULL	COMMENT '헬스장 주소',
-	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '헬스장 생성일시'
+	`gym_name`	VARCHAR(255)	NULL	COMMENT '헬스장 이름',
+	`gym_address`	VARCHAR(255)	NULL	COMMENT '헬스장 주소',
+	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '헬스장 생성일시',
+	`deleted`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '헬스장 삭제여부'
 );
 
 DROP TABLE IF EXISTS `workout_records`;
 
 CREATE TABLE `workout_records` (
 	`user_id`	INT	NOT NULL	COMMENT '회원ID',
-	`squat_evaluation`	INT NULL	COMMENT '스쿼트 최대 중량 근거 평가 게시물 ID',
-	`benchpress_evaluation`	INT NULL	COMMENT '벤치프레스 최대 중량 근거 평가 게시물 ID',
-	`deadlift_evaluation`	INT NULL	COMMENT '데드리프트 최대 중량 근거 평가 게시물 ID',
+	`squat_evaluation`	INT	NULL	COMMENT '스쿼트 최대 중량 근거 평가 게시물 ID',
+	`benchpress_evaluation`	INT	NULL	COMMENT '벤치프레스 최대 중량 근거 평가 게시물 ID',
+	`deadlift_evaluation`	INT	NULL	COMMENT '데드리프트 최대 중량 근거 평가 게시물 ID',
 	`squat`	DECIMAL(4,1)	NULL	DEFAULT 0	COMMENT '사용자 스쿼트 최대 중량 기록',
 	`benchpress`	DECIMAL(4,1)	NULL	DEFAULT 0	COMMENT '사용자 벤치프레스 최대 중량 기록',
 	`deadlift`	DECIMAL(4,1)	NULL	DEFAULT 0	COMMENT '사용자 데드리프트 최대 중량 기록'
@@ -171,7 +173,7 @@ CREATE TABLE `diary_workouts` (
 	`workout_id`	SMALLINT	NOT NULL	COMMENT '운동아이디',
 	`set_sum`	TINYINT	NULL	COMMENT '세트수',
 	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '운동내역 생성 시간',
-	`modify_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '운동내역 수정일시',
+	`modified_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '운동내역 수정일시',
 	`deleted`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '삭제여부'
 );
 
@@ -181,11 +183,11 @@ CREATE TABLE `workout_sets` (
 	`workout_set_id`	INT	NOT NULL	COMMENT '운동세트ID',
 	`diary_workout_id`	INT	NOT NULL	COMMENT '운동내역ID',
 	`weight`	DECIMAL(5, 2)	NULL	COMMENT '세트별 무게',
-	`repeat`	TINYINT	NULL	COMMENT '반복 횟수',
+	`repetition`	TINYINT	NULL	COMMENT '반복 횟수',
 	`workout_time`	SMALLINT	NULL	COMMENT '운동한 시간(초)',
 	`ordinal`	TINYINT	NULL	COMMENT '운동 세트 서수',
 	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '운동세트 생성 시간',
-	`modify_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '운동 세드 수정일시',
+	`modified_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '운동 세드 수정일시',
 	`deleted`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '삭제여부'
 );
 
@@ -193,15 +195,15 @@ DROP TABLE IF EXISTS `admin`;
 
 CREATE TABLE `admin` (
 	`admin_id`	VARCHAR(255)	NOT NULL	COMMENT '관리자 아이디',
-	`admin_password`	VARCHAR(255) NULL	COMMENT '관리자 비밀번호'
+	`admin_password`	VARCHAR(255)	NULL	COMMENT '관리자 비밀번호'
 );
 
 DROP TABLE IF EXISTS `machines`;
 
 CREATE TABLE `machines` (
 	`machine_id`	TINYINT	NOT NULL	COMMENT '머신 ID',
-	`gym_id`	INT NULL	COMMENT '헬스장ID',
-	`machine_name`	VARCHAR(255) NULL	COMMENT '머신 이름'
+	`machine_name`	VARCHAR(255)	NULL	COMMENT '머신 이름',
+	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '머신 생성일시'
 );
 
 DROP TABLE IF EXISTS `mygym_colors`;
@@ -223,6 +225,8 @@ CREATE TABLE `users` (
 	`nickname`	VARCHAR(10)	NULL	COMMENT '회원닉네임',
 	`birth_date`	DATE	NULL	COMMENT '생년월일',
 	`sex`	CHAR(1)	NULL	COMMENT 'M, F, O',
+	`height`	SMALLINT	NULL	COMMENT	'회원의 키',
+	`weight`	SMALLINT	NULL	COMMENT	'회원의 몸무게',
 	`degree`	DECIMAL(3,1)	NULL	DEFAULT 36.5	COMMENT '다이어리에 기록을 하거나  출석체크를 하면 오른다',
 	`introduction`	VARCHAR(255)	NULL	COMMENT '한줄 자기소개',
 	`total_weight`	DECIMAL(4,1)	NULL	DEFAULT 0	COMMENT '3대 무게 합',
@@ -231,7 +235,16 @@ CREATE TABLE `users` (
 	`coin`	INT	NULL	DEFAULT 0	COMMENT '보유한 코인량',
 	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '회원 생성일시',
 	`modified_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '회원정보 최근 수정일시',
-	`resigned`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '탈퇴여부'
+	`deleted`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '탈퇴여부'
+);
+
+DROP TABLE IF EXISTS `gym_machines`;
+
+CREATE TABLE `gym_machines` (
+	`gym_id`	INT	NOT NULL	COMMENT '헬스장ID',
+	`machine_id`	TINYINT	NOT NULL	COMMENT '머신 ID',
+	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '헬스장 머신 보유 생성일시',
+	`deleted`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '헬스장 머신 보유 삭제 여부'
 );
 
 ALTER TABLE `comments` ADD CONSTRAINT `PK_COMMENTS` PRIMARY KEY (
@@ -248,8 +261,8 @@ ALTER TABLE `places` ADD CONSTRAINT `PK_PLACES` PRIMARY KEY (
 );
 
 ALTER TABLE `hashtags` ADD CONSTRAINT `PK_HASHTAGS` PRIMARY KEY (
-	`diary_id`,
-    `tag`
+	`tag`,
+	`diary_id`
 );
 
 ALTER TABLE `images` ADD CONSTRAINT `PK_IMAGES` PRIMARY KEY (
@@ -316,6 +329,11 @@ ALTER TABLE `mygym_colors` ADD CONSTRAINT `PK_MYGYM_COLORS` PRIMARY KEY (
 
 ALTER TABLE `users` ADD CONSTRAINT `PK_USERS` PRIMARY KEY (
 	`user_id`
+);
+
+ALTER TABLE `gym_machines` ADD CONSTRAINT `PK_GYM_MACHINES` PRIMARY KEY (
+	`gym_id`,
+	`machine_id`
 );
 
 ALTER TABLE `comments`
