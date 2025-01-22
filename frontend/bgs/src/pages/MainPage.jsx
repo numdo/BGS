@@ -1,7 +1,7 @@
 import React from 'react';
 import BottomBar from '../components/BottomBar';
 import TopBar from '../components/TopBar';
-const MainPage = () => {
+export default function MainPage() {
   return (
     <>
     <TopBar />
@@ -10,5 +10,3 @@ const MainPage = () => {
     </>
   );
 };
-
-export default MainPage;

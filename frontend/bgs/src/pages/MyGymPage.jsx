@@ -1,7 +1,7 @@
 import React from 'react';
 import BottomBar from '../components/BottomBar';
 import TopBar from '../components/TopBar';
-const MyGymPage = () => {
+export default function MyGymPage() {
   return (
     <>
     <TopBar />
@@ -10,5 +10,3 @@ const MyGymPage = () => {
     </>
   );
 };
-
-export default MyGymPage;
