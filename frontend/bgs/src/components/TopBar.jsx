@@ -4,7 +4,7 @@ import ShareLogo from './../assets/Share.png'
 const TopBar = () => {
   return (
     <div className="w-full bg-gray-100 z-10">
-      <div className="flex justify-between items-center px-4 py-2">
+      <div className="flex justify-between items-center px-4 py-3">
         {/* 뒤로가기 버튼 */}
         <button className="text-gray-600 hover:text-blue-500">
           <img src={ArrowBackLogo} alt="Home" className="w-6 h-6" />
