@@ -4,43 +4,31 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "diaries", schema = "bgs")
+@Table(name = "comments", schema = "bgs")
 @Getter
 @Setter
-public class Diary {
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer diaryId;
+    private Integer commentId;
 
     @Column
     private Integer userId;
     @Column
-    private Date workoutDate;
+    private Integer diaryId;
     @Column
     private String content;
     @Column
-    private String allowedScope;
-    @Column
     private Timestamp createdAt;
-    @Column
-    private Timestamp modifiedAt;
     @Column
     private Boolean deleted;
 
     @PrePersist
     public void prePersist() {
         createdAt = Timestamp.valueOf(LocalDateTime.now());
-        modifiedAt = Timestamp.valueOf(LocalDateTime.now());
-        deleted = false;
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        modifiedAt = Timestamp.valueOf(LocalDateTime.now());
     }
 }
