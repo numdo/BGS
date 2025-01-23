@@ -24,4 +24,4 @@ const MyGymPage = () => {
   );
 };
 
-export default MyGymPage;
+export default MyGymPage
