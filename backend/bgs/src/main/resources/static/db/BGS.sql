@@ -185,7 +185,6 @@ CREATE TABLE `workout_sets` (
 	`weight`	DECIMAL(5, 2)	NULL	COMMENT '세트별 무게',
 	`repetition`	TINYINT	NULL	COMMENT '반복 횟수',
 	`workout_time`	SMALLINT	NULL	COMMENT '운동한 시간(초)',
-	`ordinal`	TINYINT	NULL	COMMENT '운동 세트 서수',
 	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '운동세트 생성 시간',
 	`modified_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '운동 세드 수정일시',
 	`deleted`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '삭제여부'
@@ -219,7 +218,8 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
 	`user_id`	INT	NOT NULL	COMMENT '회원ID',
 	`email`	VARCHAR(128)	NULL	COMMENT 'email을 아이디로 씀',
-	`login_token`	VARCHAR(64)	NULL	COMMENT '소셜로그인된 토큰값 저장',
+	`account_type`	TINYINT	NULL	COMMENT	'LOCAL(0),KAKAO(1),GOOGLE(2)',
+	`kakao_id`	BIGINT	NULL	COMMENT	'카카오 로그인 ID',
 	`password`	VARCHAR(255)	NULL	COMMENT '비밀번호',
 	`name`	VARCHAR(10)	NULL	COMMENT '성+이름',
 	`nickname`	VARCHAR(10)	NULL	COMMENT '회원닉네임',
@@ -378,3 +378,5 @@ MODIFY `machine_id` TINYINT NOT NULL AUTO_INCREMENT COMMENT '머신 ID';
 ALTER TABLE `users`
 MODIFY `user_id` INT NOT NULL AUTO_INCREMENT COMMENT '회원ID';
 
+AlTER TABLE `workouts`
+MODIFY `workout_id` SMALLINT NOT NULL AUTO_INCREMENT COMMENT '운동ID';
