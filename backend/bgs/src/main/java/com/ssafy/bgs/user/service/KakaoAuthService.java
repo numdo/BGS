@@ -1,6 +1,10 @@
 package com.ssafy.bgs.user.service;
 
+import com.ssafy.bgs.user.dto.request.KakaoSignupRequestDto;
+import com.ssafy.bgs.user.dto.request.UserSignupRequestDto;
 import com.ssafy.bgs.user.dto.response.LoginResponseDto;
+import com.ssafy.bgs.user.dto.response.UserResponseDto;
+import com.ssafy.bgs.user.entity.AccountType;
 import com.ssafy.bgs.user.entity.User;
 import com.ssafy.bgs.user.jwt.JwtTokenProvider;
 import com.ssafy.bgs.user.repository.UserRepository;
@@ -61,9 +65,12 @@ public class KakaoAuthService {
             if (kakaoUserInfo.email() != null) {
                 Optional<User> byEmail = userRepository.findByEmail(kakaoUserInfo.email());
                 if (byEmail.isPresent()) {
-                    // 이미 동일 이메일로 가입된 사용자라면 카카오ID만 연결해준다.
-                    user = byEmail.get();
-                    user.setKakaoId(kakaoUserInfo.id());
+                    User existingUser = byEmail.get();
+                    if (existingUser.getAccountType() == AccountType.LOCAL) {
+                        throw new RuntimeException("해당 이메일로 로컬 계정이 이미 존재합니다. 로컬 로그인을 사용하세요.");
+                    }
+                    user = existingUser;
+
                 } else {
                     // 신규 가입 처리
                     user = new User();
@@ -75,6 +82,7 @@ public class KakaoAuthService {
                                     : "KakaoUser_" + kakaoUserInfo.id()
                     );
                     // 필요 시 default값 설정
+                    user.setAccountType(AccountType.KAKAO);
                     user.setDegree(null);
                     user.setDeleted(false);
                     user.setPassword(null); // 소셜 로그인시 패스워드는 null 처리
@@ -84,7 +92,6 @@ public class KakaoAuthService {
                 // 이메일 정보를 받아오지 못했을 경우 -> 닉네임이나 kakaoId로 가입 처리
                 user = new User();
                 user.setKakaoId(kakaoUserInfo.id());
-                user.setNickname("KakaoUser_" + kakaoUserInfo.id());
                 userRepository.save(user);
             }
         }

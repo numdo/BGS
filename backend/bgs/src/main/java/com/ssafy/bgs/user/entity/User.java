@@ -19,6 +19,9 @@ public class User {
     @Column(name = "user_id", nullable = false)
     private Integer id;
 
+    @Column(name = "account_type")
+    private AccountType accountType;
+
     @Column(name = "kakao_id")
     private Long kakaoId;
 
@@ -71,16 +74,43 @@ public class User {
     @Column(name = "coin")
     private Integer coin;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false, insertable = false)
     private Instant createdAt;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "modified_at")
+    @Column(name = "modified_at", insertable = false)
     private Instant modifiedAt;
 
     @ColumnDefault("0")
     @Column(name = "deleted")
     private Boolean deleted;
 
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = Instant.now();
+        }
+        if (this.modifiedAt == null) {
+            this.modifiedAt = Instant.now();
+        }
+        if(this.degree==null){
+            this.degree = BigDecimal.valueOf(36.5);
+        }
+        if(this.totalWeight==null){
+            this.totalWeight = BigDecimal.valueOf(0);
+        }
+        if (this.coin == null) { // coin의 기본값 설정
+            this.coin = 0;
+        }
+        if (this.deleted == null) { // deleted의 기본값 설정
+            this.deleted = false;
+        }
+        if (this.strickAttendance == null) { // strickAttendance의 기본값 설정
+            this.strickAttendance = 0;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.modifiedAt = Instant.now();
+    }
 }

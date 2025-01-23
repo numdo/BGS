@@ -8,6 +8,7 @@ import com.ssafy.bgs.user.dto.request.UserUpdateRequestDto;
 import com.ssafy.bgs.user.dto.response.LoginResponseDto;
 import com.ssafy.bgs.user.dto.response.UserResponseDto;
 import com.ssafy.bgs.user.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -35,6 +36,12 @@ public class UserController {
         }
     }
 
+    /**
+     * 카카오 로그인 후 회원가입
+     * @param userId
+     * @param kakaoSignupRequestDto
+     * @return
+     */
     @PatchMapping("/{userId}/kakao-signup")
     public ResponseEntity<?> kakaoSignup(
             @PathVariable Integer userId,
@@ -64,10 +71,20 @@ public class UserController {
         }
     }
 
+    /**
+     * 로그인
+     * @param loginRequest
+     * @return
+     */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequest) {
-        LoginResponseDto response = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequest, HttpServletResponse response) {
+        LoginResponseDto loginResponse = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+
+        // **추가**: 토큰을 Response Header에 담아서 내려주기
+        response.setHeader("Authorization", "Bearer " + loginResponse.getAccessToken());
+        response.setHeader("Refresh-Token", "Bearer " + loginResponse.getRefreshToken());
+
+        return ResponseEntity.ok(loginResponse);
     }
     /**
      * 로그아웃 (예시)

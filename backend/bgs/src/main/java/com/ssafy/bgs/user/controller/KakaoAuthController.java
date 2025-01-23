@@ -46,7 +46,10 @@ public class KakaoAuthController {
      * GET /api/auth/kakao/callback?code=xxx
      */
     @GetMapping("/callback")
-    public ResponseEntity<?> kakaoCallback(@RequestParam(required = false) String code) {
+    public ResponseEntity<?> kakaoCallback(
+            @RequestParam(required = false) String code,
+            HttpServletResponse response // 주입
+    ) {
         if (!StringUtils.hasText(code)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("인가코드(code)가 존재하지 않습니다.");
@@ -54,11 +57,18 @@ public class KakaoAuthController {
 
         try {
             // 카카오 로그인 처리 후, 우리 서비스의 JWT 발급
-            LoginResponseDto response = kakaoAuthService.kakaoLogin(code);
-            return ResponseEntity.ok(response);
+            LoginResponseDto loginResponse = kakaoAuthService.kakaoLogin(code);
+
+            // **추가**: JWT 토큰을 Response Header에 담아서 내려주기
+            response.setHeader("Authorization", "Bearer " + loginResponse.getAccessToken());
+            response.setHeader("Refresh-Token", "Bearer " + loginResponse.getRefreshToken());
+
+            // 바디로도 JSON 형태로 반환
+            return ResponseEntity.ok(loginResponse);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("카카오 소셜 로그인 실패: " + e.getMessage());
         }
     }
+
 }

@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/users/signup").permitAll()
                 // 필요에 따라 로컬 로그인 API를 사용한다면 permitAll 처리
-                //.requestMatchers("/api/users/login").permitAll()
+                .requestMatchers("/api/users/login").permitAll()
                 .anyRequest().authenticated()
         );
 

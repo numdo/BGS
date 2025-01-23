@@ -6,6 +6,7 @@ import com.ssafy.bgs.user.dto.request.UserSignupRequestDto;
 import com.ssafy.bgs.user.dto.request.UserUpdateRequestDto;
 import com.ssafy.bgs.user.dto.response.LoginResponseDto;
 import com.ssafy.bgs.user.dto.response.UserResponseDto;
+import com.ssafy.bgs.user.entity.AccountType;
 import com.ssafy.bgs.user.entity.Following;
 import com.ssafy.bgs.user.entity.User;
 import com.ssafy.bgs.user.jwt.JwtTokenProvider;
@@ -69,6 +70,7 @@ public class UserService {
         user.setCoin(0);
         user.setDeleted(false);
         user.setStrickAttendance(0);
+        user.setAccountType(AccountType.LOCAL);
 
         // 5. 저장
         User savedUser = userRepository.save(user);
@@ -81,10 +83,11 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         user.setName(kakaoSignupRequestDto.getName());
         // 로컬 로그인을 허용한다면, 비밀번호 저장 (BCrypt)
-        if (kakaoSignupRequestDto.getPassword() != null && !kakaoSignupRequestDto.getPassword().isBlank()) {
-            String encodedPassword = passwordEncoder.encode(kakaoSignupRequestDto.getPassword());
-            user.setPassword(encodedPassword);
+
+        if (userRepository.existsByNickname(kakaoSignupRequestDto.getNickname())) {
+            throw new RuntimeException("이미 사용 중인 닉네임입니다.");
         }
+        user.setNickname(kakaoSignupRequestDto.getNickname());
 
         if (kakaoSignupRequestDto.getBirthDate() != null) {
             user.setBirthDate(kakaoSignupRequestDto.getBirthDate());
@@ -124,6 +127,12 @@ public class UserService {
         // 1. 이메일로 사용자를 조회
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("해당 이메일이 존재하지 않습니다."));
+
+
+        // 2. 계정 유형 확인
+        if (user.getAccountType() == AccountType.KAKAO) {
+            throw new RuntimeException("소셜 계정입니다. 소셜 로그인을 사용하세요.");
+        }
 
         // 2. 비밀번호 확인 (BCrypt)
         if (!passwordEncoder.matches(password, user.getPassword())) {
@@ -195,6 +204,8 @@ public class UserService {
         user.setPassword(null);
         user.setHeight(null);
         user.setWeight(null);
+        user.setKakaoId(null);
+        user.setAccountType(null);
         user.setDeleted(true); // resigned = true 로 소프트삭제 처리
     }
 
