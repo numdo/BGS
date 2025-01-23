@@ -1,30 +1,28 @@
 package com.ssafy.bgs.diary.entity;
 
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "diaries", schema = "bgs")
+@Table(name = "diary_workouts", schema = "bgs")
 @Getter
 @Setter
-public class Diary {
+public class DiaryWorkout {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer diaryId;
+    private Integer diaryWorkoutId;
 
     @Column
-    private Integer userId;
+    private Integer diaryId;
     @Column
-    private Date workoutDate;
+    private Integer workoutId;
     @Column
-    private String content;
-    @Column
-    private String allowedScope;
+    private Integer setSum;
     @Column
     private Timestamp createdAt;
     @Column

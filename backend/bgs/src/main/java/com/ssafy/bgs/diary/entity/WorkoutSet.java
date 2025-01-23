@@ -4,27 +4,28 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "diaries", schema = "bgs")
+@Table(name = "workout_sets", schema = "bgs")
 @Getter
 @Setter
-public class Diary {
+public class WorkoutSet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer diaryId;
+    private Integer workoutSetId;
 
     @Column
-    private Integer userId;
+    private Integer diaryWorkoutId;
     @Column
-    private Date workoutDate;
+    private Float weight;
     @Column
-    private String content;
+    private Integer repetition;
     @Column
-    private String allowedScope;
+    private Integer workoutTime;
+    @Column
+    private Integer ordinal;
     @Column
     private Timestamp createdAt;
     @Column
