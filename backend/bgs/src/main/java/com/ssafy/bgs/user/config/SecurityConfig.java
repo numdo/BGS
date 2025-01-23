@@ -9,6 +9,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -19,26 +22,30 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        // 1. CSRF 비활성화 (REST API 형태)
+        // 1. CORS 설정 추가
+        http.cors(cors -> cors.configurationSource(request -> {
+            CorsConfiguration config = new CorsConfiguration();
+            config.setAllowedOrigins(List.of("http://localhost:3000")); // 클라이언트 도메인 추가
+            config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+            config.setAllowedHeaders(List.of("Authorization", "Refresh-Token", "Content-Type"));
+            config.setExposedHeaders(List.of("Authorization", "Refresh-Token")); // 노출할 헤더
+            config.setAllowCredentials(true); // 쿠키 허용 여부
+            return config;
+        }));
+
+        // 2. CSRF 비활성화 (REST API 형태)
         http.csrf(csrf -> csrf.disable());
 
-        // 2. URL별 권한 설정
-        // 소셜 로그인 관련 엔드포인트 (예: Kakao)는 '/api/auth/**'로 관리하고,
-        // 로컬 회원가입 API 등은 '/api/users/signup' 등으로 별도 관리
+        // 3. URL별 권한 설정
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/users/signup").permitAll()
-                // 필요에 따라 로컬 로그인 API를 사용한다면 permitAll 처리
+                .requestMatchers("/api/users/email-verification/**").permitAll()
+                .requestMatchers("/api/users/verify-code/**").permitAll()
+                .requestMatchers("/api/users/reset-password/**").permitAll()
                 .requestMatchers("/api/users/login").permitAll()
                 .anyRequest().authenticated()
         );
-
-        // 3. OAuth2 로그인 사용 시 (Spring Security OAuth2 Client)
-        // properties 파일에 이미 Kakao 관련 설정이 되어 있으므로, oauth2Login을 활성화합니다.
-//        http.oauth2Login(oauth2 -> oauth2
-//                // 로그인 성공 후 기본 리다이렉트 URL 또는 successHandler를 설정할 수 있습니다.
-//                .defaultSuccessUrl("/home", true)
-//        );
 
         // 4. 폼 로그인 비활성화 및 기본 HTTP Basic 인증 설정
         http.formLogin(form -> form.disable());

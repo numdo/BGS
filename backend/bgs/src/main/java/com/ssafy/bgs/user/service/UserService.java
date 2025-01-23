@@ -1,10 +1,9 @@
 package com.ssafy.bgs.user.service;
 
 
-import com.ssafy.bgs.user.dto.request.KakaoSignupRequestDto;
-import com.ssafy.bgs.user.dto.request.UserSignupRequestDto;
-import com.ssafy.bgs.user.dto.request.UserUpdateRequestDto;
+import com.ssafy.bgs.user.dto.request.*;
 import com.ssafy.bgs.user.dto.response.LoginResponseDto;
+import com.ssafy.bgs.user.dto.response.PasswordResetResponseDto;
 import com.ssafy.bgs.user.dto.response.UserResponseDto;
 import com.ssafy.bgs.user.entity.AccountType;
 import com.ssafy.bgs.user.entity.Following;
@@ -16,14 +15,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +36,7 @@ public class UserService {
     private final FollowingRepository followingRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final EmailService emailService;
 
     /**
      * 회원가입
@@ -215,6 +218,76 @@ public class UserService {
     @Transactional(readOnly = true)
     public boolean checkNickname(String nickname) {
         return !userRepository.existsByNickname(nickname);
+    }
+
+    /**
+     * 비밀번호 변경
+     */
+    public void changePassword(Integer userId, PasswordChangeRequestDto requestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+
+        // 1. ACCOUNT_TYPE이 LOCAL인지 확인
+        if (user.getAccountType() != AccountType.LOCAL) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "로컬 계정만 비밀번호를 변경할 수 있습니다.");
+        }
+
+        // 2. 현재 비밀번호 확인
+        if (!passwordEncoder.matches(requestDto.getCurrentPassword(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 3. 새 비밀번호와 확인 비밀번호 일치 여부 확인
+        if (!requestDto.getNewPassword().equals(requestDto.getConfirmNewPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 4. 새 비밀번호 암호화 및 저장
+        String encodedNewPassword = passwordEncoder.encode(requestDto.getNewPassword());
+        user.setPassword(encodedNewPassword);
+        userRepository.save(user);
+    }
+
+    /**
+     * 비밀번호 재설정
+     */
+    public PasswordResetResponseDto resetPassword(PasswordResetRequestDto requestDto) {
+        User user = userRepository.findByEmail(requestDto.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 이메일을 사용하는 사용자가 없습니다."));
+
+        // 1. ACCOUNT_TYPE이 LOCAL인지 확인
+        if (user.getAccountType() != AccountType.LOCAL) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "로컬 계정만 비밀번호를 재설정할 수 있습니다.");
+        }
+
+        // 2. 임시 비밀번호 생성
+        String tempPassword = generateTemporaryPassword();
+
+        // 3. 임시 비밀번호 암호화 및 저장
+        String encodedTempPassword = passwordEncoder.encode(tempPassword);
+        user.setPassword(encodedTempPassword);
+        userRepository.save(user);
+
+        // 4. 이메일로 임시 비밀번호 전송
+        emailService.sendTemporaryPasswordEmail(user.getEmail(), tempPassword);
+
+        return PasswordResetResponseDto.builder()
+                .message("임시 비밀번호가 이메일로 전송되었습니다.")
+                .build();
+    }
+
+    /**
+     * 임시 비밀번호 생성
+     */
+    private String generateTemporaryPassword() {
+        int length = 8;
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_";
+        StringBuilder tempPassword = new StringBuilder();
+        Random random = new Random();
+        for(int i = 0; i < length; i++) {
+            tempPassword.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return tempPassword.toString();
     }
 
     /**
