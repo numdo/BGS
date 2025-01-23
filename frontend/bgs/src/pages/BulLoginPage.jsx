@@ -10,6 +10,33 @@ const BulLoginPage = () => {
     console.log("로그인 시도:", email, password);
   };
 
+  // import React, { useState } from "react";
+  // import { Link, useNavigate } from "react-router-dom";
+  // import axios from "axios";
+
+  // const BulLoginPage = () => {
+  //   const [email, setEmail] = useState("");
+  //   const [password, setPassword] = useState("");
+  //   const [error, setError] = useState(null); // 에러 메시지 상태
+  //   const navigate = useNavigate();
+
+  //   const handleLogin = async (e) => {
+  //     e.preventDefault();
+  //     try {
+  //       const response = await axios.post("/api/users/login", {
+  //         email,
+  //         password,
+  //       });
+  //       // 로그인 성공 처리
+  //       console.log("로그인 성공:", response.data);
+  //       localStorage.setItem("token", response.data.token); // JWT 토큰 저장
+  //       navigate("/"); // 로그인 후 이동할 페이지
+  //     } catch (err) {
+  //       console.error("로그인 실패:", err.response.data);
+  //       setError(err.response.data.message || "로그인에 실패했습니다."); // 에러 메시지 설정
+  //     }
+  //   };
+
   return (
     <div className="flex flex-col justify-evenly h-screen bg-white p-4">
       {/* 화면 상단: 로그인 제목 */}
@@ -19,6 +46,10 @@ const BulLoginPage = () => {
 
       {/* 화면 중단: 입력 폼 및 비밀번호/회원가입 */}
       <div className="flex flex-col items-center space-y-6">
+        {/* 에러 메시지 */}
+        {/* {error && (
+          <div className="text-red-500 text-sm font-medium">{error}</div>
+        )} */}
         {/* 아이디 및 비밀번호 입력 */}
         <form className="w-full max-w-md space-y-4">
           <input
@@ -27,6 +58,7 @@ const BulLoginPage = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-4 py-2 border rounded border-black drop-shadow-lg focus:outline-none focus:ring focus:ring-blue-300"
+            required
           />
           <input
             type="password"
@@ -34,6 +66,7 @@ const BulLoginPage = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-4 py-2 border rounded border-black drop-shadow-lg focus:outline-none focus:ring focus:ring-blue-300"
+            required
           />
         </form>
 
