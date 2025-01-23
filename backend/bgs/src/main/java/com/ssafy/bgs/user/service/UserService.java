@@ -1,11 +1,13 @@
 package com.ssafy.bgs.user.service;
 
 
-import com.ssafy.bgs.user.dto.request.UserSignupRequestDto;
-import com.ssafy.bgs.user.dto.request.UserUpdateRequestDto;
+import com.ssafy.bgs.user.dto.request.*;
 import com.ssafy.bgs.user.dto.response.LoginResponseDto;
+import com.ssafy.bgs.user.dto.response.PasswordResetResponseDto;
 import com.ssafy.bgs.user.dto.response.UserResponseDto;
+import com.ssafy.bgs.user.entity.AccountType;
 import com.ssafy.bgs.user.entity.Following;
+import com.ssafy.bgs.user.entity.FollowingId;
 import com.ssafy.bgs.user.entity.User;
 import com.ssafy.bgs.user.jwt.JwtTokenProvider;
 import com.ssafy.bgs.user.repository.FollowingRepository;
@@ -14,14 +16,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +38,7 @@ public class UserService {
     private final FollowingRepository followingRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final EmailService emailService;
 
     /**
      * 회원가입
@@ -68,12 +75,46 @@ public class UserService {
         user.setCoin(0);
         user.setDeleted(false);
         user.setStrickAttendance(0);
+        user.setAccountType(AccountType.LOCAL);
 
         // 5. 저장
         User savedUser = userRepository.save(user);
 
         // 6. 응답 DTO 변환
         return toUserResponseDto(savedUser);
+    }
+    public UserResponseDto kakaoSignup(Integer userId, KakaoSignupRequestDto kakaoSignupRequestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        user.setName(kakaoSignupRequestDto.getName());
+        // 로컬 로그인을 허용한다면, 비밀번호 저장 (BCrypt)
+
+        if (userRepository.existsByNickname(kakaoSignupRequestDto.getNickname())) {
+            throw new RuntimeException("이미 사용 중인 닉네임입니다.");
+        }
+        user.setNickname(kakaoSignupRequestDto.getNickname());
+
+        if (kakaoSignupRequestDto.getBirthDate() != null) {
+            user.setBirthDate(kakaoSignupRequestDto.getBirthDate());
+        }
+
+        if (kakaoSignupRequestDto.getSex() != null && kakaoSignupRequestDto.getSex().length() > 0) {
+            user.setSex(kakaoSignupRequestDto.getSex().charAt(0));  // DB는 Character
+        }
+
+        if (kakaoSignupRequestDto.getHeight() != null) {
+            user.setHeight(kakaoSignupRequestDto.getHeight());
+        }
+
+        if (kakaoSignupRequestDto.getWeight() != null) {
+            user.setWeight(kakaoSignupRequestDto.getWeight());
+        }
+
+        // 4) 저장
+        User updatedUser = userRepository.save(user);
+
+        // 5) 응답 DTO 변환
+        return toUserResponseDto(updatedUser);
     }
     /**
      * 전체 회원 조회 (페이지네이션)
@@ -91,6 +132,12 @@ public class UserService {
         // 1. 이메일로 사용자를 조회
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("해당 이메일이 존재하지 않습니다."));
+
+
+        // 2. 계정 유형 확인
+        if (user.getAccountType() == AccountType.KAKAO) {
+            throw new RuntimeException("소셜 계정입니다. 소셜 로그인을 사용하세요.");
+        }
 
         // 2. 비밀번호 확인 (BCrypt)
         if (!passwordEncoder.matches(password, user.getPassword())) {
@@ -162,6 +209,8 @@ public class UserService {
         user.setPassword(null);
         user.setHeight(null);
         user.setWeight(null);
+        user.setSocialId(null);
+        user.setAccountType(null);
         user.setDeleted(true); // resigned = true 로 소프트삭제 처리
     }
 
@@ -171,6 +220,76 @@ public class UserService {
     @Transactional(readOnly = true)
     public boolean checkNickname(String nickname) {
         return !userRepository.existsByNickname(nickname);
+    }
+
+    /**
+     * 비밀번호 변경
+     */
+    public void changePassword(Integer userId, PasswordChangeRequestDto requestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+
+        // 1. ACCOUNT_TYPE이 LOCAL인지 확인
+        if (user.getAccountType() != AccountType.LOCAL) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "로컬 계정만 비밀번호를 변경할 수 있습니다.");
+        }
+
+        // 2. 현재 비밀번호 확인
+        if (!passwordEncoder.matches(requestDto.getCurrentPassword(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 3. 새 비밀번호와 확인 비밀번호 일치 여부 확인
+        if (!requestDto.getNewPassword().equals(requestDto.getConfirmNewPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 4. 새 비밀번호 암호화 및 저장
+        String encodedNewPassword = passwordEncoder.encode(requestDto.getNewPassword());
+        user.setPassword(encodedNewPassword);
+        userRepository.save(user);
+    }
+
+    /**
+     * 비밀번호 재설정
+     */
+    public PasswordResetResponseDto resetPassword(PasswordResetRequestDto requestDto) {
+        User user = userRepository.findByEmail(requestDto.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 이메일을 사용하는 사용자가 없습니다."));
+
+        // 1. ACCOUNT_TYPE이 LOCAL인지 확인
+        if (user.getAccountType() != AccountType.LOCAL) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "로컬 계정만 비밀번호를 재설정할 수 있습니다.");
+        }
+
+        // 2. 임시 비밀번호 생성
+        String tempPassword = generateTemporaryPassword();
+
+        // 3. 임시 비밀번호 암호화 및 저장
+        String encodedTempPassword = passwordEncoder.encode(tempPassword);
+        user.setPassword(encodedTempPassword);
+        userRepository.save(user);
+
+        // 4. 이메일로 임시 비밀번호 전송
+        emailService.sendTemporaryPasswordEmail(user.getEmail(), tempPassword);
+
+        return PasswordResetResponseDto.builder()
+                .message("임시 비밀번호가 이메일로 전송되었습니다.")
+                .build();
+    }
+
+    /**
+     * 임시 비밀번호 생성
+     */
+    private String generateTemporaryPassword() {
+        int length = 8;
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_";
+        StringBuilder tempPassword = new StringBuilder();
+        Random random = new Random();
+        for(int i = 0; i < length; i++) {
+            tempPassword.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return tempPassword.toString();
     }
 
     /**
@@ -201,29 +320,30 @@ public class UserService {
     /**
      * 팔로잉 (followerId -> followeeId)
      */
-    public void followUser(Integer followeeId, Integer followerId) {
-        // 이미 팔로우 중인지 체크
-        if (followingRepository.findByFollowerIdAndFolloweeId(followerId, followeeId).isPresent()) {
+    public void followUser(Integer followerId, Integer followeeId) {
+        FollowingId id = new FollowingId(followerId, followeeId);
+
+        if (followingRepository.findById(id).isPresent()) {
             throw new RuntimeException("이미 팔로우 중입니다.");
         }
-        // 대상 사용자 존재 여부 확인
+
         userRepository.findById(followeeId)
                 .orElseThrow(() -> new RuntimeException("팔로우 대상 사용자를 찾을 수 없습니다."));
         userRepository.findById(followerId)
                 .orElseThrow(() -> new RuntimeException("팔로우를 거는 사용자를 찾을 수 없습니다."));
 
         Following following = Following.builder()
-                .followerId(followerId)
-                .followeeId(followeeId)
+                .id(id) // FollowingId 객체 설정
                 .build();
         followingRepository.save(following);
     }
-
     /**
      * 언팔로잉
      */
-    public void unfollowUser(Integer followeeId, Integer followerId) {
-        Following relation = followingRepository.findByFollowerIdAndFolloweeId(followerId, followeeId)
+    public void unfollowUser(Integer followerId, Integer followeeId) {
+        FollowingId id = new FollowingId(followerId, followeeId);
+
+        Following relation = followingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("팔로잉 관계가 없습니다."));
         followingRepository.delete(relation);
     }
@@ -236,12 +356,19 @@ public class UserService {
     public List<UserResponseDto> getFollowingList(Integer userId, String nicknameFilter) {
         List<Following> followings = followingRepository.findByFollowerId(userId);
 
-        return followings.stream()
-                .map(f -> userRepository.findById(f.getFolloweeId()).orElse(null))
+        // followeeId 목록 추출
+        List<Integer> followeeIds = followings.stream()
+                .map(following -> following.getId().getFolloweeId())
+                .toList();
+
+        // 한 번의 쿼리로 followee 정보 조회
+        List<User> followees = userRepository.findAllById(followeeIds);
+
+        return followees.stream()
                 .filter(u -> u != null && (u.getDeleted() == null || !u.getDeleted()))
                 .filter(u -> nicknameFilter == null || u.getNickname().contains(nicknameFilter))
                 .map(this::toUserResponseDto)
-                .toList();
+                .collect(Collectors.toList()); // toList() 대신 collect(Collectors.toList()) 사용
     }
 
     /**
@@ -252,12 +379,19 @@ public class UserService {
     public List<UserResponseDto> getFollowerList(Integer userId, String nicknameFilter) {
         List<Following> followers = followingRepository.findByFolloweeId(userId);
 
-        return followers.stream()
-                .map(f -> userRepository.findById(f.getFollowerId()).orElse(null))
+        // followerId 목록 추출
+        List<Integer> followerIds = followers.stream()
+                .map(following -> following.getId().getFollowerId())
+                .toList();
+
+        // 한 번의 쿼리로 follower 정보 조회
+        List<User> followersUsers = userRepository.findAllById(followerIds);
+
+        return followersUsers.stream()
                 .filter(u -> u != null && (u.getDeleted() == null || !u.getDeleted()))
                 .filter(u -> nicknameFilter == null || u.getNickname().contains(nicknameFilter))
                 .map(this::toUserResponseDto)
-                .toList();
+                .collect(Collectors.toList()); // toList() 대신 collect(Collectors.toList()) 사용
     }
 
     /**
