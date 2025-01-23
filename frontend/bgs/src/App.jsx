@@ -1,13 +1,26 @@
-import { useState } from 'react'
-import './App.css'
+import React from "react";
+import { Route, Routes, BrowserRouter } from "react-router-dom";
 
+import LoginPage from "./pages/LoginPage";
+import MainPage from "./pages/MainPage";
+import MyGymPage from "./pages/MyGymPage";
+import MyInfoPage from "./pages/MyInfoPage";
+import WorkoutPage from "./pages/WorkoutPage"
+import FeedPage from "./pages/FeedPage"
 function App() {
-  const [count, setCount] = useState(0)
   return (
     <>
-      <h1>불끈성 사이트</h1>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<MainPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/workout" element={<WorkoutPage />} />
+          <Route path="/mygym" element={<MyGymPage />} />
+          <Route path="/Feed" element={<FeedPage />} />
+          <Route path="/myinfo" element={<MyInfoPage />} />
+        </Routes>
+      </BrowserRouter>
     </>
   )
 }
-
 export default App
