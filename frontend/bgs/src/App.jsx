@@ -6,7 +6,9 @@ import MainPage from "./pages/MainPage";
 import MyGymPage from "./pages/MyGymPage";
 import MyInfoPage from "./pages/MyInfoPage";
 import WorkoutPage from "./pages/WorkoutPage"
+import WorkoutCreatePage from "./pages/WorkoutCreatePage";
 import FeedPage from "./pages/FeedPage"
+
 function App() {
   return (
     <>
@@ -18,6 +20,7 @@ function App() {
           <Route path="/mygym" element={<MyGymPage />} />
           <Route path="/Feed" element={<FeedPage />} />
           <Route path="/myinfo" element={<MyInfoPage />} />
+          <Route path="/workoutcreate" element={<WorkoutCreatePage />} />
         </Routes>
       </BrowserRouter>
     </>

@@ -1,20 +1,79 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import BottomBar from '../components/BottomBar';
 import TopBar from '../components/TopBar';
 import WorkoutCalendar from '../components/workout/WorkoutCalendar';
-import WorkoutDiary from '../components/workout/WorkoutDiary';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 export default function WorkoutPage() {
-  const [selectedDate, setSelectedDate] = useState(null); // 선택한 날짜
+  const [diaries, setDiaries] = useState([
+    {
+      "diary_id": 0,
+      "user_id": 0,
+      "content": "첫번째 다이어리",
+      "workout_date": new Date(2025, 0, 21),
+      "created_at": "2025-01-23T06:33:59.715Z",
+      "modified_at": "2025-01-23T06:33:59.715Z",
+      "allowed_scope": "string",
+      "like_count": 0
+    },
+    {
+      "diary_id": 1,
+      "user_id": 0,
+      "content": "두번째 다이어리",
+      "workout_date": new Date(2025, 0, 21),
+      "created_at": "2025-01-23T06:33:59.715Z",
+      "modified_at": "2025-01-23T06:33:59.715Z",
+      "allowed_scope": "string",
+      "like_count": 0
+    },
+    {
+      "diary_id": 2,
+      "user_id": 0,
+      "content": "세번째 다이어리",
+      "workout_date": new Date(2025, 0, 21),
+      "created_at": "2025-01-23T06:33:59.715Z",
+      "modified_at": "2025-01-23T06:33:59.715Z",
+      "allowed_scope": "string",
+      "like_count": 0
+    }
+  ])
+  const [selectedDate, setSelectedDate] = useState(new Date(2025, 0, 23))
+  const [filteredDiaries, setFilteredDiaries] = useState([])
+  useEffect(() => {
+    setFilteredDiaries(diaries.filter((diary) => diary.workout_date.getTime() === selectedDate.getTime()))
+  }, [diaries, selectedDate])
+
+  useEffect(() => {
+    console.log(filteredDiaries)
+  }, [filteredDiaries])
+
   const handleDateSelect = (date) => {
     setSelectedDate(date);
   };
+  const navigate = useNavigate()
   return (
     <>
-    <TopBar />
-    <WorkoutCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate}/>
-    <WorkoutDiary selectedDate={selectedDate}/>
-    <BottomBar />
+      <TopBar />
+      <WorkoutCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
+      <div className="space-y-4">
+        {filteredDiaries.map((diary) => (
+          <div
+            key={diary.id}
+            className="p-4 bg-white rounded-lg shadow-md border border-gray-200"
+          >
+            <p className="text-lg font-semibold text-gray-800">
+              {diary.user_id}의 다이어리
+            </p>
+            <p className="text-gray-600 mt-2">내용: {diary.content}</p>
+          </div>
+        ))}
+      </div>
+      <button
+        onClick={() => { navigate('/workoutcreate') }}
+        className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-100 font-bold py-3 px-6 rounded-full transition-all duration-300"
+      >+ 운동일지 생성하기
+      </button>
+      <BottomBar />
     </>
   );
 };
