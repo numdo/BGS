@@ -207,7 +207,7 @@ public class UserService {
         user.setPassword(null);
         user.setHeight(null);
         user.setWeight(null);
-        user.setKakaoId(null);
+        user.setSocialId(null);
         user.setAccountType(null);
         user.setDeleted(true); // resigned = true 로 소프트삭제 처리
     }

@@ -55,7 +55,7 @@ public class KakaoAuthService {
         KakaoUserInfo kakaoUserInfo = getKakaoUserInfo(accessToken);
 
         // 3) DB에 기존 사용자가 있는지 확인 (kakaoId로 조회)
-        Optional<User> optionalUser = userRepository.findByKakaoId(kakaoUserInfo.id());
+        Optional<User> optionalUser = userRepository.findBySocialId(kakaoUserInfo.id());
         User user;
         if (optionalUser.isPresent()) {
             // 이미 가입된 카카오 사용자
@@ -74,7 +74,7 @@ public class KakaoAuthService {
                 } else {
                     // 신규 가입 처리
                     user = new User();
-                    user.setKakaoId(kakaoUserInfo.id());
+                    user.setSocialId(kakaoUserInfo.id());
                     user.setEmail(kakaoUserInfo.email());
                     user.setNickname(
                             (kakaoUserInfo.nickname() != null && !kakaoUserInfo.nickname().isBlank())
@@ -91,7 +91,7 @@ public class KakaoAuthService {
             } else {
                 // 이메일 정보를 받아오지 못했을 경우 -> 닉네임이나 kakaoId로 가입 처리
                 user = new User();
-                user.setKakaoId(kakaoUserInfo.id());
+                user.setSocialId(kakaoUserInfo.id());
                 userRepository.save(user);
             }
         }

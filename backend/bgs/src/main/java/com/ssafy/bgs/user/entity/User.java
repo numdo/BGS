@@ -22,14 +22,11 @@ public class User {
     @Column(name = "account_type")
     private AccountType accountType;
 
-    @Column(name = "kakao_id")
-    private Long kakaoId;
+    @Column(name = "social_id")
+    private Long socialId;
 
     @Column(name = "email", length = 128)
     private String email;
-
-    @Column(name = "login_token", length = 64)
-    private String loginToken;
 
     @Column(name = "password")
     private String password;
