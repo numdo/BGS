@@ -9,6 +9,7 @@ import com.ssafy.bgs.gym.repository.GymRepository;
 import com.ssafy.bgs.gym.repository.MachineRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,9 +24,9 @@ public class GymService {
 
     /**
      * 1) 헬스장 목록 조회
+     * 영업중인 헬스장만 가져옴(deleted=false)
      */
     public List<GymResponseDto> getAllGyms() {
-        // 실무에서는 deleted=false만 가져오거나, @Where(clause="deleted=false")를 적용할 수 있음
         return gymRepository.findAll().stream()
                 .map(this::toGymResponse)
                 .collect(Collectors.toList());
@@ -36,7 +37,6 @@ public class GymService {
      */
     public GymResponseDto createGym(GymRequestDto request) {
         Gym gym = Gym.builder()
-                // PK는 AUTO_INCREMENT이므로 세팅하지 않아도 됨
                 .gymName(request.getGymName())
                 .gymAddress(request.getGymAddress())
                 .build();
@@ -58,10 +58,8 @@ public class GymService {
      * 4) 특정 헬스장에 등록된 머신 목록 조회
      */
     public List<MachineResponseDto> getMachinesByGymId(Integer gymId) {
-        // gym_machines 테이블에서 gymId에 해당하는 목록
         List<GymMachine> gymMachines = gymMachineRepository.findById_GymId(gymId);
 
-        // 중간 엔티티에서 machine 객체를 꺼내어 응답 DTO로 변환
         return gymMachines.stream()
                 .map(GymMachine::getMachine)
                 .map(this::toMachineResponse)
@@ -70,8 +68,8 @@ public class GymService {
 
     /**
      * 5) 헬스장에 (이미 존재하는) 머신 등록
-     *    gymId는 AUTO_INCREMENT로 생성된 헬스장, machineId는 이미 DB에 있는 머신
      */
+    @Transactional
     public void addMachineToGym(Integer gymId, Integer machineId) {
         // 1) 헬스장 존재 확인
         Gym gym = gymRepository.findById(gymId)

@@ -23,7 +23,6 @@ public class GymMachine {
     @Column(name = "deleted", columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean deleted;
 
-    // 외래키 매핑 (선택)
     @MapsId("gymId")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "gym_id")

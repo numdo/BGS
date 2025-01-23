@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class Machine {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)  // TINYINT AUTO_INCREMENT
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "machine_id")
     private Integer machineId;
 

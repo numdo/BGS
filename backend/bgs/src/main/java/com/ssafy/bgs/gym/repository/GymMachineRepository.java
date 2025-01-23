@@ -12,7 +12,4 @@ public interface GymMachineRepository extends JpaRepository<GymMachine, GymMachi
 
     // 특정 헬스장에 속한 GymMachine 목록
     List<GymMachine> findById_GymId(Integer gymId);
-
-    // 특정 머신에 속한 GymMachine 목록
-    List<GymMachine> findById_MachineId(Integer machineId);
 }
