@@ -5,6 +5,8 @@ import com.ssafy.bgs.gym.dto.response.GymResponseDto;
 import com.ssafy.bgs.gym.dto.response.MachineResponseDto;
 import com.ssafy.bgs.gym.service.GymService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,8 +23,8 @@ public class GymController {
      * GET /api/gyms
      */
     @GetMapping
-    public List<GymResponseDto> getAllGyms() {
-        return gymService.getAllGyms();
+    public Page<GymResponseDto> getAllGyms(Pageable pageable) {
+        return gymService.getAllGyms(pageable);
     }
 
     /**
@@ -39,8 +41,8 @@ public class GymController {
      * GET /api/gyms/{gymId}/machines
      */
     @GetMapping("/{gymId}/machines")
-    public List<MachineResponseDto> getMachinesByGym(@PathVariable Integer gymId) {
-        return gymService.getMachinesByGymId(gymId);
+    public Page<MachineResponseDto> getMachinesByGym(@PathVariable Integer gymId, Pageable pageable) {
+        return gymService.getMachinesByGymId(gymId, pageable);
     }
 
     /**
