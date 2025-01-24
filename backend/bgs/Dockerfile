@@ -8,7 +8,7 @@ WORKDIR /app
 COPY target/bgs.jar app.jar
 
 # Copy properties files to a specific directory
-COPY config/application-prod.properties /app/config/application-prod.properties
+COPY config/application-prod.properties /app/config/application.properties
 COPY config/application-private.properties /app/config/application-private.properties
 
 # Expose the port the app runs on
