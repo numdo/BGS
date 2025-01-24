@@ -13,8 +13,8 @@ CREATE TABLE `comments` (
 DROP TABLE IF EXISTS `diary_liked`;
 
 CREATE TABLE `diary_liked` (
-	`user_id`	INT	NOT NULL	COMMENT '회원ID',
-	`diary_id`	INT	NOT NULL	COMMENT '일지ID'
+	`diary_id`	INT	NOT NULL	COMMENT '일지ID',
+	`user_id`	INT	NOT NULL	COMMENT '회원ID'	
 );
 
 DROP TABLE IF EXISTS `following`;
@@ -40,8 +40,8 @@ CREATE TABLE `places` (
 DROP TABLE IF EXISTS `hashtags`;
 
 CREATE TABLE `hashtags` (
-	`tag`	VARCHAR(255)	NOT NULL	COMMENT '태그ID',
-	`diary_id`	INT	NOT NULL	COMMENT '일지ID'
+	`diary_id`	INT	NOT NULL	COMMENT '일지ID',
+	`tag`	VARCHAR(255)	NOT NULL	COMMENT '태그ID'
 );
 
 DROP TABLE IF EXISTS `images`;
@@ -175,7 +175,6 @@ CREATE TABLE `diary_workouts` (
 	`diary_workout_id`	INT	NOT NULL	COMMENT '운동내역ID',
 	`diary_id`	INT	NOT NULL	COMMENT '일지ID',
 	`workout_id`	SMALLINT	NOT NULL	COMMENT '운동아이디',
-	`set_sum`	TINYINT	NULL	COMMENT '세트수',
 	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '운동내역 생성 시간',
 	`modified_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '운동내역 수정일시',
 	`deleted`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '삭제여부'
@@ -256,8 +255,8 @@ ALTER TABLE `comments` ADD CONSTRAINT `PK_COMMENTS` PRIMARY KEY (
 );
 
 ALTER TABLE `diary_liked` ADD CONSTRAINT `PK_DIARY_LIKED` PRIMARY KEY (
-	`user_id`,
-	`diary_id`
+	`diary_id`,
+	`user_id`
 );
 
 ALTER TABLE `places` ADD CONSTRAINT `PK_PLACES` PRIMARY KEY (
@@ -265,8 +264,8 @@ ALTER TABLE `places` ADD CONSTRAINT `PK_PLACES` PRIMARY KEY (
 );
 
 ALTER TABLE `hashtags` ADD CONSTRAINT `PK_HASHTAGS` PRIMARY KEY (
-	`tag`,
-	`diary_id`
+	`diary_id`,
+	`tag`
 );
 
 ALTER TABLE `images` ADD CONSTRAINT `PK_IMAGES` PRIMARY KEY (
@@ -303,8 +302,8 @@ ALTER TABLE `votes` ADD CONSTRAINT `PK_VOTES` PRIMARY KEY (
 );
 
 ALTER TABLE `user_items` ADD CONSTRAINT `PK_USER_ITEMS` PRIMARY KEY (
-	`item_id`,
-	`user_id`
+	`user_id`,
+	`item_id`
 );
 
 ALTER TABLE `gyms` ADD CONSTRAINT `PK_GYMS` PRIMARY KEY (
