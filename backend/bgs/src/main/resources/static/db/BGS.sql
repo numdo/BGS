@@ -145,13 +145,17 @@ CREATE TABLE `user_items` (
 
 DROP TABLE IF EXISTS `gyms`;
 
-CREATE TABLE `gyms` (
-	`gym_id`	INT	NOT NULL	COMMENT '헬스장ID',
-	`gym_name`	VARCHAR(255)	NULL	COMMENT '헬스장 이름',
-	`gym_address`	VARCHAR(255)	NULL	COMMENT '헬스장 주소',
-	`created_at`	TIMESTAMP	NULL	DEFAULT NOW()	COMMENT '헬스장 생성일시',
-	`deleted`	BOOLEAN	NULL	DEFAULT FALSE	COMMENT '헬스장 삭제여부'
+create table gyms
+(
+    gym_id      int auto_increment comment '헬스장ID',
+    gym_name    varchar(255)                         null comment '헬스장 이름',
+    gym_address varchar(255)                         null comment '헬스장 주소',
+    created_at  timestamp  default CURRENT_TIMESTAMP null comment '헬스장 생성일시',
+    deleted     tinyint(1) default 0                 null comment '헬스장 삭제여부',
+    latitude    double                               null comment '헬스장 위도',
+    longitude   double                               null comment '헬스장 경도'
 );
+
 
 DROP TABLE IF EXISTS `workout_records`;
 
@@ -222,7 +226,7 @@ CREATE TABLE `users` (
 	`kakao_id`	BIGINT	NULL	COMMENT	'카카오 로그인 ID',
 	`password`	VARCHAR(255)	NULL	COMMENT '비밀번호',
 	`name`	VARCHAR(10)	NULL	COMMENT '성+이름',
-	`nickname`	VARCHAR(10)	NULL	COMMENT '회원닉네임',
+	`nickname`	VARCHAR(50)	NULL	COMMENT '회원닉네임',
 	`birth_date`	DATE	NULL	COMMENT '생년월일',
 	`sex`	CHAR(1)	NULL	COMMENT 'M, F, O',
 	`height`	SMALLINT	NULL	COMMENT	'회원의 키',
