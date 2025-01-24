@@ -10,6 +10,8 @@ import com.ssafy.bgs.gym.repository.MachineRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,10 +28,9 @@ public class GymService {
      * 1) 헬스장 목록 조회
      * 영업중인 헬스장만 가져옴(deleted=false)
      */
-    public List<GymResponseDto> getAllGyms() {
-        return gymRepository.findAll().stream()
-                .map(this::toGymResponse)
-                .collect(Collectors.toList());
+    public Page<GymResponseDto> getAllGyms(Pageable pageable) {
+        return gymRepository.findAll(pageable)
+                .map(this::toGymResponse);
     }
 
     /**
@@ -57,13 +58,10 @@ public class GymService {
     /**
      * 4) 특정 헬스장에 등록된 머신 목록 조회
      */
-    public List<MachineResponseDto> getMachinesByGymId(Integer gymId) {
-        List<GymMachine> gymMachines = gymMachineRepository.findById_GymId(gymId);
-
-        return gymMachines.stream()
-                .map(GymMachine::getMachine)
-                .map(this::toMachineResponse)
-                .collect(Collectors.toList());
+    public Page<MachineResponseDto> getMachinesByGymId(Integer gymId, Pageable pageable) {
+        return gymMachineRepository.findById_GymId(gymId, pageable)
+                .map(GymMachine::getMachine) // GymMachine에서 Machine 추출
+                .map(this::toMachineResponse); // Machine을 MachineResponseDto로 변환
     }
 
     /**

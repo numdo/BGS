@@ -1,7 +1,7 @@
 import React from 'react';
 import BottomBar from '../components/BottomBar';
 import TopBar from '../components/TopBar';
-const FeedPage = () => {
+export default function FeedPage() {
   return (
     <>
     <TopBar />
@@ -11,4 +11,3 @@ const FeedPage = () => {
   );
 };
 
-export default FeedPage;

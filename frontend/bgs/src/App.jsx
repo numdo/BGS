@@ -5,8 +5,12 @@ import LoginPage from "./pages/LoginPage";
 import MainPage from "./pages/MainPage";
 import MyGymPage from "./pages/MyGymPage";
 import MyInfoPage from "./pages/MyInfoPage";
-import WorkoutPage from "./pages/WorkoutPage"
-import FeedPage from "./pages/FeedPage"
+import WorkoutPage from "./pages/WorkoutPage";
+import WorkoutCreatePage from "./pages/WorkoutCreatePage";
+import FeedPage from "./pages/FeedPage";
+import BullLoginPage from "./pages/BulLoginPage";
+import SignupPage from "./pages/SignupPage";
+
 function App() {
   return (
     <>
@@ -14,13 +18,16 @@ function App() {
         <Routes>
           <Route path="/" element={<MainPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/bullogin" element={<BullLoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
           <Route path="/workout" element={<WorkoutPage />} />
           <Route path="/mygym" element={<MyGymPage />} />
           <Route path="/Feed" element={<FeedPage />} />
           <Route path="/myinfo" element={<MyInfoPage />} />
+          <Route path="/workoutcreate" element={<WorkoutCreatePage />} />
         </Routes>
       </BrowserRouter>
     </>
-  )
+  );
 }
-export default App
+export default App;
