@@ -11,6 +11,9 @@
 	<groupId>com.ssafy</groupId>
 	<artifactId>bgs</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<build>
+		<finalName>bgs</finalName>
+	</build>
 	<name>bgs</name>
 	<description>bgs project for Spring Boot</description>
 	<url/>
