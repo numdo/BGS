@@ -1,0 +1,26 @@
+stages:
+  - build
+
+variables:
+  MAVEN_CLI_OPTS: "-Dmaven.test.failure.ignore=true"
+  MAVEN_IMAGE: "maven:3.8.6-jdk-11"  # 필요한 Maven 및 JDK 버전에 맞게 수정하세요
+
+cache:
+  paths:
+    - .m2/repository/
+
+build:
+  stage: build
+  image: $MAVEN_IMAGE
+  script:
+    - echo "Starting Maven build process..."
+    - mvn $MAVEN_CLI_OPTS clean package
+  artifacts:
+    when: always
+    reports:
+      junit: **/target/surefire-reports/TEST-*.xml
+    paths:
+      - target/*.jar
+    expire_in: 1 week
+  only:
+    - develop
