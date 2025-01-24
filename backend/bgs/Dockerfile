@@ -5,7 +5,7 @@ FROM bellsoft/liberica-openjdk-alpine:17.0.13
 WORKDIR /app
 
 # Copy the JAR file into the container
-COPY target/bgs-0.0.1-SNAPSHOT.jar app.jar
+COPY target/bgs.jar app.jar
 
 # Copy properties files to a specific directory
 COPY config/application-prod.properties /app/config/application-prod.properties
