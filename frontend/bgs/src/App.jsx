@@ -9,7 +9,7 @@ import WorkoutPage from "./pages/WorkoutPage";
 import WorkoutCreatePage from "./pages/WorkoutCreatePage";
 import FeedPage from "./pages/FeedPage";
 import BullLoginPage from "./pages/BulLoginPage";
-import SignupPage from "./pages/SignUpPage";
+import SignupPage from "./pages/SignupPage";
 
 function App() {
   return (
