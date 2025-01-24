@@ -19,6 +19,7 @@ import dumbbell from "../../assets/dumbbell.png";
 const MyGymItem = ({setItems}) => {
   const [isOpen, setIsOpen] = useState(false);
   const addItem = (item) => {
+    console.log(console.log(`${item.name}추가`))
     setItems((prevItems) => [
       ...prevItems,
       {id : Date.now(), ...item, x: 50, y: 50},
@@ -76,8 +77,8 @@ const MyGymItem = ({setItems}) => {
               key={index}
               className="flex-shrink-0 w-full max-w-[calc(100%-1rem)] grid grid-cols-3 gap-4"
             >
-              {gymItems.map((item, idx) => (
-                <div key={idx} className="flex flex-col items-center">
+              {group.map((item, idx) => (
+                <div key={idx} onClick={() => addItem(item)} className="flex flex-col items-center">
                   <img
                     src={item.image}
                     alt={item.name}
