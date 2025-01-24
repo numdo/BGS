@@ -7,9 +7,9 @@ WORKDIR /app
 # Copy the JAR file into the container
 COPY target/bgs.jar app.jar
 
-COPY src/main/resources/application.properties /app/config/application.properties
-
-COPY private-key.pem /app/keys/private-key.pem
+# Copy properties files to a specific directory
+COPY config/application-prod.properties /app/config/application-prod.properties
+COPY config/application-private.properties /app/config/application-private.properties
 
 # Expose the port the app runs on
 EXPOSE 8080
