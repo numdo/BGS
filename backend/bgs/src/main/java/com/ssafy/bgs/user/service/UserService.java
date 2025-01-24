@@ -7,6 +7,7 @@ import com.ssafy.bgs.user.dto.response.PasswordResetResponseDto;
 import com.ssafy.bgs.user.dto.response.UserResponseDto;
 import com.ssafy.bgs.user.entity.AccountType;
 import com.ssafy.bgs.user.entity.Following;
+import com.ssafy.bgs.user.entity.FollowingId;
 import com.ssafy.bgs.user.entity.User;
 import com.ssafy.bgs.user.jwt.JwtTokenProvider;
 import com.ssafy.bgs.user.repository.FollowingRepository;
@@ -26,6 +27,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -318,29 +320,30 @@ public class UserService {
     /**
      * 팔로잉 (followerId -> followeeId)
      */
-    public void followUser(Integer followeeId, Integer followerId) {
-        // 이미 팔로우 중인지 체크
-        if (followingRepository.findByFollowerIdAndFolloweeId(followerId, followeeId).isPresent()) {
+    public void followUser(Integer followerId, Integer followeeId) {
+        FollowingId id = new FollowingId(followerId, followeeId);
+
+        if (followingRepository.findById(id).isPresent()) {
             throw new RuntimeException("이미 팔로우 중입니다.");
         }
-        // 대상 사용자 존재 여부 확인
+
         userRepository.findById(followeeId)
                 .orElseThrow(() -> new RuntimeException("팔로우 대상 사용자를 찾을 수 없습니다."));
         userRepository.findById(followerId)
                 .orElseThrow(() -> new RuntimeException("팔로우를 거는 사용자를 찾을 수 없습니다."));
 
         Following following = Following.builder()
-                .followerId(followerId)
-                .followeeId(followeeId)
+                .id(id) // FollowingId 객체 설정
                 .build();
         followingRepository.save(following);
     }
-
     /**
      * 언팔로잉
      */
-    public void unfollowUser(Integer followeeId, Integer followerId) {
-        Following relation = followingRepository.findByFollowerIdAndFolloweeId(followerId, followeeId)
+    public void unfollowUser(Integer followerId, Integer followeeId) {
+        FollowingId id = new FollowingId(followerId, followeeId);
+
+        Following relation = followingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("팔로잉 관계가 없습니다."));
         followingRepository.delete(relation);
     }
@@ -353,12 +356,19 @@ public class UserService {
     public List<UserResponseDto> getFollowingList(Integer userId, String nicknameFilter) {
         List<Following> followings = followingRepository.findByFollowerId(userId);
 
-        return followings.stream()
-                .map(f -> userRepository.findById(f.getFolloweeId()).orElse(null))
+        // followeeId 목록 추출
+        List<Integer> followeeIds = followings.stream()
+                .map(following -> following.getId().getFolloweeId())
+                .toList();
+
+        // 한 번의 쿼리로 followee 정보 조회
+        List<User> followees = userRepository.findAllById(followeeIds);
+
+        return followees.stream()
                 .filter(u -> u != null && (u.getDeleted() == null || !u.getDeleted()))
                 .filter(u -> nicknameFilter == null || u.getNickname().contains(nicknameFilter))
                 .map(this::toUserResponseDto)
-                .toList();
+                .collect(Collectors.toList()); // toList() 대신 collect(Collectors.toList()) 사용
     }
 
     /**
@@ -369,12 +379,19 @@ public class UserService {
     public List<UserResponseDto> getFollowerList(Integer userId, String nicknameFilter) {
         List<Following> followers = followingRepository.findByFolloweeId(userId);
 
-        return followers.stream()
-                .map(f -> userRepository.findById(f.getFollowerId()).orElse(null))
+        // followerId 목록 추출
+        List<Integer> followerIds = followers.stream()
+                .map(following -> following.getId().getFollowerId())
+                .toList();
+
+        // 한 번의 쿼리로 follower 정보 조회
+        List<User> followersUsers = userRepository.findAllById(followerIds);
+
+        return followersUsers.stream()
                 .filter(u -> u != null && (u.getDeleted() == null || !u.getDeleted()))
                 .filter(u -> nicknameFilter == null || u.getNickname().contains(nicknameFilter))
                 .map(this::toUserResponseDto)
-                .toList();
+                .collect(Collectors.toList()); // toList() 대신 collect(Collectors.toList()) 사용
     }
 
     /**

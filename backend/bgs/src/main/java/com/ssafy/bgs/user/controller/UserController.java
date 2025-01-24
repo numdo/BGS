@@ -270,51 +270,55 @@ public class UserController {
 
     /**
      * 팔로잉
-     * [POST] /api/users/following/{userId}
+     * [POST] /api/users/following/{followeeId}
      * requestBody에 { "followerId": ... } 구조
      */
-    @PostMapping("/following/{userId}")
+    @PostMapping("/following/{followeeId}")
     public ResponseEntity<?> followUser(
-            @PathVariable Integer userId,
-            @RequestBody FollowRequest followRequest
+            @PathVariable Integer followeeId,
+            Authentication authentication
     ) {
         try {
-            userService.followUser(userId, followRequest.followerId());
+            Integer followerId = (Integer) authentication.getPrincipal(); // 인증된 사용자 ID 추출
+            userService.followUser(followerId, followeeId);
             return ResponseEntity.ok("팔로잉 성공");
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-    // requestBody에 팔로우를 건 user의 ID
-    record FollowRequest(Integer followerId) { }
+
 
     /**
      * 언팔로잉
      * [DELETE] /api/users/following/{userId}?followerId=xxx
      */
-    @DeleteMapping("/following/{userId}")
+    @DeleteMapping("/following/{followeeId}")
     public ResponseEntity<?> unfollowUser(
-            @PathVariable Integer userId,
-            @RequestParam Integer followerId
+            @PathVariable Integer followeeId,
+            Authentication authentication
     ) {
         try {
-            userService.unfollowUser(userId, followerId);
+            Integer followerId = (Integer) authentication.getPrincipal(); // 인증된 사용자 ID 추출
+            userService.unfollowUser(followerId, followeeId);
             return ResponseEntity.ok("언팔로잉 성공");
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
     /**
-     * 팔로잉 목록 조회
-     * [GET] /api/users/{userId}/following?nickname=...
+     * 팔로우 리스트
+     * @param authentication
+     * @param nickname
+     * @return
      */
-    @GetMapping("/{userId}/following")
+    @GetMapping("/following")
     public ResponseEntity<?> getFollowingList(
-            @PathVariable Integer userId,
+            Authentication authentication,
             @RequestParam(required = false) String nickname
     ) {
         try {
+            Integer userId = (Integer) authentication.getPrincipal();
             List<UserResponseDto> list = userService.getFollowingList(userId, nickname);
             return ResponseEntity.ok(list);
         } catch (RuntimeException e) {
@@ -326,12 +330,13 @@ public class UserController {
      * 팔로워 목록 조회
      * [GET] /api/users/{userId}/follower?nickname=...
      */
-    @GetMapping("/{userId}/follower")
+    @GetMapping("/follower")
     public ResponseEntity<?> getFollowerList(
-            @PathVariable Integer userId,
+            Authentication authentication,
             @RequestParam(required = false) String nickname
     ) {
         try {
+            Integer userId = (Integer) authentication.getPrincipal();
             List<UserResponseDto> list = userService.getFollowerList(userId, nickname);
             return ResponseEntity.ok(list);
         } catch (RuntimeException e) {
