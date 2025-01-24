@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 
-const colors = ["#ffcccc", "#ffffcc", "#ccffcc", "#ccffff"];
+const colors = ["#ffcccc", "#ffffcc", "#ccffcc", "#F5F1D9"];
 
 const MyGymRoom = () => {
-  const [roomColor, setRoomColor] = useState("#f0f0f0"); // 방 벽 색상
+  const [roomColor, setRoomColor] = useState("#F5F1D9"); // 방 벽 색상
   const [items, setItems] = useState([]); // 배치된 아이템
 
 
@@ -21,7 +21,7 @@ const MyGymRoom = () => {
       <div
         className="relative w-96 h-96"
         style={{
-          clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+          clipPath: "polygon(50% 7%, 100% 25%, 100% 75%, 50% 93%, 0% 75%, 0% 25%)",
           backgroundColor: roomColor,
         }}
       >

@@ -6,19 +6,21 @@ import MyGymRoom from '../components/mygym/MyGymRoom';
 
 
 const MyGymPage = () => {
+  const [items, setItems] = useState([]);
+
   return (
     <>
     <TopBar />
     <div className=' flex-col justify-between'>
       <header className='text-center py-4'>
         <h1 className='text-2xl font-bold'>국건이의 마이짐</h1>
-        <MyGymRoom />
+        <MyGymRoom items={items} setItems={setItems} />
         {/* 박스 제어 버튼 */}
         <button>
           
         </button>
       </header>
-      <MyGymItem />
+      <MyGymItem setItems={setItems} />
     </div>
     
     <BottomBar />
