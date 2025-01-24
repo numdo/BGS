@@ -1,6 +1,10 @@
-import React, { useRef } from "react";
+import React, { useState, useRef } from "react";
 
-const MyGymRoom = ({ items, setItems, roomColor, setRoomColor }) => {
+const colors = ["#ffcccc", "#ffffcc", "#ccffcc", "#F5F1D9"];
+
+const MyGymRoom = () => {
+  const [roomColor, setRoomColor] = useState("#F5F1D9"); // 방 벽 색상
+  const [items, setItems] = useState([]); // 배치된 아이템
   const roomRef = useRef(null); // 방 DOM 참조
 
   // 아이템 드래그 시 방 기준 좌표 계산
@@ -24,7 +28,7 @@ const MyGymRoom = ({ items, setItems, roomColor, setRoomColor }) => {
         className="relative w-96 h-96"
         style={{
           clipPath: "polygon(50% 7%, 100% 25%, 100% 75%, 50% 93%, 0% 75%, 0% 25%)",
-          backgroundColor: roomColor, // 방 색상 적용
+          backgroundColor: roomColor,
         }}
       >
         {/* 아이템 렌더링 */}
@@ -36,7 +40,6 @@ const MyGymRoom = ({ items, setItems, roomColor, setRoomColor }) => {
             className="absolute w-16 h-16"
             style={{ top: item.y, left: item.x }}
             draggable
-            onDragStart={(e) => e.preventDefault()} // 기본 동작 방지
             onDragEnd={(e) =>
               onDragItem(item.id, e.clientX, e.clientY) // 드래그 종료 시 호출
             }
@@ -46,7 +49,7 @@ const MyGymRoom = ({ items, setItems, roomColor, setRoomColor }) => {
 
       {/* 색상 팔레트 */}
       <div className="flex space-x-4 mt-4">
-        {["#ffcccc", "#ffffcc", "#ccffcc", "#F5F1D9"].map((color, index) => (
+        {colors.map((color, index) => (
           <button
             key={index}
             className="w-8 h-8 rounded-full"
