@@ -1,20 +1,17 @@
 package com.ssafy.bgs.diary.entity;
 
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "diary_liked", schema = "bgs")
-@IdClass(DiaryLikedId.class)
-@Getter
-@Setter
 public class DiaryLiked {
-    @Id
-    private Integer diaryId;
-    @Id
-    private Integer userId;
+    @EmbeddedId
+    private DiaryLikedId id;  // 복합 키를 사용할 필드
+
 }

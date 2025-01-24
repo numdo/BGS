@@ -8,27 +8,27 @@ import java.util.Objects;
 
 @Setter
 @Getter
-public class DiaryLikedId implements Serializable {
+public class HashtagId implements Serializable {
+    private String tag;
     private Integer diaryId;
-    private Integer userId;
 
-    public DiaryLikedId() {}
+    public HashtagId() {}
 
-    public DiaryLikedId(Integer diaryId, Integer userId) {
+    public HashtagId(Integer diaryId, String tag) {
+        this.tag = tag;
         this.diaryId = diaryId;
-        this.userId = userId;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        DiaryLikedId that = (DiaryLikedId) o;
-        return Objects.equals(diaryId, that.diaryId) && Objects.equals(userId, that.userId);
+        HashtagId that = (HashtagId) o;
+        return Objects.equals(tag, that.tag) && Objects.equals(diaryId, that.diaryId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(diaryId, userId);
+        return Objects.hash(tag, diaryId);
     }
 }

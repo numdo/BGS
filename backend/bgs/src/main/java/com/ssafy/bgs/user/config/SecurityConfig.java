@@ -4,6 +4,7 @@ import com.ssafy.bgs.user.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,6 +26,8 @@ public class SecurityConfig {
         // 2. URL별 권한 설정
         http.authorizeHttpRequests(auth -> auth
                 // 로그인, 회원가입은 누구나 접근
+                .requestMatchers("api/**").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "api/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/users/signup").permitAll()
                 .requestMatchers("/api/users/login").permitAll()

@@ -9,11 +9,12 @@ import java.util.List;
 
 @Getter
 @Setter
-public class DiaryCreateDto {
+public class DiaryRequestDto {
     private Integer diaryId;
     private Integer userId;
     private Date workoutDate;
     private String content;
     private String allowedScope;
-    private List<DiaryWorkoutRequestDto> workouts = new ArrayList<>();
+    private List<String> hashtags = new ArrayList<>();
+    private List<DiaryWorkoutRequestDto> diaryWorkouts = new ArrayList<>();
 }

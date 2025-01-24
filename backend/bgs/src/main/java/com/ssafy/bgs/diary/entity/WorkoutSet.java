@@ -25,8 +25,6 @@ public class WorkoutSet {
     @Column
     private Integer workoutTime;
     @Column
-    private Integer ordinal;
-    @Column
     private Timestamp createdAt;
     @Column
     private Timestamp modifiedAt;

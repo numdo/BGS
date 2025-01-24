@@ -1,14 +1,17 @@
-package com.ssafy.bgs.diary.dto.request;
+package com.ssafy.bgs.diary.dto.response;
 
 import lombok.Getter;
 import lombok.Setter;
 
+import java.sql.Timestamp;
+
 @Getter
 @Setter
-public class WorkoutSetRequestDto {
+public class WorkoutSetResponseDto {
     private Integer workoutSetId;
     private Float weight;
     private Integer repetition;
     private Integer workoutTime;
-    private Boolean deleted;
+    private Timestamp createdAt;
+    private Timestamp modifiedAt;
 }

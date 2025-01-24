@@ -1,6 +1,7 @@
 package com.ssafy.bgs.diary.controller;
 
-import com.ssafy.bgs.diary.dto.request.DiaryCreateDto;
+import com.ssafy.bgs.diary.dto.request.DiaryRequestDto;
+import com.ssafy.bgs.diary.dto.response.DiaryResponseDto;
 import com.ssafy.bgs.diary.entity.Diary;
 import com.ssafy.bgs.diary.service.DiaryService;
 import org.springframework.data.domain.Page;
@@ -32,14 +33,40 @@ public class DiaryController {
     }
 
     @PostMapping
-    public ResponseEntity<Diary> addDiary(@RequestBody DiaryCreateDto diaryCreateDto) {
-        diaryService.addDiary(diaryCreateDto);
+    public ResponseEntity<Diary> addDiary(@RequestBody DiaryRequestDto diaryRequestDto) {
+        diaryService.addDiary(diaryRequestDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @GetMapping("/{diaryId}")
+    public ResponseEntity<DiaryResponseDto> getDiary(@PathVariable Integer diaryId) {
+        DiaryResponseDto diaryResponseDto = diaryService.getDiary(diaryId);
+        return new ResponseEntity<>(diaryResponseDto, HttpStatus.OK);
+    }
+
     @PatchMapping("/{diaryId}")
-    public ResponseEntity<Diary> updateDiary(@PathVariable Integer diaryId, @RequestBody DiaryCreateDto diaryCreateDto) {
-        diaryService.updateDiary(diaryCreateDto);
+    public ResponseEntity<Diary> updateDiary(@PathVariable Integer diaryId, @RequestBody DiaryRequestDto diaryRequestDto) {
+        diaryService.updateDiary(diaryRequestDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @DeleteMapping("/{diaryId}")
+    public ResponseEntity<Diary> deleteDiary(@PathVariable Integer diaryId) {
+        diaryService.deleteDiary(diaryId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/{diaryId}/liked")
+    public ResponseEntity<Boolean> likeDiary(@PathVariable Integer diaryId, @RequestBody Integer userId) {
+        diaryService.likeDiary(diaryId, userId);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/{diaryId}/liked")
+    public ResponseEntity<Boolean> unlikeDiary(@PathVariable Integer diaryId, @RequestBody Integer userId) {
+        diaryService.unlikeDiary(diaryId, userId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
 }

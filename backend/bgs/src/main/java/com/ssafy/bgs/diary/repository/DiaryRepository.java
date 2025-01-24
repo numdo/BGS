@@ -11,9 +11,8 @@ import java.sql.Date;
 @Repository
 public interface DiaryRepository extends JpaRepository<Diary, Integer> {
 
-    Page<Diary> findByUserIdAndWorkoutDate(Integer userId, Date workoutDate, Pageable pageable);
-    Page<Diary> findByUserId(Integer userId, Pageable pageable);
-    Page<Diary> findByWorkoutDate(Date workoutDate, Pageable pageable);
-
-
+    Page<Diary> findByUserIdAndWorkoutDateAndDeletedFalse(Integer userId, Date workoutDate, Pageable pageable);
+    Page<Diary> findByUserIdAndDeletedFalse(Integer userId, Pageable pageable);
+    Page<Diary> findByWorkoutDateAndDeletedFalse(Date workoutDate, Pageable pageable);
+    Page<Diary> findByDeletedFalse(Pageable pageable);
 }
