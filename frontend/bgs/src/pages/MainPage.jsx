@@ -22,6 +22,15 @@ export default function MainPage() {
           className="w-12 h-12"
         />
       </button>
+      <button
+        onClick={() => { navigate("/signup") }}
+        className="m-auto mt-10 flex items-center p-4 bg-white border rounded-lg shadow-lg hover:bg-gray-100 transition-all duration-200"
+      >
+        <div className="text-left">
+          <p className="text-xl font-semibold text-gray-800">로그인</p>
+          <p className="text-lg text-gray-600">바로 하러가기</p>
+        </div>
+      </button>
       <BottomBar />
     </>
   );
