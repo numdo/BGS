@@ -1,6 +1,8 @@
 package com.ssafy.bgs.diary.controller;
 
+import com.ssafy.bgs.diary.dto.request.CommentRequestDto;
 import com.ssafy.bgs.diary.dto.request.DiaryRequestDto;
+import com.ssafy.bgs.diary.dto.response.CommentResponseDto;
 import com.ssafy.bgs.diary.dto.response.DiaryResponseDto;
 import com.ssafy.bgs.diary.entity.Diary;
 import com.ssafy.bgs.diary.service.DiaryService;
@@ -25,15 +27,16 @@ public class DiaryController {
     public ResponseEntity<Page<Diary>> getDiaryList(
             @RequestParam(required = false) Integer userId,
             @RequestParam(required = false) Date workoutDate,
-            @RequestParam int page,
-            @RequestParam int pageSize) {
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
         Page<Diary> diaryList = diaryService.getDiaryList(userId, workoutDate, page, pageSize);
 
         return new ResponseEntity<>(diaryList, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Diary> addDiary(@RequestBody DiaryRequestDto diaryRequestDto) {
+    public ResponseEntity<DiaryResponseDto> addDiary(@RequestBody DiaryRequestDto diaryRequestDto) {
         diaryService.addDiary(diaryRequestDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -45,13 +48,13 @@ public class DiaryController {
     }
 
     @PatchMapping("/{diaryId}")
-    public ResponseEntity<Diary> updateDiary(@PathVariable Integer diaryId, @RequestBody DiaryRequestDto diaryRequestDto) {
+    public ResponseEntity<DiaryResponseDto> updateDiary(@PathVariable Integer diaryId, @RequestBody DiaryRequestDto diaryRequestDto) {
         diaryService.updateDiary(diaryRequestDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @DeleteMapping("/{diaryId}")
-    public ResponseEntity<Diary> deleteDiary(@PathVariable Integer diaryId) {
+    public ResponseEntity<Boolean> deleteDiary(@PathVariable Integer diaryId) {
         diaryService.deleteDiary(diaryId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -68,5 +71,37 @@ public class DiaryController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @GetMapping("/{diaryId}/comments")
+    public ResponseEntity<Page<CommentResponseDto>> getCommentList(
+            @PathVariable Integer diaryId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        Page<CommentResponseDto> commentList = diaryService.getCommentList(diaryId , page, pageSize);
+
+        return new ResponseEntity<>(commentList, HttpStatus.OK);
+    }
+
+    @PostMapping("/{diaryId}/comments")
+    public ResponseEntity<CommentResponseDto> addComment(@PathVariable Integer diaryId, @RequestBody CommentRequestDto commentRequestDto) {
+        diaryService.addComment(commentRequestDto);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @PatchMapping("/{diaryId}/comments/{commentId}")
+    public ResponseEntity<CommentResponseDto> updateComment(
+            @PathVariable Integer diaryId,
+            @PathVariable Integer commentId,
+            @RequestBody CommentRequestDto commentRequestDto
+    ) {
+        diaryService.updateComment(commentRequestDto);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{diaryId}/comments/{commentId}")
+    public ResponseEntity<Boolean> deleteComment(@PathVariable Integer diaryId, @PathVariable Integer commentId) {
+        diaryService.deleteComment(commentId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 
 }

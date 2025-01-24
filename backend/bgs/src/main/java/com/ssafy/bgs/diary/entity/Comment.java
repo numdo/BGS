@@ -25,10 +25,19 @@ public class Comment {
     @Column
     private Timestamp createdAt;
     @Column
+    private Timestamp modifiedAt;
+    @Column
     private Boolean deleted;
 
     @PrePersist
     public void prePersist() {
         createdAt = Timestamp.valueOf(LocalDateTime.now());
+        modifiedAt = Timestamp.valueOf(LocalDateTime.now());
+        deleted = false;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        modifiedAt = Timestamp.valueOf(LocalDateTime.now());
     }
 }

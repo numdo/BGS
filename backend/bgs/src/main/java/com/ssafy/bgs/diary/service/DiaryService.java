@@ -1,8 +1,10 @@
 package com.ssafy.bgs.diary.service;
 
+import com.ssafy.bgs.diary.dto.request.CommentRequestDto;
 import com.ssafy.bgs.diary.dto.request.DiaryRequestDto;
 import com.ssafy.bgs.diary.dto.request.DiaryWorkoutRequestDto;
 import com.ssafy.bgs.diary.dto.request.WorkoutSetRequestDto;
+import com.ssafy.bgs.diary.dto.response.CommentResponseDto;
 import com.ssafy.bgs.diary.dto.response.DiaryResponseDto;
 import com.ssafy.bgs.diary.dto.response.DiaryWorkoutResponseDto;
 import com.ssafy.bgs.diary.dto.response.WorkoutSetResponseDto;
@@ -25,15 +27,18 @@ public class DiaryService {
     private final WorkoutSetRepository workoutSetRepository;
     private final DiaryLikedRepository diaryLikedRepository;
     private final HashtagRepository hashtagRepository;
+    private final CommentRepository commentRepository;
 
-    public DiaryService(DiaryRepository diaryRepository, DiaryWorkoutRepository diaryWorkoutRepository, WorkoutSetRepository workoutSetRepository, DiaryLikedRepository diaryLikedRepository, HashtagRepository hashtagRepository) {
+    public DiaryService(DiaryRepository diaryRepository, DiaryWorkoutRepository diaryWorkoutRepository, WorkoutSetRepository workoutSetRepository, DiaryLikedRepository diaryLikedRepository, HashtagRepository hashtagRepository, CommentRepository commentRepository) {
         this.diaryRepository = diaryRepository;
         this.diaryWorkoutRepository = diaryWorkoutRepository;
         this.workoutSetRepository = workoutSetRepository;
         this.diaryLikedRepository = diaryLikedRepository;
         this.hashtagRepository = hashtagRepository;
+        this.commentRepository = commentRepository;
     }
 
+    /** Diary Select **/
     public Page<Diary> getDiaryList(Integer userId, Date workoutDate, int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         if (userId != null && workoutDate != null) {
@@ -70,8 +75,6 @@ public class DiaryService {
         // 운동 세트 저장
         List<WorkoutSet> workoutSets = addWorkoutSets(diaryRequestDto.getDiaryWorkouts(), savedDiaryWorkouts);
         workoutSetRepository.saveAll(workoutSets);
-
-
     }
 
     /** diaryId를 키로 Hashtag insert **/
@@ -296,5 +299,38 @@ public class DiaryService {
     public void unlikeDiary(Integer diaryId, Integer userId) {
         DiaryLikedId diaryLikedId = new DiaryLikedId(diaryId, userId);
         diaryLikedRepository.deleteById(diaryLikedId);
+    }
+
+    /** Comment select **/
+    public Page<CommentResponseDto> getCommentList(Integer diaryId, int page, int pageSize) {
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        return commentRepository.findCommentsByDiaryId(diaryId, pageable);
+    }
+
+    /** Comment insert **/
+    public void addComment(CommentRequestDto commentRequestDto) {
+        Comment comment = new Comment();
+        comment.setDiaryId(commentRequestDto.getDiaryId());
+        comment.setUserId(commentRequestDto.getUserId());
+        comment.setContent(commentRequestDto.getContent());
+        commentRepository.save(comment);
+    }
+
+    /** Comment update **/
+    public void updateComment(CommentRequestDto commentRequestDto) {
+        Comment comment = commentRepository.findById(commentRequestDto.getCommentId()).orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+        comment.setContent(commentRequestDto.getContent());
+        commentRepository.save(comment);
+    }
+
+    /** Comment delete **/
+    public void deleteComment(Integer commentId) {
+        Comment comment = commentRepository.findById(commentId).orElse(null);
+        if (comment == null || comment.getDeleted()) {
+            throw new IllegalArgumentException("Comment does not exist or is already deleted");
+        }
+
+        comment.setDeleted(true);
+        commentRepository.save(comment);
     }
 }
