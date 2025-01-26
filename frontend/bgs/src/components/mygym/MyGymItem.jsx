@@ -19,12 +19,31 @@ import dumbbell from "../../assets/dumbbell.png";
 const MyGymItem = ({setItems}) => {
   const [isOpen, setIsOpen] = useState(false);
   const addItem = (item) => {
-    console.log(console.log(`${item.name}추가`))
-    setItems((prevItems) => [
-      ...prevItems,
-      {id : Date.now(), ...item, x: 50, y: 50},
-    ]);
-  }
+    console.log(`${item.name}추가`);
+  
+    setItems((prevItems) => {
+      //  중복 여부 확인
+      const isDuplicate = prevItems.some((prevItem) => prevItem.name === item.name);
+  
+      if (isDuplicate) {
+        // 중복이면 알림만 띄우고 그 상태 그대로 반환
+        alert(`이미 '${item.name}'가(이) 배치되었습니다!`);
+        return prevItems;
+      }
+  
+      //  중복이 아니면 새 아이템 추가
+      return [
+        ...prevItems,
+        {
+          id: Date.now(),
+          ...item,
+          x: 160, // 방 중앙값
+          y: 160,
+        },
+      ];
+    });
+  };
+  
 
   const toggleBox = () => {
     setIsOpen(!isOpen); // 열림/닫힘 상태 변경
