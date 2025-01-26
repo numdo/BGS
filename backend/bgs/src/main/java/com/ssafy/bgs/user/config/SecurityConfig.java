@@ -25,7 +25,8 @@ public class SecurityConfig {
         // 1. CORS 설정 추가
         http.cors(cors -> cors.configurationSource(request -> {
             CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedOrigins(List.of("http://localhost:3000")); // 클라이언트 도메인 추가
+            // config.setAllowedOrigins(List.of("http://localhost:3000")); // 클라이언트 도메인 추가
+            config.setAllowedOrigins(List.of("http://localhost:5173")); // 클라이언트 도메인 추가
             config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
             config.setAllowedHeaders(List.of("Authorization", "Refresh-Token", "Content-Type"));
             config.setExposedHeaders(List.of("Authorization", "Refresh-Token")); // 노출할 헤더
