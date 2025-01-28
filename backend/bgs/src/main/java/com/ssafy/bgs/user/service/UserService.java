@@ -27,6 +27,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -221,7 +222,8 @@ public class UserService {
             try {
                 // ImageService를 통해 S3 업로드 + images 테이블 INSERT
                 // usage_type='PROFILE', usage_id=userId
-                imageService.uploadProfileImage(profileImage, userId);
+                List<MultipartFile> profileImages = new ArrayList<>();
+                imageService.uploadImages(profileImages, "profile" ,(long)userId);
             } catch (IOException e) {
                 // IOException -> RuntimeException 래핑
                 throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);

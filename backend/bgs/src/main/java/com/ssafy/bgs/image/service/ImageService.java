@@ -33,7 +33,7 @@ public class ImageService {
 
         for (MultipartFile file : files) {
             // 1) S3 업로드 -> key 반환
-            String s3Key = s3Uploader.upload(file, "images");
+            String s3Key = s3Uploader.upload(file, "images/" + usageType + "/" + usageId);
 
             // 2) 파일 확장자
             String ext = getFileExtension(file.getOriginalFilename());
@@ -68,29 +68,6 @@ public class ImageService {
         }
     }
 
-    /**
-     * 프로필 이미지 업로드 -> DB 저장
-     */
-    @Transactional
-    public void uploadProfileImage(MultipartFile file, int userId) throws IOException {
-        // 1) 이전 프로필 이미지들은 deleted=1 처리 (선택적)
-        imageRepository.markAllProfileImagesAsDeleted(userId);
-
-        // 2) 새 이미지 S3 업로드
-        String s3Key = s3Uploader.upload(file, "images/profile");
-
-        // 3) images 테이블에 INSERT
-        Image image = Image.builder()
-                .url(s3Key)
-                .extension(getFileExtension(file.getOriginalFilename()))
-                .usageType("PROFILE")
-                .usageId((long) userId)
-                .deleted(false)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        imageRepository.save(image);
-    }
 
     /**
      * 해당 userId의 "가장 최신" 프로필 이미지를 가져오기
@@ -105,6 +82,12 @@ public class ImageService {
         return Optional.of(profileImages.get(0)); // createdAt DESC 정렬의 첫 번째 = 최신
     }
 
+
+    /**
+     * 이미지 확장자 가져오기
+     * @param fileName
+     * @return
+     */
     private String getFileExtension(String fileName) {
         if (fileName == null) return "";
         int idx = fileName.lastIndexOf('.');
