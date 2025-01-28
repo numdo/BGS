@@ -44,6 +44,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/verify-code/**").permitAll()
                 .requestMatchers("/api/users/reset-password/**").permitAll()
                 .requestMatchers("/api/users/login").permitAll()
+                .requestMatchers("/images/**").permitAll()
+                .requestMatchers("/profile/**").permitAll()
                 .anyRequest().authenticated()
         );
 

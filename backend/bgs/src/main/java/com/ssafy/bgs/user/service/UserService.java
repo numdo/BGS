@@ -1,6 +1,7 @@
 package com.ssafy.bgs.user.service;
 
 
+import com.ssafy.bgs.image.service.ImageService;
 import com.ssafy.bgs.user.dto.request.*;
 import com.ssafy.bgs.user.dto.response.LoginResponseDto;
 import com.ssafy.bgs.user.dto.response.PasswordResetResponseDto;
@@ -17,12 +18,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -39,6 +41,7 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final EmailService emailService;
+    private final ImageService imageService;
 
     /**
      * 회원가입
@@ -63,7 +66,7 @@ public class UserService {
         user.setPassword(encodedPassword); // 해시된 비밀번호 저장
         user.setNickname(requestDto.getNickname());
         user.setName(requestDto.getName());
-        user.setBirthDate(requestDto.getBirth_date());
+        user.setBirthDate(requestDto.getBirthDate());
         // sex가 "M", "F", "O" 로 들어온다고 가정, DB는 Character로 저장
         if (requestDto.getSex() != null && requestDto.getSex().length() > 0) {
             user.setSex(requestDto.getSex().charAt(0));
@@ -127,7 +130,12 @@ public class UserService {
         return result.map(this::toUserResponseDto);
     }
 
-
+    /**
+     * 로그인
+     * @param email
+     * @param password
+     * @return
+     */
     public LoginResponseDto login(String email, String password) {
         // 1. 이메일로 사용자를 조회
         User user = userRepository.findByEmail(email)
@@ -154,7 +162,10 @@ public class UserService {
                 .build();
     }
 
-
+    /**
+     * 로그아웃
+     * @param userId
+     */
     public void logout(Integer userId) {
         // 별도 처리 없다고 가정
     }
@@ -166,36 +177,69 @@ public class UserService {
     public UserResponseDto getUserInfo(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-        return toUserResponseDto(user);
+
+        // 1) 기본 유저 정보 DTO 생성
+        UserResponseDto dto = toUserResponseDto(user);
+
+        // 2) 가장 최신 프로필 이미지를 조회하여 dto에 세팅
+        imageService.findLatestProfileImage(userId)
+                .ifPresent(image -> dto.setProfileImageUrl(imageService.getS3Url(image.getUrl())));
+
+
+        return dto;
     }
 
+
     /**
-     * 특정 사용자 정보 수정
+     * 특정 사용자 정보 수정 + (옵션) 프로필 이미지 업로드
      */
-    public UserResponseDto updateUserInfo(Integer userId, UserUpdateRequestDto requestDto) {
+    @Transactional
+    public UserResponseDto updateUserInfo(Integer userId,
+                                          UserUpdateRequestDto requestDto,
+                                          MultipartFile profileImage) {
+        // 1) 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        // 닉네임 변경 시 중복체크
+        // 2) 닉네임 중복 체크 (기존 로직)
         String newNickname = requestDto.getNickname();
         if (newNickname != null && !newNickname.equals(user.getNickname())) {
-            // 만약 새 닉네임이 현재 사용자의 닉네임과 다르면 중복 여부 확인
             if (userRepository.existsByNickname(newNickname)) {
                 throw new RuntimeException("이미 사용 중인 닉네임입니다.");
             }
             user.setNickname(newNickname);
         }
 
+        // 3) 다른 정보 변경
         user.setIntroduction(requestDto.getIntroduction());
-        user.setBirthDate(requestDto.getBirth_date());
+        user.setBirthDate(requestDto.getBirthDate());
         user.setHeight(requestDto.getHeight());
         user.setWeight(requestDto.getWeight());
-        // 수정 시 modified_at은 DB에서 default로 자동 업데이트 되거나,
-        // @PreUpdate 등의 방식을 사용할 수도 있습니다.
-        User updatedUser = userRepository.save(user);
-        return toUserResponseDto(updatedUser);
-    }
 
+        // 4) 프로필 이미지가 있으면 업로드
+        if (profileImage != null && !profileImage.isEmpty()) {
+            try {
+                // ImageService를 통해 S3 업로드 + images 테이블 INSERT
+                // usage_type='PROFILE', usage_id=userId
+                imageService.uploadProfileImage(profileImage, userId);
+            } catch (IOException e) {
+                // IOException -> RuntimeException 래핑
+                throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);
+            }
+        }
+
+        // 5) DB 반영
+        User updatedUser = userRepository.save(user);
+
+        // 6) 엔티티 -> DTO 변환
+        UserResponseDto dto = toUserResponseDto(updatedUser);
+
+        imageService.findLatestProfileImage(userId)
+                .ifPresent(img -> dto.setProfileImageUrl(imageService.getS3Url(img.getUrl())));
+
+
+        return dto;
+    }
     /**
      * 회원 탈퇴 (소프트 삭제)
      */
@@ -399,21 +443,22 @@ public class UserService {
      */
     private UserResponseDto toUserResponseDto(User user) {
         return UserResponseDto.builder()
-                .user_id(user.getId())
+                .userId(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())
                 .nickname(user.getNickname())
-                .birth_date(user.getBirthDate())
+                .birthDate(user.getBirthDate())
                 .sex(user.getSex() == null ? null : user.getSex().toString())
                 .height(user.getHeight())
                 .weight(user.getWeight())
                 .degree(user.getDegree() != null ? user.getDegree().doubleValue() : null)
                 .introduction(user.getIntroduction())
-                .total_weight(user.getTotalWeight() != null ? user.getTotalWeight().doubleValue() : null)
+                .totalWeight(user.getTotalWeight() != null ? user.getTotalWeight().doubleValue() : null)
                 .deleted(user.getDeleted())
-                .strick_attendance(user.getStrickAttendance())
-                .last_attendance(user.getLastAttendance())
+                .strickAttendance(user.getStrickAttendance())
+                .lastAttendance(user.getLastAttendance())
                 .coin(user.getCoin())
+                .profileImageUrl(null) // 여기서는 기본 null로 두고, 호출부에서 최신 이미지를 세팅
                 .build();
     }
 }
