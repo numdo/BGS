@@ -130,7 +130,7 @@ const SignupPage = () => {
             className={`w-24 p-2 rounded ${
               formData.email
                 ? "bg-blue-500 text-white hover:bg-blue-600"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
             }`}
             disabled={loading || !formData.email}
           >
@@ -154,7 +154,7 @@ const SignupPage = () => {
             className={`w-24 p-2 rounded ${
               formData.verificationCode
                 ? "bg-green-500 text-white hover:bg-green-600"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
             }`}
             disabled={!formData.verificationCode || isVerified}
           >
@@ -184,7 +184,7 @@ const SignupPage = () => {
           className={`w-full p-3 rounded ${
             isVerified && isPasswordValid()
               ? "bg-blue-500 text-white hover:bg-blue-600"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
           }`}
           disabled={!isVerified || !isPasswordValid()}
         >
