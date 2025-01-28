@@ -19,7 +19,7 @@ public class KakaoAuthController {
 
     private final KakaoAuthService kakaoAuthService;
 
-    // application.yaml에 등록된 값
+    // application.properties 에 등록된 값
     @Value("${kakao.oauth.client-id}")
     private String kakaoClientId;
 
