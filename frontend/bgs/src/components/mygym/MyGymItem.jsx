@@ -1,9 +1,9 @@
 import { useState } from "react";
 
 // 이미지 import
-import BenchPress from "../../assets/벤치프레스.png";
-import LatPulldown from "../../assets/랩폴다운.png";
-import Deadlift from "../../assets/데드리프트.png";
+import BenchPress from "../../assets/benchpress.png";
+import LatPulldown from "../../assets/Latpulldown.png";
+import Deadlift from "../../assets/deadlift.png";
 import Squat from "../../assets/스쿼트.png";
 import PowerRack from "../../assets/파워랙.png";
 import HipRack from "../../assets/히프랙.png";
@@ -12,14 +12,14 @@ import SmithMachine from "../../assets/스미스머신.png";
 import LegPress from "../../assets/레그프레스.png";
 import LegCurl from "../../assets/레그컬.png";
 import cycle from "../../assets/cycle.png";
-import runningmachine from "../../assets/runningmachine.png";
+import runningmachine from "../../assets/Runningmachine.png";
 import pullup from "../../assets/pullup.png";
 import dumbbell from "../../assets/dumbbell.png";
 
 const MyGymItem = ({setItems}) => {
   const [isOpen, setIsOpen] = useState(false);
   const addItem = (item) => {
-    console.log(`${item.name}추가`);
+    console.log(`${item.name} 추가`);
   
     setItems((prevItems) => {
       //  중복 여부 확인
@@ -78,7 +78,7 @@ const MyGymItem = ({setItems}) => {
         {/* 열기/닫기 버튼 */}
         <button
           onClick={toggleBox}
-          className="w-full py-3 bg-sky-100 text-gray-800 font-bold rounded-t-10xl"
+          className="w-full py-3 bg-sky-100 text-gray-800 font-bold rounded-t-3xl"
         >
           ㅡ
         </button>
