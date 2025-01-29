@@ -5,7 +5,6 @@ import BenchPress from "../../assets/benchpress.png";
 import LatPulldown from "../../assets/Latpulldown.png";
 import Deadlift from "../../assets/deadlift.png";
 import Squat from "../../assets/스쿼트.png";
-import PowerRack from "../../assets/파워랙.png";
 import HipRack from "../../assets/히프랙.png";
 import SquatRack from "../../assets/스쿼트랙.png";
 import SmithMachine from "../../assets/스미스머신.png";
@@ -55,7 +54,6 @@ const MyGymItem = ({setItems}) => {
     { name: "랩폴다운", image: LatPulldown },
     { name: "데드리프트", image: Deadlift },
     { name: "스쿼트", image: Squat },
-    { name: "파워랙", image: PowerRack },
     { name: "히프랙", image: HipRack },
     { name: "스쿼트랙", image: SquatRack },
     { name: "스미스머신", image: SmithMachine },

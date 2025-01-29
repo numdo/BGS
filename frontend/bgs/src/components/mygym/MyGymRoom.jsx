@@ -3,6 +3,29 @@ import removeItemPng from "../../assets/remove_item.png";
 import selectColorPng from "../../assets/selectcolor.png";
 import Flip from "../../assets/Flip.png";
 
+// 폴리곤 꼭짓점을 %로 정의 (육각형 clipPath에 맞춰 작성) 바닥육각형 ㅇㅇ
+const polygonRatios = [
+  [0.0, 0.60],  // 0%  60%
+  [0.5, 0.40],  // 50% 40%
+  [1.0, 0.60],  // 100% 60%
+  [0.5, 0.80],  // 50% 80%
+  [1.0, 1.0],   // 100% 100%
+];
+
+// Ray-casting algorithm
+function pointInPolygon(px, py, polygon) {
+  let isInside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i];
+    const [xj, yj] = polygon[j];
+    const intersect =
+      yi > py !== yj > py &&
+      px < ((xj - xi) * (py - yi)) / (yj - yi) + xi;
+    if (intersect) isInside = !isInside;
+  }
+  return isInside;
+}
+
 const colors = ["#ffcccc", "#ffffcc", "#ccffcc", "#F5F1D9"];
 
 const MyGymRoom = ({ items, setItems, roomColor, setRoomColor }) => {
@@ -43,15 +66,15 @@ const MyGymRoom = ({ items, setItems, roomColor, setRoomColor }) => {
     const { id, offsetX, offsetY } = draggingItem;
     const rect = roomRef.current.getBoundingClientRect();
 
-    // 새 좌표
+    // 새 좌표(왼상단)
     let newX = e.clientX - rect.left - offsetX;
     let newY = e.clientY - rect.top - offsetY;
 
-    // 아이템 크기: w-16, h-16 => 64 px
+    // 아이템 크기 (예: w-16, h-16 => 64 px)
     const itemWidth = 64;
     const itemHeight = 64;
 
-    // 사각 범위 제한
+    // 1) 사각 범위 제한 (일단 div 밖으로 못 나가도록)
     if (newX < 0) newX = 0;
     if (newY < 0) newY = 0;
     if (newX > rect.width - itemWidth) {
@@ -61,7 +84,23 @@ const MyGymRoom = ({ items, setItems, roomColor, setRoomColor }) => {
       newY = rect.height - itemHeight;
     }
 
-    // state 갱신
+    //    여기서는 "아이템 중심"이 폴리곤 내부인지 검사
+    const centerX = newX + itemWidth / 2;
+    const centerY = newY + itemHeight / 2;
+
+    // 폴리곤 % -> px 변환
+    const polygonPx = polygonRatios.map(([rx, ry]) => [
+      rx * rect.width,
+      ry * rect.height,
+    ]);
+
+    if (!pointInPolygon(centerX, centerY, polygonPx)) {
+      // 폴리곤 밖이면 이동을 취소. (이전 좌표 그대로 둠)
+      // 보통은 "return;" 하거나, 혹은 직전 좌표로 되돌림
+      return;
+    }
+
+    // 최종적으로 OK면 상태 갱신
     setItems((prev) =>
       prev.map((it) => (it.id === id ? { ...it, x: newX, y: newY } : it))
     );
@@ -203,7 +242,7 @@ const MyGymRoom = ({ items, setItems, roomColor, setRoomColor }) => {
                     ${
                       selectedItemId === item.id
                         ? "opacity-100 scale-100 pointer-events-none"
-                        : "opacity-0 scale-0 pointer-events-auto"
+                        : "opacity-0 scale-0"
                     }
                   `}
                   style={{
