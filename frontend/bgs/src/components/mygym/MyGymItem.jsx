@@ -4,16 +4,12 @@ import { useState } from "react";
 import BenchPress from "../../assets/benchpress.png";
 import LatPulldown from "../../assets/Latpulldown.png";
 import Deadlift from "../../assets/deadlift.png";
-import Squat from "../../assets/스쿼트.png";
-import HipRack from "../../assets/히프랙.png";
-import SquatRack from "../../assets/스쿼트랙.png";
-import SmithMachine from "../../assets/스미스머신.png";
-import LegPress from "../../assets/레그프레스.png";
-import LegCurl from "../../assets/레그컬.png";
 import cycle from "../../assets/cycle.png";
 import runningmachine from "../../assets/Runningmachine.png";
 import pullup from "../../assets/pullup.png";
 import dumbbell from "../../assets/dumbbell.png";
+import men from "../../assets/men.png";
+import women from "../../assets/women.png";
 
 const MyGymItem = ({setItems}) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -50,15 +46,11 @@ const MyGymItem = ({setItems}) => {
 
   // 아이템 데이터 배열
   const gymItems = [
+    { name: "여자", image: women },
+    { name: "남자", image: men },
     { name: "벤치프레스", image: BenchPress },
     { name: "랩폴다운", image: LatPulldown },
     { name: "데드리프트", image: Deadlift },
-    { name: "스쿼트", image: Squat },
-    { name: "히프랙", image: HipRack },
-    { name: "스쿼트랙", image: SquatRack },
-    { name: "스미스머신", image: SmithMachine },
-    { name: "레그프레스", image: LegPress },
-    { name: "레그컬", image: LegCurl },
     { name: "사이클", image: cycle },
     { name: "런닝머신", image: runningmachine },
     { name: "덤벨", image: dumbbell },
