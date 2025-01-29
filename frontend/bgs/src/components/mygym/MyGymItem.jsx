@@ -49,7 +49,7 @@ const MyGymItem = ({setItems}) => {
     { name: "여자", image: women },
     { name: "남자", image: men },
     { name: "벤치프레스", image: BenchPress },
-    { name: "랩폴다운", image: LatPulldown },
+    { name: "랫풀다운", image: LatPulldown },
     { name: "데드리프트", image: Deadlift },
     { name: "사이클", image: cycle },
     { name: "런닝머신", image: runningmachine },
