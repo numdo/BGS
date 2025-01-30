@@ -25,7 +25,11 @@ public class SecurityConfig {
         // 1. CORS 설정 추가
         http.cors(cors -> cors.configurationSource(request -> {
             CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedOrigins(List.of("http://localhost:5173", "http://i12c209.p.ssafy.io:5000", "https://i12c209.p.ssafy.io:5000")); // 클라이언트 도메인 추가
+            config.setAllowedOrigins(List.of(
+                    "http://localhost:5173",
+                    "http://i12c209.p.ssafy.io",
+                    "https://i12c209.p.ssafy.io"
+            ));
             config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
             config.setAllowedHeaders(List.of("Authorization", "Refresh-Token", "Content-Type"));
             config.setExposedHeaders(List.of("Authorization", "Refresh-Token")); // 노출할 헤더
@@ -46,7 +50,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/login").permitAll()
                 .requestMatchers("/images/**").permitAll()
                 .requestMatchers("/profile/**").permitAll()
-                .anyRequest().authenticated()
+                .requestMatchers("/api/**").authenticated()
+                .anyRequest().permitAll()
         );
 
         // 4. 폼 로그인 비활성화 및 기본 HTTP Basic 인증 설정
