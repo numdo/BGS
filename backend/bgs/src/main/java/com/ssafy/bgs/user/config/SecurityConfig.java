@@ -28,7 +28,9 @@ public class SecurityConfig {
             config.setAllowedOrigins(List.of(
                     "http://localhost:5173",
                     "http://i12c209.p.ssafy.io",
-                    "https://i12c209.p.ssafy.io"
+                    "http://i12c209.p.ssafy.io:5000",
+                    "https://i12c209.p.ssafy.io",
+                    "https://i12c209.p.ssafy.io:5000"
             ));
             config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
             config.setAllowedHeaders(List.of("Authorization", "Refresh-Token", "Content-Type"));
