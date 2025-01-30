@@ -14,16 +14,16 @@ public class WorkoutRecord {
 
     @Id
     @Column(name = "user_id")
-    private Integer userId; // 회원 ID
+    private Integer userId;
 
     @Column(name = "squat_evaluation")
-    private Integer squatEvaluation; // 스쿼트 최대 중량 근거 평가글 ID
+    private Integer squatEvaluation;
 
     @Column(name = "benchpress_evaluation")
-    private Integer benchpressEvaluation; // 벤치프레스 최대 중량 근거 평가글 ID
+    private Integer benchpressEvaluation;
 
     @Column(name = "deadlift_evaluation")
-    private Integer deadliftEvaluation; // 데드리프트 최대 중량 근거 평가글 ID
+    private Integer deadliftEvaluation;
 
     @Column(nullable = false)
     private Double squat = 0.0;
