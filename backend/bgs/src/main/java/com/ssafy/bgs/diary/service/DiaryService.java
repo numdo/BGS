@@ -100,7 +100,6 @@ public class DiaryService {
             DiaryWorkout diaryWorkout = new DiaryWorkout();
             diaryWorkout.setDiaryId(diary.getDiaryId());
             diaryWorkout.setWorkoutId(workoutRequestDto.getWorkoutId());
-            diaryWorkout.setSetSum(workoutRequestDto.getSetSum());
             diaryWorkouts.add(diaryWorkout);
         }
 
@@ -160,7 +159,6 @@ public class DiaryService {
             DiaryWorkoutResponseDto diaryWorkoutResponseDto = new DiaryWorkoutResponseDto();
             diaryWorkoutResponseDto.setDiaryWorkoutId(diaryWorkout.getDiaryWorkoutId());
             diaryWorkoutResponseDto.setWorkoutId(diaryWorkout.getWorkoutId());
-            diaryWorkoutResponseDto.setSetSum(diaryWorkout.getSetSum());
             diaryWorkoutResponseDto.setCreatedAt(diaryWorkout.getCreatedAt());
             diaryWorkoutResponseDto.setModifiedAt(diaryWorkout.getModifiedAt());
 
@@ -228,7 +226,6 @@ public class DiaryService {
 
             // DiaryWorkout column 수정
             existingDiaryWorkout.setWorkoutId(workoutRequestDto.getWorkoutId());
-            existingDiaryWorkout.setSetSum(workoutRequestDto.getSetSum());
             existingDiaryWorkout.setDeleted(workoutRequestDto.getDeleted());
 
             // 리스트에 추가
