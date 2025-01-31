@@ -101,6 +101,7 @@ public class KakaoAuthService {
         String refreshJwt = jwtTokenProvider.createReFreshToken(user.getId(), user.getEmail());
 
         return LoginResponseDto.builder()
+                .userId(user.getId())
                 .accessToken(accessJwt)
                 .refreshToken(refreshJwt)
                 .build();

@@ -158,6 +158,7 @@ public class UserService {
 
         // 3. JWT 생성 및 반환
         return LoginResponseDto.builder()
+                .userId(user.getId())
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
