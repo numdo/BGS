@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import {useMyGymStore} from "../../stores/useMyGymStore";
+// import {useMyGymStore} from "../../stores/useMyGymStore";
 
 import removeItemPng from "../../assets/remove_item.png";
 import selectColorPng from "../../assets/selectcolor.png";
