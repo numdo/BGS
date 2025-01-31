@@ -97,11 +97,10 @@ public class KakaoAuthService {
         }
 
         // 4) JWT 발급
-        String accessJwt = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail());
-        String refreshJwt = jwtTokenProvider.createReFreshToken(user.getId(), user.getEmail());
+        String accessJwt = jwtTokenProvider.createAccessToken(user.getId());
+        String refreshJwt = jwtTokenProvider.createReFreshToken(user.getId());
 
         return LoginResponseDto.builder()
-                .userId(user.getId())
                 .accessToken(accessJwt)
                 .refreshToken(refreshJwt)
                 .build();
