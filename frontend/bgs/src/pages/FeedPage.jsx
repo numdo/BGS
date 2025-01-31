@@ -4,9 +4,11 @@ import TopBar from '../components/TopBar';
 export default function FeedPage() {
   return (
     <>
-    <TopBar />
-    <h1>피드 페이지</h1>
-    <BottomBar />
+      <TopBar />
+      <div className='m-4'>
+        <h1>피드 페이지</h1>
+      </div>
+      <BottomBar />
     </>
   );
 };

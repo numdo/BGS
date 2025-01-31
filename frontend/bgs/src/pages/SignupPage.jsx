@@ -38,7 +38,7 @@ const SignupPage = () => {
       setLoading(true);
       setError("");
       const response = await axios.post(
-        "http://i12c209.p.ssafy.io/api/users/email-verification",
+        "https://i12c209.p.ssafy.io/api/users/email-verification",
         null,
         {
           params: { email: formData.email },
@@ -127,11 +127,10 @@ const SignupPage = () => {
           <button
             type="button"
             onClick={handleSendEmail}
-            className={`w-24 p-2 rounded ${
-              formData.email
-                ? "bg-blue-500 text-white hover:bg-blue-600"
-                : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
-            }`}
+            className={`w-24 p-2 rounded ${formData.email
+              ? "bg-blue-500 text-white hover:bg-blue-600"
+              : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
+              }`}
             disabled={loading || !formData.email}
           >
             {loading ? "발송 중..." : "발송"}
@@ -151,11 +150,10 @@ const SignupPage = () => {
           <button
             type="button"
             onClick={handleVerifyCode}
-            className={`w-24 p-2 rounded ${
-              formData.verificationCode
-                ? "bg-green-500 text-white hover:bg-green-600"
-                : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
-            }`}
+            className={`w-24 p-2 rounded ${formData.verificationCode
+              ? "bg-green-500 text-white hover:bg-green-600"
+              : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
+              }`}
             disabled={!formData.verificationCode || isVerified}
           >
             인증
@@ -181,11 +179,10 @@ const SignupPage = () => {
         {/* 계속하기 버튼 */}
         <button
           type="submit"
-          className={`w-full p-3 rounded ${
-            isVerified && isPasswordValid()
-              ? "bg-blue-500 text-white hover:bg-blue-600"
-              : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
-          }`}
+          className={`w-full p-3 rounded ${isVerified && isPasswordValid()
+            ? "bg-blue-500 text-white hover:bg-blue-600"
+            : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
+            }`}
           disabled={!isVerified || !isPasswordValid()}
         >
           계속하기
