@@ -1,7 +1,10 @@
 import { useRef, useState } from "react";
+import {useMyGymStore} from "../../stores/useMyGymStore";
+
 import removeItemPng from "../../assets/remove_item.png";
 import selectColorPng from "../../assets/selectcolor.png";
 import Flip from "../../assets/Flip.png";
+
 
 // 폴리곤 꼭짓점을 %로 정의 (육각형 clipPath에 맞춰 작성) 바닥육각형 ㅇㅇ
 const polygonRatios = [
