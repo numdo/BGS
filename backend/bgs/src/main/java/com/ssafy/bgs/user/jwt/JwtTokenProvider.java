@@ -40,12 +40,10 @@ public class JwtTokenProvider {
     /**
      * Access Token 생성
      * @param userId
-     * @param email
      * @return
      */
-    public String createAccessToken(Integer userId, String email) {
+    public String createAccessToken(Integer userId) {
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
-        claims.put("email", email);
 
         Date now = new Date();
         Date validity = new Date(now.getTime() + accessTokenValidityInMilliseconds);
@@ -61,12 +59,10 @@ public class JwtTokenProvider {
     /**
      * Refresh Token 생성
      * @param userId
-     * @param email
      * @return
      */
-    public String createReFreshToken(Integer userId, String email) {
+    public String createReFreshToken(Integer userId) {
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
-        claims.put("email", email);
 
         Date now = new Date();
         Date validity = new Date(now.getTime() + refreshValidityInMilliseconds);

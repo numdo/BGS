@@ -13,9 +13,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/auth/kakao")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class KakaoAuthController {
+public class AuthController {
 
     private final KakaoAuthService kakaoAuthService;
 
@@ -30,7 +30,7 @@ public class KakaoAuthController {
      * 1) 카카오 로그인 유도 (프론트에서 직접 링크 이동해도 무방)
      * GET /api/auth/kakao/login
      */
-    @GetMapping("/login")
+    @GetMapping("/kakao/login")
     public void redirectKakaoLogin(HttpServletResponse response) throws IOException {
         // 카카오 로그인 페이지로 리다이렉트
         // (실무에서는 프론트가 이 URL로 직접 이동하는 경우가 많음)
@@ -45,7 +45,7 @@ public class KakaoAuthController {
      * 2) 카카오 로그인 콜백
      * GET /api/auth/kakao/callback?code=xxx
      */
-    @GetMapping("/callback")
+    @GetMapping("/kakao/callback")
     public ResponseEntity<?> kakaoCallback(
             @RequestParam(required = false) String code,
             HttpServletResponse response // 주입
