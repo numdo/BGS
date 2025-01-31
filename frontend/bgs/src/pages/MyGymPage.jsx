@@ -8,7 +8,7 @@ import { useEffect } from "react";
 const MyGymPage = () => {
   const [items, setItems] = useState([]);
   const [roomColor, setRoomColor] = useState("#F5F1D9");
-  const {loaditems,loadGymRoom,saveGymRoom} = useMyGymStore()
+  // const {loaditems,loadGymRoom,saveGymRoom} = useMyGymStore()
   // useEffect(()=>{
   //   loadGymRoom()
   // },[])
