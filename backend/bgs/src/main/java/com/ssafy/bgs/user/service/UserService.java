@@ -223,6 +223,7 @@ public class UserService {
                 // ImageService를 통해 S3 업로드 + images 테이블 INSERT
                 // usage_type='PROFILE', usage_id=userId
                 List<MultipartFile> profileImages = new ArrayList<>();
+                profileImages.add(profileImage); // profileImage 추가
                 imageService.uploadImages(profileImages, "profile" ,(long)userId);
             } catch (IOException e) {
                 // IOException -> RuntimeException 래핑
