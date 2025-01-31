@@ -1,18 +1,17 @@
-// src/pages/MyGymPage.jsx
 import { useState } from "react";
 import BottomBar from "../components/BottomBar";
 import TopBar from "../components/TopBar";
 import MyGymItem from "../components/mygym/MyGymItem";
 import MyGymRoom from "../components/mygym/MyGymRoom";
 import { useEffect } from "react";
-import { useMyGymStore } from "../stores/useMyGymStore";
+// import { useMyGymStore } from "../stores/useMyGymStore";
 const MyGymPage = () => {
   const [items, setItems] = useState([]);
   const [roomColor, setRoomColor] = useState("#F5F1D9");
   const {loaditems,loadGymRoom,saveGymRoom} = useMyGymStore()
-  useEffect(()=>{
-    loadGymRoom()
-  },[])
+  // useEffect(()=>{
+  //   loadGymRoom()
+  // },[])
   return (
     <>
       <TopBar />
