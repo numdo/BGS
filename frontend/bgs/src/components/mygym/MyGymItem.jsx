@@ -5,7 +5,7 @@ import BenchPress from "../../assets/benchpress.png";
 import LatPulldown from "../../assets/Latpulldown.png";
 import Deadlift from "../../assets/deadlift.png";
 import cycle from "../../assets/cycle.png";
-import runningmachine from "../../assets/Runningmachine.png";
+import runningmachine from "../../assets/runningmachine.png";
 import pullup from "../../assets/pullup.png";
 import dumbbell from "../../assets/dumbbell.png";
 import men from "../../assets/men.png";
