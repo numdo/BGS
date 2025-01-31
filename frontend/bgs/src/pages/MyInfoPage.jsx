@@ -1,4 +1,3 @@
-import React from 'react';
 import BottomBar from '../components/BottomBar';
 import TopBar from '../components/TopBar';
 import { useState } from 'react';

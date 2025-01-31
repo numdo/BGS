@@ -1,59 +1,292 @@
-import React, { useRef } from "react";
+import { useRef, useState } from "react";
+import removeItemPng from "../../assets/remove_item.png";
+import selectColorPng from "../../assets/selectcolor.png";
+import Flip from "../../assets/Flip.png";
+
+// 폴리곤 꼭짓점을 %로 정의 (육각형 clipPath에 맞춰 작성) 바닥육각형 ㅇㅇ
+const polygonRatios = [
+  [0.0, 0.60],  // 0%  60%
+  [0.5, 0.40],  // 50% 40%
+  [1.0, 0.60],  // 100% 60%
+  [0.5, 0.80],  // 50% 80%
+  [1.0, 1.0],   // 100% 100%
+];
+
+// Ray-casting algorithm
+function pointInPolygon(px, py, polygon) {
+  let isInside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i];
+    const [xj, yj] = polygon[j];
+    const intersect =
+      yi > py !== yj > py &&
+      px < ((xj - xi) * (py - yi)) / (yj - yi) + xi;
+    if (intersect) isInside = !isInside;
+  }
+  return isInside;
+}
+
+const colors = ["#ffcccc", "#ffffcc", "#ccffcc", "#F5F1D9"];
 
 const MyGymRoom = ({ items, setItems, roomColor, setRoomColor }) => {
-  const roomRef = useRef(null); // 방 DOM 참조
+  const roomRef = useRef(null);
 
-  // 아이템 드래그 시 방 기준 좌표 계산
-  const onDragItem = (id, clientX, clientY) => {
-    const rect = roomRef.current.getBoundingClientRect(); // 방 크기 및 위치 가져오기
-    const offsetX = clientX - rect.left; // 방 기준 x 좌표
-    const offsetY = clientY - rect.top; // 방 기준 y 좌표
+  const [draggingItem, setDraggingItem] = useState(null);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState(null);
 
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...item, x: offsetX, y: offsetY } : item
-      )
+  const [startCoord, setStartCoord] = useState({ x: 0, y: 0 });
+  const [isDraggingMode, setIsDraggingMode] = useState(false);
+
+  // pointerDown
+  const handlePointerDown = (e, item) => {
+    e.preventDefault();
+    setIsDraggingMode(false);
+    setStartCoord({ x: e.clientX, y: e.clientY });
+
+    const rect = roomRef.current.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left - item.x;
+    const offsetY = e.clientY - rect.top - item.y;
+    setDraggingItem({ id: item.id, offsetX, offsetY });
+  };
+
+  // pointerMove
+  const handlePointerMove = (e) => {
+    if (!draggingItem) return;
+    e.preventDefault();
+
+    // 클릭 vs 드래그 판정
+    const diffX = e.clientX - startCoord.x;
+    const diffY = e.clientY - startCoord.y;
+    const distance = Math.sqrt(diffX * diffX + diffY * diffY);
+    if (distance > 5 && !isDraggingMode) {
+      setIsDraggingMode(true);
+    }
+
+    const { id, offsetX, offsetY } = draggingItem;
+    const rect = roomRef.current.getBoundingClientRect();
+
+    // 새 좌표(왼상단)
+    let newX = e.clientX - rect.left - offsetX;
+    let newY = e.clientY - rect.top - offsetY;
+
+    // 아이템 크기 (예: w-16, h-16 => 64 px)
+    const itemWidth = 64;
+    const itemHeight = 64;
+
+    // 1) 사각 범위 제한 (일단 div 밖으로 못 나가도록)
+    if (newX < 0) newX = 0;
+    if (newY < 0) newY = 0;
+    if (newX > rect.width - itemWidth) {
+      newX = rect.width - itemWidth;
+    }
+    if (newY > rect.height - itemHeight) {
+      newY = rect.height - itemHeight;
+    }
+
+    //    여기서는 "아이템 중심"이 폴리곤 내부인지 검사
+    const centerX = newX + itemWidth / 2;
+    const centerY = newY + itemHeight / 2;
+
+    // 폴리곤 % -> px 변환
+    const polygonPx = polygonRatios.map(([rx, ry]) => [
+      rx * rect.width,
+      ry * rect.height,
+    ]);
+
+    if (!pointInPolygon(centerX, centerY, polygonPx)) {
+      // 폴리곤 밖이면 이동을 취소. (이전 좌표 그대로 둠)
+      // 보통은 "return;" 하거나, 혹은 직전 좌표로 되돌림
+      return;
+    }
+
+    // 최종적으로 OK면 상태 갱신
+    setItems((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, x: newX, y: newY } : it))
+    );
+  };
+
+  // pointerUp
+  const handlePointerUp = () => {
+    if (!isDraggingMode && draggingItem) {
+      const { id } = draggingItem;
+      setSelectedItemId((prev) => (prev === id ? null : id));
+    }
+    setDraggingItem(null);
+  };
+
+  // 팔레트 열기/닫기
+  const togglePalette = () => {
+    setIsPaletteOpen((prev) => !prev);
+  };
+
+  // 아이템 삭제
+  const removeItem = (id) => {
+    setItems((prev) => prev.filter((it) => it.id !== id));
+    if (selectedItemId === id) {
+      setSelectedItemId(null);
+    }
+  };
+
+  // 좌우 반전
+  const toggleFlip = (id) => {
+    setItems((prev) =>
+      prev.map((it) => {
+        if (it.id === id) {
+          const flipped = it.flipped || false;
+          return { ...it, flipped: !flipped };
+        }
+        return it;
+      })
     );
   };
 
   return (
-    <div className="relative h-screen flex flex-col items-center">
-      {/* 육각형 방 */}
+    <div className="relative flex flex-col items-center">
+      {/* 방 컨테이너 */}
       <div
-        ref={roomRef} // 방 DOM 요소 참조
+        ref={roomRef}
         className="relative w-96 h-96"
-        style={{
-          clipPath: "polygon(50% 7%, 100% 25%, 100% 75%, 50% 93%, 0% 75%, 0% 25%)",
-          backgroundColor: roomColor, // 방 색상 적용
-        }}
+        style={{ touchAction: "none" }}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
       >
-        {/* 아이템 렌더링 */}
-        {items.map((item) => (
-          <img
-            key={item.id}
-            src={item.image}
-            alt={item.name}
-            className="absolute w-16 h-16"
-            style={{ top: item.y, left: item.x }}
-            draggable
-            onDragStart={(e) => e.preventDefault()} // 기본 동작 방지
-            onDragEnd={(e) =>
-              onDragItem(item.id, e.clientX, e.clientY) // 드래그 종료 시 호출
-            }
-          />
-        ))}
+        {/* 윗부분 */}
+        <div
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            clipPath:
+              "polygon(50% 7%, 100% 25%, 100% 60%, 50% 40%, 0% 60%, 0% 25%)",
+            backgroundColor: roomColor,
+            zIndex: 1,
+          }}
+        />
+
+        {/* 아랫부분 */}
+        <div
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            clipPath:
+              "polygon(0% 60%, 50% 40%, 100% 60%, 50% 80%, 100% 100%)",
+            backgroundColor: "#999999",
+            zIndex: 0,
+          }}
+        />
+
+        {/* 아이템들 */}
+        {items.map((item) => {
+          const isFlipped = item.flipped || false;
+          return (
+            <div
+              key={item.id}
+              className="absolute"
+              style={{
+                top: item.y,
+                left: item.x,
+                zIndex: 2,
+              }}
+              onPointerDown={(e) => handlePointerDown(e, item)}
+            >
+              <div className="relative w-16 h-16">
+                {/* 기구 이미지 */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    transform: isFlipped ? "scaleX(-1)" : "scaleX(1)",
+                  }}
+                >
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full"
+                  />
+                </div>
+
+                {/* 삭제 아이콘 */}
+                <img
+                  src={removeItemPng}
+                  alt="Remove"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeItem(item.id);
+                  }}
+                  className={`
+                    absolute w-6 h-6 cursor-pointer
+                    -top-2 -right-2
+                    transition-all duration-300 transform
+                    ${
+                      selectedItemId === item.id
+                        ? "opacity-100 scale-100"
+                        : "opacity-0 scale-0"
+                    }
+                  `}
+                />
+
+                {/* 좌우 반전 아이콘 */}
+                <img
+                  src={Flip}
+                  alt="Flip"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFlip(item.id);
+                  }}
+                  className={`
+                    absolute w-6 h-6 cursor-pointer
+                    -top-2 left-0
+                    transition-all duration-300 transform
+                    ${
+                      selectedItemId === item.id
+                        ? "opacity-100 scale-100 pointer-events-none"
+                        : "opacity-0 scale-0"
+                    }
+                  `}
+                  style={{
+                    transform: "translateX(-10%)",
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* 색상 팔레트 */}
-      <div className="flex space-x-4 mt-4">
-        {["#ffcccc", "#ffffcc", "#ccffcc", "#F5F1D9"].map((color, index) => (
-          <button
-            key={index}
-            className="w-8 h-8 rounded-full"
-            style={{ backgroundColor: color }}
-            onClick={() => setRoomColor(color)} // 방 색상 변경
-          />
-        ))}
+      {/* 색상 선택 팔레트 */}
+      <div className="mt-4 relative inline-block">
+        <img
+          src={selectColorPng}
+          alt="Select Color"
+          className="w-12 h-12 cursor-pointer"
+          onClick={togglePalette}
+        />
+
+        <div
+          className={`
+            absolute left-1/2 top-full
+            flex items-center
+            transform -translate-x-1/2
+            transition-all duration-500 ease-in-out
+            ${
+              isPaletteOpen
+                ? "opacity-100 scale-100 translate-y-2"
+                : "opacity-0 scale-0 translate-y-0"
+            }
+          `}
+          style={{ transformOrigin: "top center" }}
+        >
+          {colors.map((color, idx) => (
+            <button
+              key={idx}
+              className="w-8 h-8 rounded-full border-2 border-white shadow-md mx-1"
+              style={{ backgroundColor: color }}
+              onClick={() => setRoomColor(color)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
