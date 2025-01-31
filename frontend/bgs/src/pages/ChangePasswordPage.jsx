@@ -45,7 +45,7 @@ const ChangePasswordPage = () => {
       const accessToken = localStorage.getItem("accessToken"); // 저장된 토큰 가져오기
 
       const response = await axios.post(
-        "http://i12c209.p.ssafy.io/api/users/change-password",
+        "https://i12c209.p.ssafy.io/api/users/change-password",
         {
           currentPassword: formData.currentPassword,
           newPassword: formData.newPassword,

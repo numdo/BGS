@@ -17,7 +17,7 @@ const ForgotPasswordPage = () => {
 
     try {
       const response = await axios.post(
-        "http://i12c209.p.ssafy.io/api/users/reset-password",
+        "https://i12c209.p.ssafy.io/api/users/reset-password",
         { email },
         { headers: { "Content-Type": "application/json" } }
       );

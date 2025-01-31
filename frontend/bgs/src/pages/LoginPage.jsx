@@ -10,7 +10,7 @@ const SocialLogin = () => {
   // 카카오 로그인
   const handleKakaoLogin = () => {
     // 백엔드에서 카카오 로그인 요청을 받아서 OAuth 페이지로 리다이렉트시키는 API
-    window.location.href = "http://i12c209.p.ssafy.io/api/auth/kakao/login";
+    window.location.href = "https://i12c209.p.ssafy.io/api/auth/kakao/login";
   };
 
   // 구글 로그인 (추후 구현 예정)

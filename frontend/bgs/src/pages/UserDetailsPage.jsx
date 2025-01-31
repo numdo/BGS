@@ -33,7 +33,7 @@ const UserDetailsPage = () => {
     e.preventDefault();
     try {
       // 회원가입 완료 정보를 서버로 전송
-      await axios.post("http://i12c209.p.ssafy.io/api/users/signup", {
+      await axios.post("https://i12c209.p.ssafy.io/api/users/signup", {
         email,
         password,
         ...details,
