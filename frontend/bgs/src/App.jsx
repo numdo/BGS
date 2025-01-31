@@ -10,6 +10,9 @@ import WorkoutCreatePage from "./pages/WorkoutCreatePage";
 import FeedPage from "./pages/FeedPage";
 import BullLoginPage from "./pages/BulLoginPage";
 import SignupPage from "./pages/SignupPage";
+import UserDetailsPage from "./pages/UserDetailsPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
 
 function App() {
   return (
@@ -20,6 +23,9 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/bullogin" element={<BullLoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/user-details" element={<UserDetailsPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/change-password" element={<ChangePasswordPage />} />
           <Route path="/workout" element={<WorkoutPage />} />
           <Route path="/mygym" element={<MyGymPage />} />
           <Route path="/Feed" element={<FeedPage />} />

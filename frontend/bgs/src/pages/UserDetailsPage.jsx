@@ -1,23 +1,28 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // useNavigate 추가
-import logo_image from "./../assets/logo_image.png";
-import name_image from "./../assets/name.png";
-import axios from "axios"; // axios 추가
+import { useNavigate, useLocation } from "react-router-dom"; // useLocation 추가
+import logo_image from "../assets/logo_image.png";
+import name_image from "../assets/name.png";
+import axios from "axios";
 
-const UserDetailsPage = ({ email, password }) => {
+const UserDetailsPage = () => {
+  // useLocation을 통해 SignupPage에서 전달된 state(email, password)를 가져옴
+  const location = useLocation();
+  const { email, password } = location.state || { email: "", password: "" };
+
   const [details, setDetails] = useState({
     name: "",
     nickname: "",
-    birthdate: "",
+    birthDate: "",
     height: "",
     weight: "",
-    gender: "",
+    sex: "",
   });
-  const navigate = useNavigate(); // useNavigate 훅 사용
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setDetails({ ...details, [name]: value });
+    setDetails((prev) => ({ ...prev, [name]: value }));
   };
 
   const isFormComplete = () => {
@@ -27,19 +32,20 @@ const UserDetailsPage = ({ email, password }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // 서버에 회원가입 데이터 전송
-      await axios.post("https://your-api-url.com/signup-complete", {
+      // 회원가입 완료 정보를 서버로 전송
+      await axios.post("http://i12c209.p.ssafy.io/api/users/signup", {
         email,
         password,
         ...details,
       });
       alert("회원가입이 완료되었습니다!");
 
-      // 회원가입 성공 후 '/'로 이동
+      // 회원가입 성공 후 메인 페이지로 이동 (예: '/')
       navigate("/");
     } catch (err) {
       alert(
-        "회원가입 실패: " + (err.response?.data?.message || "알 수 없는 오류")
+        "회원가입 실패: " +
+          (err.response?.data?.message || "알 수 없는 오류가 발생했습니다.")
       );
     }
   };
@@ -70,7 +76,7 @@ const UserDetailsPage = ({ email, password }) => {
           className="w-full p-2 border rounded focus:ring focus:ring-blue-300"
         />
         <input
-          name="birthdate"
+          name="birthDate"
           type="date"
           value={details.birthdate}
           onChange={handleChange}
@@ -93,7 +99,7 @@ const UserDetailsPage = ({ email, password }) => {
           className="w-full p-2 border rounded focus:ring focus:ring-blue-300"
         />
         <select
-          name="gender"
+          name="sex"
           value={details.gender}
           onChange={handleChange}
           className="w-full p-2 border rounded focus:ring focus:ring-blue-300"
@@ -102,21 +108,20 @@ const UserDetailsPage = ({ email, password }) => {
           <option value="male">남성</option>
           <option value="female">여성</option>
         </select>
-      </form>
 
-      {/* 시작하기 버튼을 form 밖으로 꺼냄 */}
-      <button
-        type="button"
-        onClick={handleSubmit}
-        className={`w-full p-3 rounded mt-4 ${
-          isFormComplete()
-            ? "bg-blue-500 text-white hover:bg-blue-600"
-            : "bg-white text-blue-500 border-blue-500 cursor-not-allowed"
-        } ${!isFormComplete() ? "border-2" : ""}`}
-        disabled={!isFormComplete()}
-      >
-        시작하기
-      </button>
+        {/* 제출 버튼 */}
+        <button
+          type="submit"
+          className={`w-full p-3 rounded mt-4 ${
+            isFormComplete()
+              ? "bg-blue-500 text-white hover:bg-blue-600"
+              : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
+          }`}
+          disabled={!isFormComplete()}
+        >
+          가입 완료
+        </button>
+      </form>
     </div>
   );
 };

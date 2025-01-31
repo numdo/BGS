@@ -7,6 +7,17 @@ import googleLogo from "../assets/google-logo.png";
 const SocialLogin = () => {
   const navigate = useNavigate();
 
+  // 카카오 로그인
+  const handleKakaoLogin = () => {
+    // 백엔드에서 카카오 로그인 요청을 받아서 OAuth 페이지로 리다이렉트시키는 API
+    window.location.href = "http://i12c209.p.ssafy.io/api/auth/kakao/login";
+  };
+
+  // 구글 로그인 (추후 구현 예정)
+  const handleGoogleLogin = () => {
+    alert("구글 로그인 준비 중");
+  };
+
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-white px-4">
       {/* 로고 섹션 */}
@@ -26,7 +37,7 @@ const SocialLogin = () => {
 
         {/* 카카오 로그인 */}
         <button
-          onClick={() => alert("카카오 로그인 준비 중")}
+          onClick={handleKakaoLogin}
           className="w-2/3 mx-auto px-4 py-2 bg-yellow-300 text-black rounded shadow hover:bg-yellow-400 flex items-center space-x-2"
         >
           <img src={kakaoLogo} alt="Kakao Logo" className="w-6 h-6 mr-2" />
@@ -35,7 +46,7 @@ const SocialLogin = () => {
 
         {/* 구글 로그인 */}
         <button
-          onClick={() => alert("구글 로그인 준비 중")}
+          onClick={handleGoogleLogin}
           className="w-2/3 mx-auto px-4 py-2 bg-white text-blue-500 border border-blue-500 rounded shadow hover:bg-blue-100 flex items-center space-x-2"
         >
           <img src={googleLogo} alt="Google Logo" className="w-6 h-6 mr-2" />

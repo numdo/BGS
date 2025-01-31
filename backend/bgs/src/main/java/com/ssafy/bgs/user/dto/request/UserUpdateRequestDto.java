@@ -12,7 +12,7 @@ import java.time.LocalDate;
 public class UserUpdateRequestDto {
     private String nickname;
     private String introduction;
-    private LocalDate birth_date;
+    private LocalDate birthDate;
     private Integer height;
     private Integer weight;
 }

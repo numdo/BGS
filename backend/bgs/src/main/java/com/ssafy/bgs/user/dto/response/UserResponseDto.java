@@ -11,19 +11,20 @@ import java.time.LocalDate;
 @ToString
 @Builder
 public class UserResponseDto {
-    private Integer user_id;
+    private Integer userId;
     private String email;
     private String name;
     private String nickname;
-    private LocalDate birth_date;
+    private LocalDate birthDate;
     private String sex;
     private Integer height;
     private Integer weight;
     private Double degree;
     private String introduction;
-    private Double total_weight;
+    private Double totalWeight;
     private Boolean deleted;
-    private Integer strick_attendance;
-    private LocalDate last_attendance;
+    private Integer strickAttendance;
+    private LocalDate lastAttendance;
     private Integer coin;
+    private String profileImageUrl;
 }

@@ -13,9 +13,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -162,20 +164,25 @@ public class UserController {
         }
     }
 
+
     /**
      * 내정보 변경
      * [PATCH] /api/users/{userId}
      */
-    @PatchMapping("/{userId}")
+    @PatchMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateUserInfo(
             @PathVariable Integer userId,
-            @RequestBody UserUpdateRequestDto updateRequest
+            // 프로필 이미지는 optional
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+            // 나머지 수정 정보는 JSON 형식
+            @RequestPart("userInfo") UserUpdateRequestDto userInfo
     ) {
         try {
-            UserResponseDto response =  userService.updateUserInfo(userId, updateRequest);
-            return ResponseEntity.status(HttpStatus.OK).body(response);
+            // Service 로직에 MultipartFile(이미지), UserUpdateRequestDto 전달
+            UserResponseDto response = userService.updateUserInfo(userId, userInfo, profileImage);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            // 예: "사용자를 찾을 수 없습니다." -> 404
+            // 예외 처리
             if (e.getMessage().contains("찾을 수 없습니다")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
             }

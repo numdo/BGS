@@ -14,7 +14,7 @@ public class UserSignupRequestDto {
     private String password;
     private String nickname;
     private String name;
-    private LocalDate birth_date;
+    private LocalDate birthDate;
     private String sex;
     private Integer height;
     private Integer weight;

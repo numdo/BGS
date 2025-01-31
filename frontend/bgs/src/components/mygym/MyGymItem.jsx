@@ -11,9 +11,20 @@ import SquatRack from "../../assets/스쿼트랙.png";
 import SmithMachine from "../../assets/스미스머신.png";
 import LegPress from "../../assets/레그프레스.png";
 import LegCurl from "../../assets/레그컬.png";
+import cycle from "../../assets/cycle.png";
+import runningmachine from "../../assets/runningmachine.png";
+import pullup from "../../assets/pullup.png";
+import dumbbell from "../../assets/dumbbell.png";
 
-const MyGymItem = () => {
+const MyGymItem = ({setItems}) => {
   const [isOpen, setIsOpen] = useState(false);
+  const addItem = (item) => {
+    console.log(console.log(`${item.name}추가`))
+    setItems((prevItems) => [
+      ...prevItems,
+      {id : Date.now(), ...item, x: 50, y: 50},
+    ]);
+  }
 
   const toggleBox = () => {
     setIsOpen(!isOpen); // 열림/닫힘 상태 변경
@@ -31,6 +42,10 @@ const MyGymItem = () => {
     { name: "스미스머신", image: SmithMachine },
     { name: "레그프레스", image: LegPress },
     { name: "레그컬", image: LegCurl },
+    { name: "사이클", image: cycle },
+    { name: "런닝머신", image: runningmachine },
+    { name: "덤벨", image: dumbbell },
+    { name: "풀업", image: pullup },
   ];
 
   return (
@@ -63,7 +78,7 @@ const MyGymItem = () => {
               className="flex-shrink-0 w-full max-w-[calc(100%-1rem)] grid grid-cols-3 gap-4"
             >
               {group.map((item, idx) => (
-                <div key={idx} className="flex flex-col items-center">
+                <div key={idx} onClick={() => addItem(item)} className="flex flex-col items-center">
                   <img
                     src={item.image}
                     alt={item.name}
