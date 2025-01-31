@@ -13,14 +13,32 @@ export default function MainPage() {
           <input
             type="text"
             placeholder="검색"
-            className="w-full p-3 border rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4 mt-5">
           <button
+            onClick={() => { navigate("/signup") }}
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+          >
+            <div className="text-left">
+              <p className="text-xl font-semibold text-gray-800">회원가입</p>
+              <p className="text-lg text-gray-600">바로 하러가기</p>
+            </div>
+          </button>
+          <button
+            onClick={() => { navigate("/login") }}
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+          >
+            <div className="text-left">
+              <p className="text-xl font-semibold text-gray-800">로그인</p>
+              <p className="text-lg text-gray-600">하러가기</p>
+            </div>
+          </button>
+          <button
             onClick={() => { navigate("/mygym") }}
-            className="flex items-center p-4 bg-white border rounded-lg shadow-lg hover:bg-gray-100 transition-all duration-200"
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
           >
             <div className="text-left">
               <p className="text-xl font-semibold text-gray-800">마이짐</p>
@@ -30,7 +48,7 @@ export default function MainPage() {
 
           <button
             onClick={() => { navigate("/workoutcreate") }}
-            className="flex items-center p-4 bg-white border rounded-lg shadow-lg hover:bg-gray-100 transition-all duration-200"
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
           >
             <div className="text-left">
               <p className="text-xl font-semibold text-gray-800">일지</p>
@@ -43,34 +61,18 @@ export default function MainPage() {
             />
           </button>
 
-          <button
-            onClick={() => { navigate("/signup") }}
-            className="flex items-center p-4 bg-white border rounded-lg shadow-lg hover:bg-gray-100 transition-all duration-200"
-          >
-            <div className="text-left">
-              <p className="text-xl font-semibold text-gray-800">회원가입</p>
-              <p className="text-lg text-gray-600">바로 하러가기</p>
-            </div>
-          </button>
+
 
           <button
             onClick={() => { navigate("/feed") }}
-            className="flex items-center p-4 bg-white border rounded-lg shadow-lg hover:bg-gray-100 transition-all duration-200"
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
           >
             <div className="text-left">
               <p className="text-xl font-semibold text-gray-800">피드</p>
               <p className="text-lg text-gray-600">보러가기</p>
             </div>
           </button>
-          <button
-            onClick={() => { navigate("/login") }}
-            className="flex items-center p-4 bg-white border rounded-lg shadow-lg hover:bg-gray-100 transition-all duration-200"
-          >
-            <div className="text-left">
-              <p className="text-xl font-semibold text-gray-800">로그인</p>
-              <p className="text-lg text-gray-600">하러가기</p>
-            </div>
-          </button>
+
         </div>
       </div>
       <BottomBar />
