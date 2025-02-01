@@ -9,9 +9,12 @@ import com.ssafy.bgs.diary.service.DiaryService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/diaries")
@@ -36,8 +39,13 @@ public class DiaryController {
     }
 
     @PostMapping
-    public ResponseEntity<DiaryResponseDto> addDiary(@RequestBody DiaryRequestDto diaryRequestDto) {
-        diaryService.addDiary(diaryRequestDto);
+    public ResponseEntity<DiaryResponseDto> addDiary(
+            @AuthenticationPrincipal Integer userId,
+            @RequestPart(name = "diary") DiaryRequestDto diaryRequestDto,
+            @RequestPart(name = "files", required = false) List<MultipartFile> files
+    ) {
+        diaryRequestDto.setUserId(userId);
+        diaryService.addDiary(diaryRequestDto, files);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -48,26 +56,33 @@ public class DiaryController {
     }
 
     @PatchMapping("/{diaryId}")
-    public ResponseEntity<DiaryResponseDto> updateDiary(@PathVariable Integer diaryId, @RequestBody DiaryRequestDto diaryRequestDto) {
-        diaryService.updateDiary(diaryRequestDto);
+    public ResponseEntity<DiaryResponseDto> updateDiary(
+            @AuthenticationPrincipal Integer userId,
+            @PathVariable Integer diaryId,
+            @RequestPart(name = "diary") DiaryRequestDto diaryRequestDto,
+            @RequestPart(name = "urls",required = false) List<String> urls,
+            @RequestPart(name = "files",required = false) List<MultipartFile> files
+    ) {
+        diaryRequestDto.setDiaryId(diaryId);
+        diaryService.updateDiary(userId, diaryRequestDto, urls, files);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @DeleteMapping("/{diaryId}")
-    public ResponseEntity<Boolean> deleteDiary(@PathVariable Integer diaryId) {
-        diaryService.deleteDiary(diaryId);
+    public ResponseEntity<Boolean> deleteDiary(@AuthenticationPrincipal Integer userId, @PathVariable Integer diaryId) {
+        diaryService.deleteDiary(userId, diaryId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/{diaryId}/liked")
-    public ResponseEntity<Boolean> likeDiary(@PathVariable Integer diaryId, @RequestBody Integer userId) {
-        diaryService.likeDiary(diaryId, userId);
+    public ResponseEntity<Boolean> likeDiary(@AuthenticationPrincipal Integer userId, @PathVariable Integer diaryId) {
+        diaryService.likeDiary(userId, diaryId);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{diaryId}/liked")
-    public ResponseEntity<Boolean> unlikeDiary(@PathVariable Integer diaryId, @RequestBody Integer userId) {
-        diaryService.unlikeDiary(diaryId, userId);
+    public ResponseEntity<Boolean> unlikeDiary(@AuthenticationPrincipal Integer userId, @PathVariable Integer diaryId) {
+        diaryService.unlikeDiary(userId, diaryId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -83,24 +98,37 @@ public class DiaryController {
     }
 
     @PostMapping("/{diaryId}/comments")
-    public ResponseEntity<CommentResponseDto> addComment(@PathVariable Integer diaryId, @RequestBody CommentRequestDto commentRequestDto) {
+    public ResponseEntity<CommentResponseDto> addComment(
+            @AuthenticationPrincipal Integer userId,
+            @PathVariable Integer diaryId,
+            @RequestBody CommentRequestDto commentRequestDto
+    ) {
+        commentRequestDto.setUserId(userId);
+        commentRequestDto.setDiaryId(diaryId);
         diaryService.addComment(commentRequestDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PatchMapping("/{diaryId}/comments/{commentId}")
     public ResponseEntity<CommentResponseDto> updateComment(
+            @AuthenticationPrincipal Integer userId,
             @PathVariable Integer diaryId,
             @PathVariable Integer commentId,
             @RequestBody CommentRequestDto commentRequestDto
     ) {
+        commentRequestDto.setUserId(userId);
+        commentRequestDto.setDiaryId(diaryId);
+        commentRequestDto.setCommentId(commentId);
         diaryService.updateComment(commentRequestDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @DeleteMapping("/{diaryId}/comments/{commentId}")
-    public ResponseEntity<Boolean> deleteComment(@PathVariable Integer diaryId, @PathVariable Integer commentId) {
-        diaryService.deleteComment(commentId);
+    public ResponseEntity<Boolean> deleteComment(
+            @AuthenticationPrincipal Integer userId,
+            @PathVariable Integer diaryId,
+            @PathVariable Integer commentId) {
+        diaryService.deleteComment(userId, commentId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
