@@ -74,6 +74,11 @@ public class JwtTokenProvider {
                 .signWith(refreshKey, SignatureAlgorithm.HS256)
                 .compact();
     }
+
+    public String recreateAccessToken(String refreshToken) {
+        Integer userId = getUserId(refreshToken, false);
+        return createAccessToken(userId);
+    }
     /**
      * 토큰 유효성 & 만료일자 확인
      */
@@ -91,8 +96,11 @@ public class JwtTokenProvider {
     /**
      * JWT에서 userId(Subject) 추출
      */
-    public Integer getUserId(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(accessKey).build()
+    public Integer getUserId(String token, boolean isAccessToken) {
+        Key key = isAccessToken ? accessKey : refreshKey;
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
         return Integer.valueOf(claims.getSubject());

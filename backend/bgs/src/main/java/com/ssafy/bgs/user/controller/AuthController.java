@@ -1,6 +1,8 @@
 package com.ssafy.bgs.user.controller;
 
+import com.ssafy.bgs.redis.service.RedisService;
 import com.ssafy.bgs.user.dto.response.LoginResponseDto;
+import com.ssafy.bgs.user.jwt.JwtTokenProvider;
 import com.ssafy.bgs.user.service.KakaoAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.util.StringUtils;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.io.IOException;
 
 @RestController
@@ -18,6 +22,8 @@ import java.io.IOException;
 public class AuthController {
 
     private final KakaoAuthService kakaoAuthService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RedisService redisService;
 
     // application.properties 에 등록된 값
     @Value("${kakao.oauth.client-id}")
@@ -69,6 +75,23 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("카카오 소셜 로그인 실패: " + e.getMessage());
         }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshAccessToken(
+            @RequestHeader("Refresh-Token") String refreshToken) {
+
+        // 1. Refresh Token 유효성 검사 (isAccessToken=false)
+        if (!jwtTokenProvider.validateToken(refreshToken, false)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+        }
+
+        // 2. 새로운 Access Token 발급
+        String newAccessToken = jwtTokenProvider.recreateAccessToken(refreshToken);
+
+        return ResponseEntity.ok()
+                .header("Authorization", "Bearer " + newAccessToken)
+                .build();
     }
 
 }

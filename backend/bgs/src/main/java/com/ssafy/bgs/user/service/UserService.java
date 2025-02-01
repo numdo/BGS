@@ -1,7 +1,9 @@
 package com.ssafy.bgs.user.service;
 
 
+import com.ssafy.bgs.image.entity.Image;
 import com.ssafy.bgs.image.service.ImageService;
+import com.ssafy.bgs.redis.service.RedisService;
 import com.ssafy.bgs.user.dto.request.*;
 import com.ssafy.bgs.user.dto.response.LoginResponseDto;
 import com.ssafy.bgs.user.dto.response.PasswordResetResponseDto;
@@ -29,6 +31,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -43,32 +46,38 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final EmailService emailService;
     private final ImageService imageService;
+    private final RedisService redisService;
+    private final VerificationService verificationService;
 
     /**
      * 회원가입
      */
     public UserResponseDto signup(UserSignupRequestDto requestDto) {
-        // 1. 닉네임 중복 체크
+        // 1. 이메일 인증 여부 확인 (VerificationService는 Redis를 사용함)
+        if (!verificationService.isEmailVerified(requestDto.getEmail())) {
+            throw new RuntimeException("이메일 인증이 완료되지 않았습니다.");
+        }
+
+        // 2. 닉네임 중복 체크
         if (userRepository.existsByNickname(requestDto.getNickname())) {
             throw new RuntimeException("이미 사용 중인 닉네임입니다.");
         }
-        // 2. 이메일 중복 체크
+
+        // 3. 이메일 중복 체크
         if (userRepository.findByEmail(requestDto.getEmail()).isPresent()) {
             throw new RuntimeException("이미 가입된 이메일입니다.");
         }
 
-        // 3. 비밀번호 암호화
+        // 4. 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
-        System.out.println("requestDto.getHeight() : " + requestDto.getHeight());
-        System.out.println("requestDto.getWeight() : " + requestDto.getWeight());
-        // 4. User 엔티티 생성 (기본값 설정)
+
+        // 5. User 엔티티 생성 (기본값 설정)
         User user = new User();
         user.setEmail(requestDto.getEmail());
-        user.setPassword(encodedPassword); // 해시된 비밀번호 저장
+        user.setPassword(encodedPassword);
         user.setNickname(requestDto.getNickname());
         user.setName(requestDto.getName());
         user.setBirthDate(requestDto.getBirthDate());
-        // sex가 "M", "F", "O" 로 들어온다고 가정, DB는 Character로 저장
         if (requestDto.getSex() != null && requestDto.getSex().length() > 0) {
             user.setSex(requestDto.getSex().charAt(0));
         }
@@ -81,12 +90,16 @@ public class UserService {
         user.setStrickAttendance(0);
         user.setAccountType(AccountType.LOCAL);
 
-        // 5. 저장
+        // 6. 사용자 저장
         User savedUser = userRepository.save(user);
 
-        // 6. 응답 DTO 변환
+        // 7. 가입 완료 후, Redis에 저장된 이메일 인증 데이터를 제거 (인증 완료 상태는 더 이상 필요 없으므로)
+        verificationService.removeVerificationCode(requestDto.getEmail());
+
+        // 8. 응답 DTO로 변환 후 반환
         return toUserResponseDto(savedUser);
     }
+
     public UserResponseDto kakaoSignup(Integer userId, KakaoSignupRequestDto kakaoSignupRequestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
@@ -156,6 +169,11 @@ public class UserService {
         String accessToken = jwtTokenProvider.createAccessToken(user.getId());
         String refreshToken = jwtTokenProvider.createReFreshToken(user.getId());
 
+        // 4. Redis에 refreshToken 저장 (예: 키 "user:login:{userId}")
+        String redisKey = "user:login:" + user.getId();
+        // 예시: 1일(1440분) 동안 저장
+        redisService.setValue(redisKey, refreshToken, 1440);
+
         // 3. JWT 생성 및 반환
         return LoginResponseDto.builder()
                 .accessToken(accessToken)
@@ -176,6 +194,12 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public UserResponseDto getUserInfo(Integer userId) {
+        String cacheKey = "user:" + userId;
+        // 1. 캐시 조회
+        UserResponseDto cachedUser = (UserResponseDto) redisService.getValue(cacheKey);
+        if (cachedUser != null) {
+            return cachedUser;
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
@@ -186,9 +210,54 @@ public class UserService {
         imageService.findLatestProfileImage(userId)
                 .ifPresent(image -> dto.setProfileImageUrl(imageService.getS3Url(image.getUrl())));
 
+        redisService.setValue(cacheKey, dto, 30);
 
         return dto;
     }
+
+    /**
+     * 회원 이미지 변경
+     * @param userId
+     * @param newProfileImage
+     * @return
+     */
+    @Transactional
+    public UserResponseDto updateProfileImage(Integer userId, MultipartFile newProfileImage) {
+        try {
+            // 1. 사용자 조회
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+            // 2. 기존 프로필 이미지 조회 및 삭제
+            Optional<Image> currentImageOpt = imageService.findLatestProfileImage(userId);
+            if (currentImageOpt.isPresent()) {
+                // 기존 이미지 삭제 (필요시 이미지 동일 여부 비교 로직 추가 가능)
+                imageService.deleteImage(currentImageOpt.get().getImageId());
+            }
+
+            // 3. 단일 이미지 업로드 (usageType='profile')
+            // 기존에는 List를 생성하여 업로드하였지만, 단일 업로드 메서드로 대체
+            Image newImage = imageService.uploadImage(newProfileImage, "profile", (long) userId);
+
+            // 4. Redis 캐시 무효화
+            String cacheKey = "user:" + userId;
+            redisService.deleteValue(cacheKey);
+
+            // 5. 최신 프로필 이미지로 갱신하여 사용자 정보 조회
+            User updatedUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+            UserResponseDto dto = toUserResponseDto(updatedUser);
+            imageService.findLatestProfileImage(userId)
+                    .ifPresent(img -> dto.setProfileImageUrl(imageService.getS3Url(img.getUrl())));
+
+            return dto;
+        } catch (IOException e) {
+            throw new RuntimeException("프로필 이미지 업로드 중 오류가 발생했습니다.", e);
+        } catch (Exception e) {
+            throw new RuntimeException("프로필 이미지 업데이트 중 오류가 발생했습니다.", e);
+        }
+    }
+
 
 
     /**
@@ -196,8 +265,7 @@ public class UserService {
      */
     @Transactional
     public UserResponseDto updateUserInfo(Integer userId,
-                                          UserUpdateRequestDto requestDto,
-                                          MultipartFile profileImage) {
+                                          UserUpdateRequestDto requestDto) {
         // 1) 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
@@ -217,22 +285,12 @@ public class UserService {
         user.setHeight(requestDto.getHeight());
         user.setWeight(requestDto.getWeight());
 
-        // 4) 프로필 이미지가 있으면 업로드
-        if (profileImage != null && !profileImage.isEmpty()) {
-            try {
-                // ImageService를 통해 S3 업로드 + images 테이블 INSERT
-                // usage_type='PROFILE', usage_id=userId
-                List<MultipartFile> profileImages = new ArrayList<>();
-                profileImages.add(profileImage); // profileImage 추가
-                imageService.uploadImages(profileImages, "profile" ,(long)userId);
-            } catch (IOException e) {
-                // IOException -> RuntimeException 래핑
-                throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);
-            }
-        }
-
         // 5) DB 반영
         User updatedUser = userRepository.save(user);
+
+
+        String cacheKey = "user:" + userId;
+        redisService.deleteValue(cacheKey);
 
         // 6) 엔티티 -> DTO 변환
         UserResponseDto dto = toUserResponseDto(updatedUser);
@@ -259,6 +317,8 @@ public class UserService {
         user.setSocialId(null);
         user.setAccountType(null);
         user.setDeleted(true); // resigned = true 로 소프트삭제 처리
+        redisService.deleteValue("user:" + userId);
+
     }
 
     /**
@@ -295,6 +355,9 @@ public class UserService {
         String encodedNewPassword = passwordEncoder.encode(requestDto.getNewPassword());
         user.setPassword(encodedNewPassword);
         userRepository.save(user);
+
+        redisService.deleteValue("user:" + userId);
+
     }
 
     /**
