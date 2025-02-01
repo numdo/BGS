@@ -30,7 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 2. 토큰이 존재하고, 유효하면 인증 객체 생성
             if (token != null && jwtTokenProvider.validateToken(token,true)) {
                 // JWT에서 userId 추출
-                Integer userId = jwtTokenProvider.getUserId(token);
+                Integer userId = jwtTokenProvider.getUserId(token, true);
 
                 // Principal = userId, Credentials = null, Authorities = null
                 UsernamePasswordAuthenticationToken authenticationToken =
