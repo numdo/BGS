@@ -59,7 +59,7 @@ public class ImageService {
     }
 
     public List<Image> getImages(String usageType, Long usageId) {
-        return imageRepository.findByUsageTypeAndUsageId(usageType, usageId);
+        return imageRepository.findByUsageTypeAndUsageIdAndDeletedFalse (usageType, usageId);
     }
 
     @Transactional
