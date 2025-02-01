@@ -1,5 +1,6 @@
 package com.ssafy.bgs.diary.dto.response;
 
+import com.ssafy.bgs.image.dto.response.ImageResponseDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,4 +22,5 @@ public class DiaryResponseDto {
     private Timestamp modifiedAt;
     private List<String> hashtags = new ArrayList<>();
     private List<DiaryWorkoutResponseDto> diaryWorkouts = new ArrayList<>();
+    private List<ImageResponseDto> images = new ArrayList<>();
 }

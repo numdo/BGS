@@ -19,4 +19,6 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
             "  AND i.deleted = false " +
             "ORDER BY i.createdAt DESC")
     List<Image> findProfileImages(@Param("userId") long userId);
+
+    List<Image> findByUsageTypeAndUsageId(String usageType, Long usageId);
 }

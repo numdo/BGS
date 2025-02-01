@@ -58,12 +58,17 @@ public class ImageService {
                 .orElseThrow(() -> new RuntimeException("이미지 ID를 찾을 수 없음: " + imageId));
     }
 
+    public List<Image> getImages(String usageType, Long usageId) {
+        return imageRepository.findByUsageTypeAndUsageId(usageType, usageId);
+    }
+
     @Transactional
     public void deleteImage(Long imageId) {
         Image image = getImage(imageId);
         if (!image.isDeleted()) {
             image.setDeleted(true);
-            // S3 삭제
+            // DB & S3 삭제
+            imageRepository.save(image);
             s3Uploader.delete(image.getUrl());
         }
     }

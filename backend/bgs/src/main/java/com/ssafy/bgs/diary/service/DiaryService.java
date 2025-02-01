@@ -10,12 +10,19 @@ import com.ssafy.bgs.diary.dto.response.DiaryWorkoutResponseDto;
 import com.ssafy.bgs.diary.dto.response.WorkoutSetResponseDto;
 import com.ssafy.bgs.diary.entity.*;
 import com.ssafy.bgs.diary.repository.*;
+import com.ssafy.bgs.image.dto.response.ImageResponseDto;
+import com.ssafy.bgs.image.entity.Image;
+import com.ssafy.bgs.image.repository.ImageRepository;
+import com.ssafy.bgs.image.service.ImageService;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,14 +35,17 @@ public class DiaryService {
     private final DiaryLikedRepository diaryLikedRepository;
     private final HashtagRepository hashtagRepository;
     private final CommentRepository commentRepository;
+    private final ImageService imageService;
 
-    public DiaryService(DiaryRepository diaryRepository, DiaryWorkoutRepository diaryWorkoutRepository, WorkoutSetRepository workoutSetRepository, DiaryLikedRepository diaryLikedRepository, HashtagRepository hashtagRepository, CommentRepository commentRepository) {
+
+    public DiaryService(DiaryRepository diaryRepository, DiaryWorkoutRepository diaryWorkoutRepository, WorkoutSetRepository workoutSetRepository, DiaryLikedRepository diaryLikedRepository, HashtagRepository hashtagRepository, CommentRepository commentRepository, ImageService imageService) {
         this.diaryRepository = diaryRepository;
         this.diaryWorkoutRepository = diaryWorkoutRepository;
         this.workoutSetRepository = workoutSetRepository;
         this.diaryLikedRepository = diaryLikedRepository;
         this.hashtagRepository = hashtagRepository;
         this.commentRepository = commentRepository;
+        this.imageService = imageService;
     }
 
     /** Diary Select **/
@@ -54,7 +64,7 @@ public class DiaryService {
 
     /** Diary insert **/
     @Transactional
-    public void addDiary(DiaryRequestDto diaryRequestDto) {
+    public void addDiary(DiaryRequestDto diaryRequestDto, List<MultipartFile> files) {
         // 운동 다이어리 column 입력
         Diary diary = new Diary();
         diary.setUserId(diaryRequestDto.getUserId());
@@ -75,6 +85,13 @@ public class DiaryService {
         // 운동 세트 저장
         List<WorkoutSet> workoutSets = addWorkoutSets(diaryRequestDto.getDiaryWorkouts(), savedDiaryWorkouts);
         workoutSetRepository.saveAll(workoutSets);
+
+        // 이미지 저장
+        try {
+            imageService.uploadImages(files, "diary", Long.valueOf(savedDiary.getDiaryId()));
+        } catch (IOException e) {
+            throw new RuntimeException("fail to upload", e);
+        }
     }
 
     /** diaryId를 키로 Hashtag insert **/
@@ -181,13 +198,31 @@ public class DiaryService {
             diaryResponseDto.getDiaryWorkouts().add(diaryWorkoutResponseDto);
         }
 
+        // Image 조회
+        List<Image> images = imageService.getImages("diary", Long.valueOf(diaryId));
+        for (Image image : images) {
+            ImageResponseDto imageResponseDto = new ImageResponseDto();
+            imageResponseDto.setImageId(image.getImageId());
+            imageResponseDto.setUrl(image.getUrl());
+            imageResponseDto.setExtension(image.getExtension());
+
+            // images 리스트에 추가
+            diaryResponseDto.getImages().add(imageResponseDto);
+        }
+
         return diaryResponseDto;
     }
 
     /** Diary update **/
     @Transactional
-    public void updateDiary(DiaryRequestDto diaryRequestDto) {
+    public void updateDiary(Integer userId, DiaryRequestDto diaryRequestDto, List<String> urls, List<MultipartFile> files) {
+        // 다이어리 미존재
         Diary existingDiary = diaryRepository.findById(diaryRequestDto.getDiaryId()).orElseThrow(() -> new IllegalArgumentException("Diary not found"));
+
+        // 다이어리 수정 권한 없음
+        if (!existingDiary.getUserId().equals(userId))
+            throw new AuthenticationException("illegal access") {};
+
         // Diary column 수정
         existingDiary.setWorkoutDate(diaryRequestDto.getWorkoutDate());
         existingDiary.setContent(diaryRequestDto.getContent());
@@ -207,6 +242,23 @@ public class DiaryService {
         // WorkoutSet update
         List<WorkoutSet> workoutSets = updateWorkoutSets(diaryRequestDto.getDiaryWorkouts(), savedDiaryWorkouts);
         workoutSetRepository.saveAll(workoutSets);
+
+        // unused image delete
+        List<Image> existingImages = imageService.getImages("diary", Long.valueOf(existingDiary.getDiaryId()));
+        for (Image image : existingImages) {
+            if (urls == null || !urls.contains(image.getUrl())) {
+                imageService.deleteImage(image.getImageId());
+            }
+        }
+
+        // new image insert
+        if (files != null && !files.isEmpty()) {
+            try {
+                imageService.uploadImages(files, "diary", Long.valueOf(existingDiary.getDiaryId()));
+            } catch (IOException e) {
+                throw new RuntimeException("fail to upload",e);
+            }
+        }
     }
 
     /** DB에 업데이트할 운동 목록 리스트 반환 **/
@@ -272,20 +324,31 @@ public class DiaryService {
         return workoutSets;
     }
 
-    public void deleteDiary(Integer diaryId) {
-        // 미존재
+    /** Diary Delete **/
+    public void deleteDiary(Integer userId, Integer diaryId) {
+        // 다이어리 미존재
         Diary diary = diaryRepository.findById(diaryId).orElse(null);
         if (diary == null || diary.getDeleted()) {
             throw new IllegalArgumentException("Diary does not exist or is already deleted");
         }
 
+        // 다이어리 삭제 권한 없음
+        if (!diary.getUserId().equals(userId))
+            throw new AuthenticationException("illegal access") {};
+
         // Diary soft delete
         diary.setDeleted(true);
         diaryRepository.save(diary);
+
+        // Image soft delete
+        List<Image> images = imageService.getImages("diary", Long.valueOf(diaryId));
+        for (Image image : images) {
+            imageService.deleteImage(image.getImageId());
+        }
     }
 
     /** 게시물 좋아요 **/
-    public void likeDiary(Integer diaryId, Integer userId) {
+    public void likeDiary(Integer userId, Integer diaryId) {
         DiaryLikedId diaryLikedId = new DiaryLikedId(diaryId, userId);
         DiaryLiked diaryLiked = new DiaryLiked();
         diaryLiked.setId(diaryLikedId);
@@ -293,7 +356,7 @@ public class DiaryService {
     }
 
     /** 게시물 좋아요 취소 **/
-    public void unlikeDiary(Integer diaryId, Integer userId) {
+    public void unlikeDiary(Integer userId, Integer diaryId) {
         DiaryLikedId diaryLikedId = new DiaryLikedId(diaryId, userId);
         diaryLikedRepository.deleteById(diaryLikedId);
     }
@@ -315,17 +378,27 @@ public class DiaryService {
 
     /** Comment update **/
     public void updateComment(CommentRequestDto commentRequestDto) {
+        // 댓글 미존재
         Comment comment = commentRepository.findById(commentRequestDto.getCommentId()).orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+
+        // 댓글 수정 권한 없음
+        if (!comment.getUserId().equals(commentRequestDto.getUserId()))
+            throw new AuthenticationException("illegal access") {};
         comment.setContent(commentRequestDto.getContent());
         commentRepository.save(comment);
     }
 
     /** Comment delete **/
-    public void deleteComment(Integer commentId) {
+    public void deleteComment(Integer userId, Integer commentId) {
+        // 댓글 미존재
         Comment comment = commentRepository.findById(commentId).orElse(null);
         if (comment == null || comment.getDeleted()) {
             throw new IllegalArgumentException("Comment does not exist or is already deleted");
         }
+        
+        // 댓글 삭제 권한 없음
+        if (!comment.getUserId().equals(userId))
+            throw new AuthenticationException("illegal access") {};
 
         comment.setDeleted(true);
         commentRepository.save(comment);
