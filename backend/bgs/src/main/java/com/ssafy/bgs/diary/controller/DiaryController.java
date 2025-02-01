@@ -8,7 +8,6 @@ import com.ssafy.bgs.diary.entity.Diary;
 import com.ssafy.bgs.diary.service.DiaryService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +38,7 @@ public class DiaryController {
         return new ResponseEntity<>(diaryList, HttpStatus.OK);
     }
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping
     public ResponseEntity<DiaryResponseDto> addDiary(
             @AuthenticationPrincipal Integer userId,
             @RequestPart(name = "diary") DiaryRequestDto diaryRequestDto,
@@ -61,8 +60,8 @@ public class DiaryController {
             @AuthenticationPrincipal Integer userId,
             @PathVariable Integer diaryId,
             @RequestPart(name = "diary") DiaryRequestDto diaryRequestDto,
-            @RequestPart(required = false) List<String> urls,
-            @RequestPart(required = false) List<MultipartFile> files
+            @RequestPart(name = "urls",required = false) List<String> urls,
+            @RequestPart(name = "files",required = false) List<MultipartFile> files
     ) {
         diaryRequestDto.setDiaryId(diaryId);
         diaryService.updateDiary(userId, diaryRequestDto, urls, files);
