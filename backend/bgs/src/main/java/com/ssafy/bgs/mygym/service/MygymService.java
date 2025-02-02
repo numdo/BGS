@@ -1,4 +1,150 @@
 package com.ssafy.bgs.mygym.service;
 
-public interface MygymService {
+import com.ssafy.bgs.image.service.ImageService;
+import com.ssafy.bgs.mygym.dto.request.GuestbookRequestDto;
+import com.ssafy.bgs.mygym.dto.request.MygymRequestDto;
+import com.ssafy.bgs.mygym.dto.request.PlaceRequestDto;
+import com.ssafy.bgs.mygym.dto.response.GuestbookResponseDto;
+import com.ssafy.bgs.mygym.dto.response.MygymResponseDto;
+import com.ssafy.bgs.mygym.dto.response.PlaceResponseDto;
+import com.ssafy.bgs.mygym.entity.Guestbook;
+import com.ssafy.bgs.mygym.entity.MygymColor;
+import com.ssafy.bgs.mygym.entity.Place;
+import com.ssafy.bgs.mygym.repository.*;
+import com.ssafy.bgs.user.entity.User;
+import com.ssafy.bgs.user.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class MygymService {
+    private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
+    private final MygymColorRepository mygymColorRepository;
+    private final PlaceRepository placeRepository;
+    private final UserItemRepository userItemRepository;
+    private final GuestbookRepository guestbookRepository;
+    private final ImageService imageService;
+
+    public MygymService(UserRepository userRepository, ItemRepository itemRepository, MygymColorRepository mygymColorRepository, PlaceRepository placeRepository, UserItemRepository userItemRepository, GuestbookRepository guestbookRepository, ImageService imageService) {
+        this.userRepository = userRepository;
+        this.itemRepository = itemRepository;
+        this.mygymColorRepository = mygymColorRepository;
+        this.placeRepository = placeRepository;
+        this.userItemRepository = userItemRepository;
+        this.guestbookRepository = guestbookRepository;
+        this.imageService = imageService;
+    }
+
+    /** Mygym 조회 **/
+    public MygymResponseDto getMygym(Integer userId) {
+        MygymResponseDto mygymResponseDto = new MygymResponseDto();
+
+        // 마이짐 주인 조회
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+        mygymResponseDto.setUserId(userId);
+        mygymResponseDto.setNickname(user.getNickname());
+
+        // 마이짐 컬러 조회
+        MygymColor mygymColor = mygymColorRepository.findById(userId).orElse(new MygymColor());
+        mygymResponseDto.setBackgroundColor(mygymColor.getBackgroundColor());
+        mygymResponseDto.setWallColor(mygymColor.getWallColor());
+
+        // 마이짐 배치 조회
+        List<Place> places = placeRepository.findByUserIdAndDeletedFalse(userId);
+        for (Place place : places) {
+            PlaceResponseDto placeResponseDto = new PlaceResponseDto();
+            placeResponseDto.setPlaceId(place.getPlaceId());
+            placeResponseDto.setItemId(place.getItemId());
+            placeResponseDto.setX(place.getX());
+            placeResponseDto.setY(place.getY());
+            placeResponseDto.setRotated(place.getRotated());
+            placeResponseDto.setCreatedAt(place.getCreatedAt());
+            placeResponseDto.setImage(imageService.getImage("item", place.getItemId()));
+
+            mygymResponseDto.getPlaces().add(placeResponseDto);
+        }
+
+        return mygymResponseDto;
+    }
+
+    /** Mygym 수정 **/
+    public void updateMygym(Integer userId, MygymRequestDto mygymRequestDto) {
+        // 마이짐 색상 update
+        MygymColor mygymColor = new MygymColor();
+        mygymColor.setUserId(userId);
+        mygymColor.setBackgroundColor(mygymRequestDto.getBackgroundColor());
+        mygymColor.setWallColor(mygymRequestDto.getWallColor());
+        mygymColorRepository.save(mygymColor);
+
+        // 마이짐 배치 update
+        for (PlaceRequestDto placeRequestDto : mygymRequestDto.getPlaces()) {
+            Place place;
+            // 새로운 배치 추가
+            if (placeRequestDto.getPlaceId() == null) {
+                place = new Place();
+                place.setUserId(userId);
+            }
+            // 기존 배치 수정
+            else {
+                place = placeRepository.findById(placeRequestDto.getPlaceId()).orElseThrow(() -> new IllegalArgumentException("Place not found: " + placeRequestDto.getPlaceId()));
+            }
+
+            // Place column update
+            place.setX(placeRequestDto.getX());
+            place.setY(placeRequestDto.getY());
+            place.setRotated(placeRequestDto.getRotated());
+            place.setDeleted(placeRequestDto.getDeleted());
+            placeRepository.save(place);
+        }
+
+    }
+
+    /** Guestbook select **/
+    public Page<GuestbookResponseDto> getGuestbookList(Integer userId, int page, int pageSize) {
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        return guestbookRepository.findByOwnerId(userId, pageable);
+    }
+
+    /** Guestbook insert **/
+    public void addGuestbook(GuestbookRequestDto guestbookRequestDto) {
+        Guestbook guestbook = new Guestbook();
+        guestbook.setOwnerId(guestbookRequestDto.getOwnerId());
+        guestbook.setGuestId(guestbookRequestDto.getGuestId());
+        guestbook.setContent(guestbookRequestDto.getContent());
+        guestbookRepository.save(guestbook);
+    }
+
+    public void updateGuestbook(GuestbookRequestDto guestbookRequestDto) {
+        Guestbook guestbook;
+        // 방명록 미존재
+        guestbook = guestbookRepository.findById(guestbookRequestDto.getGuestbookId()).orElseThrow(() -> new IllegalArgumentException("Guestbook not found: " + guestbookRequestDto.getGuestbookId()));
+
+        // 방명록 수정 권한 없음
+        if (!guestbook.getGuestId().equals(guestbookRequestDto.getGuestId()))
+            throw new AuthenticationException("illegal access") {};
+
+        // 방명록 수정
+        guestbook.setContent(guestbookRequestDto.getContent());
+        guestbookRepository.save(guestbook);
+    }
+
+    public void deleteGuestbook(Integer guestbookId, Integer guestId) {
+        Guestbook guestbook;
+        // 방명록 미존재
+        guestbook = guestbookRepository.findById(guestbookId).orElseThrow(() -> new IllegalArgumentException("Guestbook not found: " + guestbookId));
+
+        // 방명록 수정 권한 없음
+        if (!guestbook.getGuestId().equals(guestId))
+            throw new AuthenticationException("illegal access") {};
+
+        // 방명록 soft delete
+        guestbook.setDeleted(true);
+        guestbookRepository.save(guestbook);
+    }
 }
