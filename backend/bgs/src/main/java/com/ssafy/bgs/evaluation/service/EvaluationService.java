@@ -116,6 +116,10 @@ public class EvaluationService {
             throw new IllegalStateException("투표가 시작된 게시물은 수정할 수 없습니다.");
         }
 
+        if (Boolean.TRUE.equals(evaluation.getDeleted())) {
+            throw new IllegalStateException("삭제된 게시물은 수정할 수 없습니다.");
+        }
+
         for (Map.Entry<String, Object> entry : updates.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
