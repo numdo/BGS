@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import removeItemPng from "../../assets/remove_item.png";
 import selectColorPng from "../../assets/selectcolor.png";
 import Flip from "../../assets/Flip.png";
+import SelectColor from "./SelectColor";
 
 
 // 폴리곤 꼭짓점을 %로 정의 (육각형 clipPath에 맞춰 작성) 바닥육각형 ㅇㅇ
@@ -29,15 +30,12 @@ function pointInPolygon(px, py, polygon) {
   return isInside;
 }
 
-const colors = ["#ffcccc", "#ffffcc", "#ccffcc", "#F5F1D9"];
 
-const MyGymRoom = ({ items, setItems, roomColor, setRoomColor }) => {
+const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
   const roomRef = useRef(null);
 
   const [draggingItem, setDraggingItem] = useState(null);
-  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
-
   const [startCoord, setStartCoord] = useState({ x: 0, y: 0 });
   const [isDraggingMode, setIsDraggingMode] = useState(false);
 
@@ -257,42 +255,8 @@ const MyGymRoom = ({ items, setItems, roomColor, setRoomColor }) => {
           );
         })}
       </div>
-
-      {/* 색상 선택 팔레트 */}
-      <div className="mt-4 relative inline-block">
-        <img
-          src={selectColorPng}
-          alt="Select Color"
-          className="w-12 h-12 cursor-pointer"
-          onClick={togglePalette}
-        />
-
-        <div
-          className={`
-            absolute left-1/2 top-full
-            flex items-center
-            transform -translate-x-1/2
-            transition-all duration-500 ease-in-out
-            ${
-              isPaletteOpen
-                ? "opacity-100 scale-100 translate-y-2"
-                : "opacity-0 scale-0 translate-y-0"
-            }
-          `}
-          style={{ transformOrigin: "top center" }}
-        >
-          {colors.map((color, idx) => (
-            <button
-              key={idx}
-              className="w-8 h-8 rounded-full border-2 border-white shadow-md mx-1"
-              style={{ backgroundColor: color }}
-              onClick={() => setRoomColor(color)}
-            />
-          ))}
-        </div>
-      </div>
     </div>
   );
 };
 
-export default MyGymRoom;
+export default MyGymRoomEdit;
