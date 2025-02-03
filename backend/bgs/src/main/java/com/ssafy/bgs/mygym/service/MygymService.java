@@ -10,8 +10,11 @@ import com.ssafy.bgs.mygym.dto.response.PlaceResponseDto;
 import com.ssafy.bgs.mygym.entity.Guestbook;
 import com.ssafy.bgs.mygym.entity.MygymColor;
 import com.ssafy.bgs.mygym.entity.Place;
+import com.ssafy.bgs.mygym.exception.GuestbookNotFoundException;
+import com.ssafy.bgs.mygym.exception.PlaceNotFoundException;
 import com.ssafy.bgs.mygym.repository.*;
 import com.ssafy.bgs.user.entity.User;
+import com.ssafy.bgs.user.exception.UserNotFoundException;
 import com.ssafy.bgs.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -46,7 +49,8 @@ public class MygymService {
         MygymResponseDto mygymResponseDto = new MygymResponseDto();
 
         // 마이짐 주인 조회
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
         mygymResponseDto.setUserId(userId);
         mygymResponseDto.setNickname(user.getNickname());
 
@@ -92,7 +96,8 @@ public class MygymService {
             }
             // 기존 배치 수정
             else {
-                place = placeRepository.findById(placeRequestDto.getPlaceId()).orElseThrow(() -> new IllegalArgumentException("Place not found: " + placeRequestDto.getPlaceId()));
+                place = placeRepository.findById(placeRequestDto.getPlaceId())
+                        .orElseThrow(() -> new PlaceNotFoundException(placeRequestDto.getPlaceId()));
             }
 
             // Place column update
@@ -123,11 +128,12 @@ public class MygymService {
     public void updateGuestbook(GuestbookRequestDto guestbookRequestDto) {
         Guestbook guestbook;
         // 방명록 미존재
-        guestbook = guestbookRepository.findById(guestbookRequestDto.getGuestbookId()).orElseThrow(() -> new IllegalArgumentException("Guestbook not found: " + guestbookRequestDto.getGuestbookId()));
+        guestbook = guestbookRepository.findById(guestbookRequestDto.getGuestbookId())
+                .orElseThrow(() -> new GuestbookNotFoundException(guestbookRequestDto.getGuestbookId()));
 
         // 방명록 수정 권한 없음
         if (!guestbook.getGuestId().equals(guestbookRequestDto.getGuestId()))
-            throw new AuthenticationException("illegal access") {};
+            throw new AuthenticationException("방명록 수정 권한 없음") {};
 
         // 방명록 수정
         guestbook.setContent(guestbookRequestDto.getContent());
@@ -137,11 +143,12 @@ public class MygymService {
     public void deleteGuestbook(Integer guestbookId, Integer guestId) {
         Guestbook guestbook;
         // 방명록 미존재
-        guestbook = guestbookRepository.findById(guestbookId).orElseThrow(() -> new IllegalArgumentException("Guestbook not found: " + guestbookId));
+        guestbook = guestbookRepository.findById(guestbookId)
+                .orElseThrow(() -> new GuestbookNotFoundException(guestbookId));
 
-        // 방명록 수정 권한 없음
+        // 방명록 삭제 권한 없음
         if (!guestbook.getGuestId().equals(guestId))
-            throw new AuthenticationException("illegal access") {};
+            throw new AuthenticationException("방명록 삭제 권한 없음") {};
 
         // 방명록 soft delete
         guestbook.setDeleted(true);

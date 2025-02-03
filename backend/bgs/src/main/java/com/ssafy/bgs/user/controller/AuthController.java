@@ -61,20 +61,15 @@ public class AuthController {
                     .body("인가코드(code)가 존재하지 않습니다.");
         }
 
-        try {
-            // 카카오 로그인 처리 후, 우리 서비스의 JWT 발급
-            SocialLoginResponseDto loginResponse = authService.kakaoLogin(code);
+        // 카카오 로그인 처리 후, 우리 서비스의 JWT 발급
+        SocialLoginResponseDto loginResponse = authService.kakaoLogin(code);
 
-            // **추가**: JWT 토큰을 Response Header에 담아서 내려주기
-            response.setHeader("Authorization", "Bearer " + loginResponse.getAccessToken());
-            response.setHeader("Refresh-Token", "Bearer " + loginResponse.getRefreshToken());
+        // **추가**: JWT 토큰을 Response Header에 담아서 내려주기
+        response.setHeader("Authorization", "Bearer " + loginResponse.getAccessToken());
+        response.setHeader("Refresh-Token", "Bearer " + loginResponse.getRefreshToken());
 
-            // 바디로도 JSON 형태로 반환
-            return ResponseEntity.ok(loginResponse);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("카카오 소셜 로그인 실패: " + e.getMessage());
-        }
+        // 바디로도 JSON 형태로 반환
+        return ResponseEntity.ok(loginResponse);
     }
 
     @PostMapping("/refresh")

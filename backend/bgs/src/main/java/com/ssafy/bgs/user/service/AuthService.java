@@ -1,6 +1,6 @@
 package com.ssafy.bgs.user.service;
 
-import com.ssafy.bgs.user.dto.response.LoginResponseDto;
+import com.ssafy.bgs.common.DuplicatedException;
 import com.ssafy.bgs.user.dto.response.SocialLoginResponseDto;
 import com.ssafy.bgs.user.entity.AccountType;
 import com.ssafy.bgs.user.entity.User;
@@ -65,7 +65,7 @@ public class AuthService {
                 if (byEmail.isPresent()) {
                     User existingUser = byEmail.get();
                     if (existingUser.getAccountType() == AccountType.LOCAL) {
-                        throw new RuntimeException("해당 이메일로 로컬 계정이 이미 존재합니다. 로컬 로그인을 사용하세요.");
+                        throw new DuplicatedException("해당 이메일로 로컬 계정이 이미 존재합니다. 로컬 로그인을 사용하세요.");
                     }
                     user = existingUser;
 
@@ -179,11 +179,11 @@ public class AuthService {
                 return new KakaoUserInfo(id, email, nickname);
             } else {
                 log.error("카카오 사용자 정보 조회 실패: HTTP {}", response.getStatusCodeValue());
-                throw new RuntimeException("카카오 사용자 정보 조회 실패");
+                throw new IllegalArgumentException("카카오 사용자 정보 조회 실패");
             }
         } catch (Exception e) {
             log.error("카카오 사용자 정보 조회 중 예외 발생: {}", e.getMessage());
-            throw new RuntimeException("카카오 사용자 정보 조회 실패");
+            throw new IllegalArgumentException("카카오 사용자 정보 조회 실패");
         }
     }
 

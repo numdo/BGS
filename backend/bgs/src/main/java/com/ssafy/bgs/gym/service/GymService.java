@@ -1,9 +1,12 @@
 package com.ssafy.bgs.gym.service;
 
+import com.ssafy.bgs.common.DuplicatedException;
 import com.ssafy.bgs.gym.dto.request.GymRequestDto;
 import com.ssafy.bgs.gym.dto.response.GymResponseDto;
 import com.ssafy.bgs.gym.dto.response.MachineResponseDto;
 import com.ssafy.bgs.gym.entity.*;
+import com.ssafy.bgs.gym.exception.GymNotFoundException;
+import com.ssafy.bgs.gym.exception.MachineNotFound;
 import com.ssafy.bgs.gym.repository.GymMachineRepository;
 import com.ssafy.bgs.gym.repository.GymRepository;
 import com.ssafy.bgs.gym.repository.MachineRepository;
@@ -71,16 +74,16 @@ public class GymService {
     public void addMachineToGym(Integer gymId, Integer machineId) {
         // 1) 헬스장 존재 확인
         Gym gym = gymRepository.findById(gymId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 헬스장 ID=" + gymId));
+                .orElseThrow(() -> new GymNotFoundException(gymId));
 
         // 2) 머신 존재 확인
         Machine machine = machineRepository.findById(machineId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 머신 ID=" + machineId));
+                .orElseThrow(() -> new MachineNotFound(machineId));
 
         // 3) 복합 PK가 이미 존재하는지(중복 등록) 확인
         GymMachineKey key = new GymMachineKey(gymId, machineId);
         if (gymMachineRepository.existsById(key)) {
-            throw new IllegalArgumentException("이미 등록된 (gymId, machineId) 입니다.");
+            throw new DuplicatedException("이미 등록된 운동기구 입니다.");
         }
 
         // 4) GymMachine 생성
