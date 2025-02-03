@@ -37,10 +37,18 @@ public class EvaluationService {
      * 평가 게시물 전체 조회 (페이징 지원)
      */
     @Transactional
-    public Page<EvaluationResponseDto> getAllEvaluations(Pageable pageable) {
-        return evaluationRepository.findAll(pageable)
-                .map(this::convertToDto);
+    public Page<EvaluationResponseDto> getAllEvaluations(Pageable pageable, Boolean closed) {
+        Page<Evaluation> evaluations;
+
+        if (closed == null) {
+            evaluations = evaluationRepository.findByDeletedFalse(pageable); // 삭제되지 않은 모든 게시물
+        } else {
+            evaluations = evaluationRepository.findByDeletedFalseAndClosed(pageable, closed); // 삭제되지 않고 투표 완료 여부 필터링
+        }
+
+        return evaluations.map(this::convertToDto);
     }
+
 
     /**
      * 평가 게시물 상세 조회
@@ -49,6 +57,11 @@ public class EvaluationService {
     public EvaluationResponseDto getEvaluationById(Integer evaluationId) {
         Evaluation evaluation = evaluationRepository.findById(evaluationId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 평가 게시물입니다."));
+
+        // 🔴 삭제된 게시물은 조회 불가
+        if (Boolean.TRUE.equals(evaluation.getDeleted())) {
+            throw new RuntimeException("삭제된 게시물입니다.");
+        }
 
         List<String> imageUrls = imageService.getImages("evaluation", evaluationId)
                 .stream()
@@ -59,6 +72,7 @@ public class EvaluationService {
         responseDto.setImageUrls(imageUrls);
         return responseDto;
     }
+
 
     /**
      * 평가 게시물 등록 (이미지 포함)
@@ -159,9 +173,14 @@ public class EvaluationService {
         Evaluation evaluation = evaluationRepository.findById(evaluationId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 평가 게시물입니다."));
 
-        // 이미 투표가 종료된 게시물
+        // 🔴 삭제된 게시물은 투표 불가
+        if (Boolean.TRUE.equals(evaluation.getDeleted())) {
+            throw new IllegalStateException("삭제된 게시물에는 투표할 수 없습니다.");
+        }
+
+        // 🔴 투표가 종료된 게시물은 투표 불가
         if (Boolean.TRUE.equals(evaluation.getClosed())) {
-            throw new IllegalStateException("이미 투표가 종료된 게시물입니다.");
+            throw new IllegalStateException("투표가 종료된 게시물에는 투표할 수 없습니다.");
         }
 
         VoteId voteId = new VoteId(evaluationId, userId);
@@ -199,12 +218,13 @@ public class EvaluationService {
             }
         }
 
-        // 총 투표 수 확인
-        long totalVotes = voteRepository.countByEvaluationId(evaluationId);
-        if (totalVotes >= 10) {
-            closeEvaluation(evaluationId); // 투표 종료 처리
-        }
+        // 🔹 투표를 즉시 반영 (flush)하여 데이터 동기화
+        voteRepository.flush();
+
+        // 🔹 투표 종료 조건 확인
+        closeEvaluation(evaluationId);
     }
+
 
 
     /**
@@ -215,17 +235,25 @@ public class EvaluationService {
         Evaluation evaluation = evaluationRepository.findById(evaluationId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 평가 게시물입니다."));
 
-        // 찬성표 계산
+        // 🔹 최신 데이터를 가져오도록 강제 동기화
+        evaluationRepository.flush();
+        voteRepository.flush();
+
+        // 🔹 투표 개수 다시 불러오기
+        long totalVotes = voteRepository.countByEvaluationId(evaluationId);
         long approvalCount = voteRepository.countByEvaluationIdAndApprovalTrue(evaluationId);
+        long rejectionCount = totalVotes - approvalCount;
 
-        // 7표 이상 찬성 시 기록 반영
-        if (approvalCount >= 7) {
-            reflectWorkoutRecord(evaluation);
+        // 종료 조건 확인 (10표 이상, 찬성 7표 이상, 반대 4표 이상 중 하나라도 만족하면 종료)
+        if (totalVotes >= 10 || approvalCount >= 7 || rejectionCount >= 4) {
+            evaluation.setClosed(true);
+            evaluationRepository.save(evaluation);
+
+            // 🔹 찬성 7표 이상이면 운동 기록 반영
+            if (approvalCount >= 7) {
+                reflectWorkoutRecord(evaluation);
+            }
         }
-
-        // 평가 게시물 투표 종료
-        evaluation.setClosed(true);
-        evaluationRepository.save(evaluation);
     }
 
     /**

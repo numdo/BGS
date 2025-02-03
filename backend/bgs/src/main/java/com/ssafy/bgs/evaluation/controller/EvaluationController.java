@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -34,12 +35,13 @@ public class EvaluationController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String direction) {
+            @RequestParam(defaultValue = "desc") String direction,
+            @RequestParam(required = false) Boolean closed) {
 
         Pageable pageable = PageRequest.of(page, size,
                 Sort.by(direction.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy));
 
-        return ResponseEntity.ok(evaluationService.getAllEvaluations(pageable));
+        return ResponseEntity.ok(evaluationService.getAllEvaluations(pageable, closed));
     }
 
     /**
@@ -68,21 +70,30 @@ public class EvaluationController {
         return ResponseEntity.ok(evaluationService.createEvaluation(userId, dto, images));
     }
 
-
     /**
      * 평가 게시물 수정 (이미지 포함)
      */
     @PatchMapping(value = "/{evaluationId}", consumes = "multipart/form-data")
     public ResponseEntity<EvaluationResponseDto> updateEvaluation(
             @PathVariable Integer evaluationId,
-            Authentication authentication,
-            @RequestPart("updates") Map<String, Object> updates,
+            Authentication authentication, // 인증 정보
+            @RequestPart(name = "updates", required = false) String updatesJson,
             @RequestParam(value = "existingImageUrls", required = false) List<String> existingImageUrls,
             @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages) throws IOException {
 
+        // 인증 정보 없으면 401 응답
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         Integer userId = Integer.parseInt(authentication.getName());
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> updates = objectMapper.readValue(updatesJson, Map.class);
+
         return ResponseEntity.ok(evaluationService.updateEvaluation(evaluationId, userId, updates, existingImageUrls, newImages));
     }
+
 
     /**
      * 평가 게시물 삭제 (Soft Delete)
