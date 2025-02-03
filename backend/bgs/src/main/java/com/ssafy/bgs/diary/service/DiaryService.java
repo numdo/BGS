@@ -1,5 +1,6 @@
 package com.ssafy.bgs.diary.service;
 
+import com.ssafy.bgs.common.UnauthorizedAccessException;
 import com.ssafy.bgs.diary.dto.request.CommentRequestDto;
 import com.ssafy.bgs.diary.dto.request.DiaryRequestDto;
 import com.ssafy.bgs.diary.dto.request.DiaryWorkoutRequestDto;
@@ -21,7 +22,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -215,11 +215,14 @@ public class DiaryService {
     @Transactional
     public void updateDiary(Integer userId, DiaryRequestDto diaryRequestDto, List<String> urls, List<MultipartFile> files) {
         // 다이어리 미존재
-        Diary existingDiary = diaryRepository.findById(diaryRequestDto.getDiaryId()).orElseThrow(() -> new DiaryNotFoundException(diaryRequestDto.getDiaryId()));
+        Diary existingDiary = diaryRepository.findById(diaryRequestDto.getDiaryId()).orElse(null);
+        if (existingDiary == null || !existingDiary.getDeleted()) {
+            throw new DiaryNotFoundException(diaryRequestDto.getDiaryId());
+        }
 
         // 다이어리 수정 권한 없음
         if (!existingDiary.getUserId().equals(userId))
-            throw new AuthenticationException("다이어리 수정 권한 없음") {};
+            throw new UnauthorizedAccessException("다이어리 수정 권한 없음") {};
 
         // Diary column 수정
         existingDiary.setWorkoutDate(diaryRequestDto.getWorkoutDate());
@@ -328,7 +331,7 @@ public class DiaryService {
 
         // 다이어리 삭제 권한 없음
         if (!diary.getUserId().equals(userId))
-            throw new AuthenticationException("다이어리 삭제 권한 없음") {};
+            throw new UnauthorizedAccessException("다이어리 삭제 권한 없음") {};
 
         // Diary soft delete
         diary.setDeleted(true);
@@ -377,7 +380,7 @@ public class DiaryService {
 
         // 댓글 수정 권한 없음
         if (!comment.getUserId().equals(commentRequestDto.getUserId()))
-            throw new AuthenticationException("댓글 수정 권한 없음") {};
+            throw new UnauthorizedAccessException("댓글 수정 권한 없음") {};
         comment.setContent(commentRequestDto.getContent());
         commentRepository.save(comment);
     }
@@ -392,7 +395,7 @@ public class DiaryService {
         
         // 댓글 삭제 권한 없음
         if (!comment.getUserId().equals(userId))
-            throw new AuthenticationException("댓글 삭제 권한 없음") {};
+            throw new UnauthorizedAccessException("댓글 삭제 권한 없음") {};
 
         comment.setDeleted(true);
         commentRepository.save(comment);
