@@ -50,7 +50,7 @@ public class EvaluationService {
         Evaluation evaluation = evaluationRepository.findById(evaluationId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 평가 게시물입니다."));
 
-        List<String> imageUrls = imageService.getImages("evaluation", Long.valueOf(evaluationId))
+        List<String> imageUrls = imageService.getImages("evaluation", evaluationId)
                 .stream()
                 .map(Image::getUrl)
                 .collect(Collectors.toList());
