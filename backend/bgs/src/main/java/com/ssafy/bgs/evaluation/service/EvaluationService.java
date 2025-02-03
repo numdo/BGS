@@ -9,14 +9,20 @@ import com.ssafy.bgs.evaluation.entity.WorkoutRecord;
 import com.ssafy.bgs.evaluation.repository.EvaluationRepository;
 import com.ssafy.bgs.evaluation.repository.VoteRepository;
 import com.ssafy.bgs.evaluation.repository.WorkoutRecordRepository;
+import com.ssafy.bgs.image.entity.Image;
+import com.ssafy.bgs.image.service.ImageService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,16 +31,16 @@ public class EvaluationService {
     private final EvaluationRepository evaluationRepository;
     private final VoteRepository voteRepository;
     private final WorkoutRecordRepository workoutRecordRepository;
+    private final ImageService imageService;
 
     /**
-     * 평가 게시물 전체 조회
+     * 평가 게시물 전체 조회 (페이징 지원)
      */
     @Transactional
     public Page<EvaluationResponseDto> getAllEvaluations(Pageable pageable) {
         return evaluationRepository.findAll(pageable)
                 .map(this::convertToDto);
     }
-
 
     /**
      * 평가 게시물 상세 조회
@@ -43,16 +49,24 @@ public class EvaluationService {
     public EvaluationResponseDto getEvaluationById(Integer evaluationId) {
         Evaluation evaluation = evaluationRepository.findById(evaluationId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 평가 게시물입니다."));
-        return convertToDto(evaluation);
+
+        List<String> imageUrls = imageService.getImages("evaluation", Long.valueOf(evaluationId))
+                .stream()
+                .map(Image::getUrl)
+                .collect(Collectors.toList());
+
+        EvaluationResponseDto responseDto = convertToDto(evaluation);
+        responseDto.setImageUrls(imageUrls);
+        return responseDto;
     }
 
     /**
-     * 평가 게시물 등록
+     * 평가 게시물 등록 (이미지 포함)
      */
     @Transactional
-    public EvaluationResponseDto createEvaluation(Integer userId, EvaluationRequestDto dto) {
+    public EvaluationResponseDto createEvaluation(Integer userId, EvaluationRequestDto dto, List<MultipartFile> images) throws IOException {
         Evaluation evaluation = Evaluation.builder()
-                .userId(userId)  // 컨트롤러에서 받은 userId
+                .userId(userId)
                 .content(dto.getContent())
                 .weight(dto.getWeight())
                 .workoutType(dto.getWorkoutType().toUpperCase())
@@ -63,52 +77,52 @@ public class EvaluationService {
                 .modifiedAt(new Timestamp(System.currentTimeMillis()))
                 .build();
 
-        Evaluation saved = evaluationRepository.save(evaluation);
-        return convertToDto(saved);
+        Evaluation savedEvaluation = evaluationRepository.save(evaluation);
+
+        if (images != null && !images.isEmpty()) {
+            imageService.uploadImages(images, "evaluation", Long.valueOf(savedEvaluation.getEvaluationId()));
+        }
+
+        return convertToDto(savedEvaluation);
     }
 
-
     /**
-     * 평가 게시물 수정
+     * 평가 게시물 수정 (이미지 포함)
      */
     @Transactional
-    public EvaluationResponseDto updateEvaluation(Integer evaluationId, Integer loggedInUserId, Map<String, Object> updates) {
+    public EvaluationResponseDto updateEvaluation(Integer evaluationId, Integer userId, Map<String, Object> updates, List<String> existingImageUrls, List<MultipartFile> newImages) throws IOException {
         Evaluation evaluation = evaluationRepository.findById(evaluationId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 평가 게시물입니다."));
 
-        // 1) 본인 게시물인지 확인
-        if (!evaluation.getUserId().equals(loggedInUserId)) {
+        if (!evaluation.getUserId().equals(userId)) {
             throw new IllegalStateException("본인 게시물이 아니므로 수정할 수 없습니다.");
         }
 
-        // 2) 투표가 시작된 경우 수정 불가
         if (Boolean.TRUE.equals(evaluation.getOpened())) {
             throw new IllegalStateException("투표가 시작된 게시물은 수정할 수 없습니다.");
         }
 
-        // 3) JSON에서 전달된 필드만 업데이트 (부분 업데이트 가능)
-        updates.forEach((key, value) -> {
-            switch (key) {
-                case "content":
-                    evaluation.setContent((String) value);
-                    break;
-                case "weight":
-                    evaluation.setWeight(Double.valueOf(value.toString()));
-                    break;
-                case "workoutType":
-                    evaluation.setWorkoutType(((String) value).toUpperCase());
-                    break;
-                default:
-                    throw new IllegalArgumentException("잘못된 필드: " + key);
+        for (Map.Entry<String, Object> entry : updates.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            if ("content".equals(key)) {
+                evaluation.setContent((String) value);
+            } else if ("weight".equals(key)) {
+                evaluation.setWeight(Double.valueOf(value.toString()));
+            } else if ("workoutType".equals(key)) {
+                evaluation.setWorkoutType(((String) value).toUpperCase());
             }
-        });
+        }
 
         evaluation.setModifiedAt(new Timestamp(System.currentTimeMillis()));
 
-        Evaluation updated = evaluationRepository.save(evaluation);
-        return convertToDto(updated);
-    }
+        if (newImages != null && !newImages.isEmpty()) {
+            imageService.uploadImages(newImages, "evaluation", Long.valueOf(evaluationId));
+        }
 
+        return convertToDto(evaluation);
+    }
 
 
     /**

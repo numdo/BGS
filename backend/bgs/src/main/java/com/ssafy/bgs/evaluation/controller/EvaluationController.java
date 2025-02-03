@@ -12,7 +12,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +26,7 @@ public class EvaluationController {
     private final EvaluationService evaluationService;
 
     /**
-     * 평가 게시물 전체 조회
+     * 평가 게시물 전체 조회 (페이징)
      */
     @GetMapping
     public ResponseEntity<Page<EvaluationResponseDto>> getAllEvaluations(
@@ -33,82 +35,60 @@ public class EvaluationController {
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String direction) {
 
-        // Pageable 객체 생성
-        Pageable pageable = PageRequest.of(
-                page,
-                size,
-                Sort.by(direction.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy)
-        );
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(direction.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy));
 
-        Page<EvaluationResponseDto> evaluations = evaluationService.getAllEvaluations(pageable);
-        return ResponseEntity.ok(evaluations);
+        return ResponseEntity.ok(evaluationService.getAllEvaluations(pageable));
     }
-
 
     /**
      * 평가 게시물 상세 조회
      */
     @GetMapping("/{evaluationId}")
-    public ResponseEntity<EvaluationResponseDto> getEvaluationById(
-            @PathVariable Integer evaluationId) {
-        EvaluationResponseDto evaluation = evaluationService.getEvaluationById(evaluationId);
-        return ResponseEntity.ok(evaluation);
+    public ResponseEntity<EvaluationResponseDto> getEvaluationById(@PathVariable Integer evaluationId) {
+        return ResponseEntity.ok(evaluationService.getEvaluationById(evaluationId));
     }
 
     /**
-     * 평가 게시물 등록
+     * 평가 게시물 등록 (이미지 포함)
      */
-    @PostMapping
+    @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<EvaluationResponseDto> createEvaluation(
-            @Valid @RequestBody EvaluationRequestDto dto,
-            Authentication authentication) {
+            Authentication authentication,
+            @RequestPart(value = "data") @Valid EvaluationRequestDto dto,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException {
 
-        // JWT 토큰 인증 정보에서 userId 추출
-        Integer userId = Integer.valueOf(authentication.getName());
-
-        // userId를 DTO에 전달하지 않고, 별도로 서비스에 넘김
-        EvaluationResponseDto evaluation = evaluationService.createEvaluation(userId, dto);
-        return ResponseEntity.ok(evaluation);
+        Integer userId = Integer.parseInt(authentication.getName());
+        return ResponseEntity.ok(evaluationService.createEvaluation(userId, dto, images));
     }
 
-
     /**
-     * 평가 게시물 수정
+     * 평가 게시물 수정 (이미지 포함)
      */
-    @PatchMapping("/{evaluationId}")
+    @PatchMapping(value = "/{evaluationId}", consumes = "multipart/form-data")
     public ResponseEntity<EvaluationResponseDto> updateEvaluation(
             @PathVariable Integer evaluationId,
-            @RequestBody Map<String, Object> updates,
-            Authentication authentication) {
+            Authentication authentication,
+            @RequestPart("updates") Map<String, Object> updates,
+            @RequestParam(value = "existingImageUrls", required = false) List<String> existingImageUrls,
+            @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages) throws IOException {
 
-        // JWT 토큰에서 로그인된 사용자 ID 가져오기
-        Integer loggedInUserId = Integer.valueOf(authentication.getName());
-
-        // Service 호출
-        EvaluationResponseDto evaluation =
-                evaluationService.updateEvaluation(evaluationId, loggedInUserId, updates);
-
-        return ResponseEntity.ok(evaluation);
+        Integer userId = Integer.parseInt(authentication.getName());
+        return ResponseEntity.ok(evaluationService.updateEvaluation(evaluationId, userId, updates, existingImageUrls, newImages));
     }
 
-
-
     /**
-     * 평가 게시물 삭제
+     * 평가 게시물 삭제 (Soft Delete)
      */
     @DeleteMapping("/{evaluationId}")
     public ResponseEntity<Void> deleteEvaluation(
             @PathVariable Integer evaluationId,
             Authentication authentication) {
 
-        // JWT 인증에서 userId 추출
-        Integer loggedInUserId = Integer.valueOf(authentication.getName());
-
-        // Service 호출
-        evaluationService.deleteEvaluation(evaluationId, loggedInUserId);
+        Integer userId = Integer.parseInt(authentication.getName());
+        evaluationService.deleteEvaluation(evaluationId, userId);
         return ResponseEntity.noContent().build();
     }
-
 
     /**
      * 투표하기
@@ -119,12 +99,10 @@ public class EvaluationController {
             @RequestBody Map<String, Boolean> request,
             Authentication authentication) {
 
-        // JWT 토큰에서 사용자 ID 추출
         Integer userId = Integer.parseInt(authentication.getName());
         Boolean approval = request.get("approval");
 
         evaluationService.vote(evaluationId, userId, approval);
         return ResponseEntity.ok("투표가 완료되었습니다.");
     }
-
 }
