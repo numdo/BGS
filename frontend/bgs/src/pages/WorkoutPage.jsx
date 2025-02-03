@@ -4,39 +4,12 @@ import TopBar from '../components/TopBar';
 import WorkoutCalendar from '../components/workout/WorkoutCalendar';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useDiaryStore from '../stores/useDiaryStore';
 export default function WorkoutPage() {
-  const [diaries, setDiaries] = useState([
-    {
-      "diary_id": 0,
-      "user_id": 0,
-      "content": "첫번째 다이어리",
-      "workout_date": new Date(2025, 0, 21),
-      "created_at": "2025-01-23T06:33:59.715Z",
-      "modified_at": "2025-01-23T06:33:59.715Z",
-      "allowed_scope": "string",
-      "like_count": 0
-    },
-    {
-      "diary_id": 1,
-      "user_id": 0,
-      "content": "두번째 다이어리",
-      "workout_date": new Date(2025, 0, 21),
-      "created_at": "2025-01-23T06:33:59.715Z",
-      "modified_at": "2025-01-23T06:33:59.715Z",
-      "allowed_scope": "string",
-      "like_count": 0
-    },
-    {
-      "diary_id": 2,
-      "user_id": 0,
-      "content": "세번째 다이어리",
-      "workout_date": new Date(2025, 0, 21),
-      "created_at": "2025-01-23T06:33:59.715Z",
-      "modified_at": "2025-01-23T06:33:59.715Z",
-      "allowed_scope": "string",
-      "like_count": 0
-    }
-  ])
+  const { diaries, setDiaries } = useDiaryStore()
+  useEffect(() => {
+    setDiaries(3)
+  }, [])
   const [selectedDate, setSelectedDate] = useState(new Date(2025, 0, 23))
   const [filteredDiaries, setFilteredDiaries] = useState([])
   useEffect(() => {
@@ -73,6 +46,13 @@ export default function WorkoutPage() {
         className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-100 font-bold py-3 px-6 rounded-full transition-all duration-300"
       >+ 운동일지 생성하기
       </button>
+      <div>
+        {diaries.map((diary) => (
+          <div>
+            {diary.workoutDate} {diary.content}
+          </div>
+        ))}
+      </div>
       <BottomBar />
     </>
   );

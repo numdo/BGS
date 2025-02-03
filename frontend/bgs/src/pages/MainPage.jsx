@@ -1,10 +1,35 @@
 import React from 'react';
+import { useEffect } from 'react';
 import BottomBar from '../components/BottomBar';
 import TopBar from '../components/TopBar';
 import camera from '../assets/camera.png'
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 export default function MainPage() {
   const navigate = useNavigate()
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      // JWT 토큰을 디코딩
+      const decodedToken = jwtDecode(token);
+      const currentTime = Date.now() / 1000; // 현재 시간 (초 단위)
+
+      // 만약 토큰이 만료되었으면 로그인 페이지로 이동
+      if (decodedToken.exp < currentTime) {
+        localStorage.removeItem('accessToken'); // 만료된 토큰 삭제
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('토큰 디코딩 오류:', error);
+      navigate('/login');
+    }
+  }, [navigate]);
   return (
     <>
       <TopBar />
@@ -18,24 +43,6 @@ export default function MainPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 mt-5">
-          <button
-            onClick={() => { navigate("/signup") }}
-            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
-          >
-            <div className="text-left">
-              <p className="text-xl font-semibold text-gray-800">회원가입</p>
-              <p className="text-lg text-gray-600">바로 하러가기</p>
-            </div>
-          </button>
-          <button
-            onClick={() => { navigate("/login") }}
-            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
-          >
-            <div className="text-left">
-              <p className="text-xl font-semibold text-gray-800">로그인</p>
-              <p className="text-lg text-gray-600">하러가기</p>
-            </div>
-          </button>
           <button
             onClick={() => { navigate("/mygym") }}
             className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
