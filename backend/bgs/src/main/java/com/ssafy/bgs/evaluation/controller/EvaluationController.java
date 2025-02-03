@@ -1,5 +1,6 @@
 package com.ssafy.bgs.evaluation.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.bgs.evaluation.dto.request.EvaluationRequestDto;
 import com.ssafy.bgs.evaluation.dto.response.EvaluationResponseDto;
 import com.ssafy.bgs.evaluation.service.EvaluationService;
@@ -52,16 +53,16 @@ public class EvaluationController {
     /**
      * 평가 게시물 등록 (이미지 포함)
      */
-    @PostMapping(consumes = "multipart/form-data")
+    @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<EvaluationResponseDto> createEvaluation(
             Authentication authentication,
-            @RequestPart(value = "data") @Valid EvaluationRequestDto dto,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException {
+            @RequestPart(name = "evaluation") EvaluationRequestDto dto,
+            @RequestPart(name = "images", required = false) List<MultipartFile> images) throws IOException {
 
         Integer userId = Integer.parseInt(authentication.getName());
         return ResponseEntity.ok(evaluationService.createEvaluation(userId, dto, images));
     }
-
+    
     /**
      * 평가 게시물 수정 (이미지 포함)
      */
