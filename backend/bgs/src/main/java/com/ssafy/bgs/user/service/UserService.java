@@ -153,12 +153,11 @@ public class UserService {
             throw new RuntimeException("비밀번호가 틀립니다.");
         }
 
-        String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail());
-        String refreshToken = jwtTokenProvider.createReFreshToken(user.getId(), user.getEmail());
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId());
+        String refreshToken = jwtTokenProvider.createReFreshToken(user.getId());
 
         // 3. JWT 생성 및 반환
         return LoginResponseDto.builder()
-                .userId(user.getId())
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
@@ -224,6 +223,7 @@ public class UserService {
                 // ImageService를 통해 S3 업로드 + images 테이블 INSERT
                 // usage_type='PROFILE', usage_id=userId
                 List<MultipartFile> profileImages = new ArrayList<>();
+                profileImages.add(profileImage); // profileImage 추가
                 imageService.uploadImages(profileImages, "profile" ,(long)userId);
             } catch (IOException e) {
                 // IOException -> RuntimeException 래핑

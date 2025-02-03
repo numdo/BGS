@@ -1,0 +1,22 @@
+package com.ssafy.bgs.evaluation.dto.response;
+
+import lombok.Builder;
+import lombok.Getter;
+
+import java.sql.Timestamp;
+
+@Getter
+@Builder
+public class EvaluationResponseDto {
+
+    private Integer evaluationId; // 평가 ID
+    private Integer userId;       // 작성자 ID
+    private String content;       // 게시물 내용
+    private Double weight;        // 인증받을 무게
+    private String workoutType;   // SQUAT, BENCH, DEAD
+    private Boolean opened;       // 투표 시작 여부
+    private Boolean closed;       // 투표 종료 여부
+    private Timestamp createdAt;  // 생성 일자
+    private Timestamp modifiedAt; // 수정 일자
+    private Boolean deleted;      // 삭제 여부
+}

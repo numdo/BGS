@@ -11,7 +11,6 @@ import java.util.List;
 public class DiaryWorkoutRequestDto {
     private Integer diaryWorkoutId;
     private Integer workoutId;
-    private Integer setSum;
     private Boolean deleted;
     private List<WorkoutSetRequestDto> sets = new ArrayList<>();
 }

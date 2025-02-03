@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const BulLoginPage = () => {
   const [email, setEmail] = useState("");
@@ -23,6 +24,9 @@ const BulLoginPage = () => {
 
       // 로그인 성공
       console.log("로그인 성공:", response.data);
+      const decoded = jwtDecode(response.data.accessToken)
+      console.log(decoded)
+      localStorage.setItem("userId", decoded.userId)
       localStorage.setItem("accessToken", response.data.accessToken);
       localStorage.setItem("refreshToken", response.data.refreshToken);
       console.log(localStorage);

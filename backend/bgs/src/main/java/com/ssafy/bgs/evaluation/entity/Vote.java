@@ -14,13 +14,12 @@ import lombok.*;
 public class Vote {
 
     @Id
-    @Column(name = "evaluation_id", nullable = false)
+    @Column(name = "evaluation_id")
     private Integer evaluationId;
 
     @Id
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id")
     private Integer userId;
 
-    @Column(nullable = false)
     private Boolean approval;
 }
