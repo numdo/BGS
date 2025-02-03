@@ -74,7 +74,7 @@ const MyGymItem = ({setItems}) => {
         </button>
 
         {/* 스크롤 가능한 아이템들 */}
-        <div className="p-4 overflow-x-auto scroll-snap-x-mandatory flex space-x-4">
+        <div onClick={toggleBox} className="p-4 overflow-x-auto scroll-snap-x-mandatory flex space-x-4">
           {/* 슬라이드 하나 */}
           {gymItems.reduce((result, item, index) => {
             const groupIndex = Math.floor(index / 3); // 3개씩 묶기
