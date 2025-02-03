@@ -89,8 +89,8 @@ public class DiaryService {
         workoutSetRepository.saveAll(workoutSets);
 
         // 이미지 저장
-        imageService.uploadImages(files, "diary", Long.valueOf(savedDiary.getDiaryId()));
-
+        if (files != null && !files.isEmpty())
+            imageService.uploadImages(files, "diary", Long.valueOf(savedDiary.getDiaryId()));
     }
 
     /** diaryId를 키로 Hashtag insert **/
