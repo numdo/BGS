@@ -9,6 +9,10 @@ import com.ssafy.bgs.diary.dto.response.DiaryResponseDto;
 import com.ssafy.bgs.diary.dto.response.DiaryWorkoutResponseDto;
 import com.ssafy.bgs.diary.dto.response.WorkoutSetResponseDto;
 import com.ssafy.bgs.diary.entity.*;
+import com.ssafy.bgs.diary.exception.CommentNotFoundException;
+import com.ssafy.bgs.diary.exception.DiaryNotFoundException;
+import com.ssafy.bgs.diary.exception.DiaryWorkoutNotFoundException;
+import com.ssafy.bgs.diary.exception.WorkoutSetNotFoundException;
 import com.ssafy.bgs.diary.repository.*;
 import com.ssafy.bgs.image.dto.response.ImageResponseDto;
 import com.ssafy.bgs.image.entity.Image;
@@ -21,7 +25,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,11 +89,8 @@ public class DiaryService {
         workoutSetRepository.saveAll(workoutSets);
 
         // 이미지 저장
-        try {
-            imageService.uploadImages(files, "diary", Long.valueOf(savedDiary.getDiaryId()));
-        } catch (IOException e) {
-            throw new RuntimeException("fail to upload", e);
-        }
+        imageService.uploadImages(files, "diary", Long.valueOf(savedDiary.getDiaryId()));
+
     }
 
     /** diaryId를 키로 Hashtag insert **/
@@ -148,7 +148,7 @@ public class DiaryService {
         // 미존재
         Diary diary = diaryRepository.findById(diaryId).orElse(null);
         if (diary == null || diary.getDeleted()) {
-            throw new IllegalArgumentException("Diary does not exist or is deleted");
+            throw new DiaryNotFoundException(diaryId);
         }
 
         // Diary 조회
@@ -215,11 +215,11 @@ public class DiaryService {
     @Transactional
     public void updateDiary(Integer userId, DiaryRequestDto diaryRequestDto, List<String> urls, List<MultipartFile> files) {
         // 다이어리 미존재
-        Diary existingDiary = diaryRepository.findById(diaryRequestDto.getDiaryId()).orElseThrow(() -> new IllegalArgumentException("Diary not found"));
+        Diary existingDiary = diaryRepository.findById(diaryRequestDto.getDiaryId()).orElseThrow(() -> new DiaryNotFoundException(diaryRequestDto.getDiaryId()));
 
         // 다이어리 수정 권한 없음
         if (!existingDiary.getUserId().equals(userId))
-            throw new AuthenticationException("illegal access") {};
+            throw new AuthenticationException("다이어리 수정 권한 없음") {};
 
         // Diary column 수정
         existingDiary.setWorkoutDate(diaryRequestDto.getWorkoutDate());
@@ -251,11 +251,7 @@ public class DiaryService {
 
         // new image insert
         if (files != null && !files.isEmpty()) {
-            try {
-                imageService.uploadImages(files, "diary", Long.valueOf(existingDiary.getDiaryId()));
-            } catch (IOException e) {
-                throw new RuntimeException("fail to upload",e);
-            }
+            imageService.uploadImages(files, "diary", Long.valueOf(existingDiary.getDiaryId()));
         }
     }
 
@@ -271,7 +267,7 @@ public class DiaryService {
             }
             // 기존 운동 목록
             else {
-                existingDiaryWorkout = diaryWorkoutRepository.findById(workoutRequestDto.getDiaryWorkoutId()).orElseThrow(() -> new IllegalArgumentException("Diary Workout not found"));
+                existingDiaryWorkout = diaryWorkoutRepository.findById(workoutRequestDto.getDiaryWorkoutId()).orElseThrow(() -> new DiaryWorkoutNotFoundException(workoutRequestDto.getDiaryWorkoutId()));
             }
 
             // DiaryWorkout column 수정
@@ -303,7 +299,7 @@ public class DiaryService {
                 }
                 // 기존 운동 세트
                 else {
-                    existingWorkoutSet = workoutSetRepository.findById(setRequestDto.getWorkoutSetId()).orElseThrow(() -> new IllegalArgumentException("Workout Set not found"));
+                    existingWorkoutSet = workoutSetRepository.findById(setRequestDto.getWorkoutSetId()).orElseThrow(() -> new WorkoutSetNotFoundException(setRequestDto.getWorkoutSetId()));
                 }
 
                 // WorkoutSet column 수정
@@ -327,12 +323,12 @@ public class DiaryService {
         // 다이어리 미존재
         Diary diary = diaryRepository.findById(diaryId).orElse(null);
         if (diary == null || diary.getDeleted()) {
-            throw new IllegalArgumentException("Diary does not exist or is already deleted");
+            throw new DiaryNotFoundException(diaryId);
         }
 
         // 다이어리 삭제 권한 없음
         if (!diary.getUserId().equals(userId))
-            throw new AuthenticationException("illegal access") {};
+            throw new AuthenticationException("다이어리 삭제 권한 없음") {};
 
         // Diary soft delete
         diary.setDeleted(true);
@@ -377,11 +373,11 @@ public class DiaryService {
     /** Comment update **/
     public void updateComment(CommentRequestDto commentRequestDto) {
         // 댓글 미존재
-        Comment comment = commentRepository.findById(commentRequestDto.getCommentId()).orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+        Comment comment = commentRepository.findById(commentRequestDto.getCommentId()).orElseThrow(() -> new CommentNotFoundException(commentRequestDto.getCommentId()));
 
         // 댓글 수정 권한 없음
         if (!comment.getUserId().equals(commentRequestDto.getUserId()))
-            throw new AuthenticationException("illegal access") {};
+            throw new AuthenticationException("댓글 수정 권한 없음") {};
         comment.setContent(commentRequestDto.getContent());
         commentRepository.save(comment);
     }
@@ -391,12 +387,12 @@ public class DiaryService {
         // 댓글 미존재
         Comment comment = commentRepository.findById(commentId).orElse(null);
         if (comment == null || comment.getDeleted()) {
-            throw new IllegalArgumentException("Comment does not exist or is already deleted");
+            throw new CommentNotFoundException(commentId);
         }
         
         // 댓글 삭제 권한 없음
         if (!comment.getUserId().equals(userId))
-            throw new AuthenticationException("illegal access") {};
+            throw new AuthenticationException("댓글 삭제 권한 없음") {};
 
         comment.setDeleted(true);
         commentRepository.save(comment);

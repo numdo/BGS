@@ -1,11 +1,14 @@
 package com.ssafy.bgs.evaluation.service;
 
+import com.ssafy.bgs.common.UnauthorizedAccessException;
 import com.ssafy.bgs.evaluation.dto.request.EvaluationRequestDto;
 import com.ssafy.bgs.evaluation.dto.response.EvaluationResponseDto;
 import com.ssafy.bgs.evaluation.entity.Evaluation;
 import com.ssafy.bgs.evaluation.entity.Vote;
 import com.ssafy.bgs.evaluation.entity.VoteId;
 import com.ssafy.bgs.evaluation.entity.WorkoutRecord;
+import com.ssafy.bgs.evaluation.exception.EvaluationNotFoundException;
+import com.ssafy.bgs.evaluation.exception.VoteNotFoundException;
 import com.ssafy.bgs.evaluation.repository.EvaluationRepository;
 import com.ssafy.bgs.evaluation.repository.VoteRepository;
 import com.ssafy.bgs.evaluation.repository.WorkoutRecordRepository;
@@ -18,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
@@ -56,11 +58,11 @@ public class EvaluationService {
     @Transactional
     public EvaluationResponseDto getEvaluationById(Integer evaluationId) {
         Evaluation evaluation = evaluationRepository.findById(evaluationId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 평가 게시물입니다."));
+                .orElseThrow(() -> new EvaluationNotFoundException(evaluationId));
 
         // 🔴 삭제된 게시물은 조회 불가
         if (Boolean.TRUE.equals(evaluation.getDeleted())) {
-            throw new RuntimeException("삭제된 게시물입니다.");
+            throw new EvaluationNotFoundException(evaluationId);
         }
 
         List<String> imageUrls = imageService.getImages("evaluation", evaluationId)
@@ -78,7 +80,7 @@ public class EvaluationService {
      * 평가 게시물 등록 (이미지 포함)
      */
     @Transactional
-    public EvaluationResponseDto createEvaluation(Integer userId, EvaluationRequestDto dto, List<MultipartFile> images) throws IOException {
+    public EvaluationResponseDto createEvaluation(Integer userId, EvaluationRequestDto dto, List<MultipartFile> images) {
         Evaluation evaluation = Evaluation.builder()
                 .userId(userId)
                 .content(dto.getContent())
@@ -104,20 +106,20 @@ public class EvaluationService {
      * 평가 게시물 수정 (이미지 포함)
      */
     @Transactional
-    public EvaluationResponseDto updateEvaluation(Integer evaluationId, Integer userId, Map<String, Object> updates, List<String> existingImageUrls, List<MultipartFile> newImages) throws IOException {
+    public EvaluationResponseDto updateEvaluation(Integer evaluationId, Integer userId, Map<String, Object> updates, List<String> existingImageUrls, List<MultipartFile> newImages) {
         Evaluation evaluation = evaluationRepository.findById(evaluationId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 평가 게시물입니다."));
+                .orElseThrow(() -> new EvaluationNotFoundException(evaluationId));
 
         if (!evaluation.getUserId().equals(userId)) {
-            throw new IllegalStateException("본인 게시물이 아니므로 수정할 수 없습니다.");
+            throw new UnauthorizedAccessException("본인 게시물이 아니므로 수정할 수 없습니다.");
         }
 
         if (Boolean.TRUE.equals(evaluation.getOpened())) {
-            throw new IllegalStateException("투표가 시작된 게시물은 수정할 수 없습니다.");
+            throw new UnauthorizedAccessException("투표가 시작된 게시물은 수정할 수 없습니다.");
         }
 
         if (Boolean.TRUE.equals(evaluation.getDeleted())) {
-            throw new IllegalStateException("삭제된 게시물은 수정할 수 없습니다.");
+            throw new UnauthorizedAccessException("삭제된 게시물은 수정할 수 없습니다.");
         }
 
         for (Map.Entry<String, Object> entry : updates.entrySet()) {
@@ -151,16 +153,16 @@ public class EvaluationService {
     @Transactional
     public void deleteEvaluation(Integer evaluationId, Integer loggedInUserId) {
         Evaluation evaluation = evaluationRepository.findById(evaluationId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 평가 게시물입니다."));
+                .orElseThrow(() -> new EvaluationNotFoundException(evaluationId));
 
         // 1. 본인 게시물이 맞는지 확인
         if (!evaluation.getUserId().equals(loggedInUserId)) {
-            throw new RuntimeException("본인 게시물이 아니므로 삭제할 수 없습니다.");
+            throw new UnauthorizedAccessException("본인 게시물이 아니므로 삭제할 수 없습니다.");
         }
 
         // 2. 투표가 시작된 게시물은 삭제 불가
         if (Boolean.TRUE.equals(evaluation.getOpened())) {
-            throw new IllegalStateException("투표가 시작된 게시물은 삭제할 수 없습니다.");
+            throw new UnauthorizedAccessException("투표가 시작된 게시물은 삭제할 수 없습니다.");
         }
 
         // 3. Soft Delete 처리: deleted = true 로 변경
@@ -175,16 +177,16 @@ public class EvaluationService {
     @Transactional
     public void vote(Integer evaluationId, Integer userId, Boolean approval) {
         Evaluation evaluation = evaluationRepository.findById(evaluationId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 평가 게시물입니다."));
+                .orElseThrow(() -> new EvaluationNotFoundException(evaluationId));
 
         // 🔴 삭제된 게시물은 투표 불가
         if (Boolean.TRUE.equals(evaluation.getDeleted())) {
-            throw new IllegalStateException("삭제된 게시물에는 투표할 수 없습니다.");
+            throw new UnauthorizedAccessException("삭제된 게시물에는 투표할 수 없습니다.");
         }
 
         // 🔴 투표가 종료된 게시물은 투표 불가
         if (Boolean.TRUE.equals(evaluation.getClosed())) {
-            throw new IllegalStateException("투표가 종료된 게시물에는 투표할 수 없습니다.");
+            throw new UnauthorizedAccessException("투표가 종료된 게시물에는 투표할 수 없습니다.");
         }
 
         VoteId voteId = new VoteId(evaluationId, userId);
@@ -195,7 +197,7 @@ public class EvaluationService {
             if (existingVote != null) {
                 voteRepository.delete(existingVote);
             } else {
-                throw new IllegalStateException("취소할 투표가 없습니다.");
+                throw new VoteNotFoundException();
             }
         }
         // 새 투표 or 기존 투표 변경
@@ -237,7 +239,7 @@ public class EvaluationService {
     @Transactional
     public void closeEvaluation(Integer evaluationId) {
         Evaluation evaluation = evaluationRepository.findById(evaluationId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 평가 게시물입니다."));
+                .orElseThrow(() -> new EvaluationNotFoundException(evaluationId));
 
         // 🔹 최신 데이터를 가져오도록 강제 동기화
         evaluationRepository.flush();

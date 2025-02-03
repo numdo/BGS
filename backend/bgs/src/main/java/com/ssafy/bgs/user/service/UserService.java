@@ -1,6 +1,8 @@
 package com.ssafy.bgs.user.service;
 
 
+import com.ssafy.bgs.common.DuplicatedException;
+import com.ssafy.bgs.common.UnauthorizedAccessException;
 import com.ssafy.bgs.image.entity.Image;
 import com.ssafy.bgs.image.service.ImageService;
 import com.ssafy.bgs.redis.service.RedisService;
@@ -12,6 +14,9 @@ import com.ssafy.bgs.user.entity.AccountType;
 import com.ssafy.bgs.user.entity.Following;
 import com.ssafy.bgs.user.entity.FollowingId;
 import com.ssafy.bgs.user.entity.User;
+import com.ssafy.bgs.user.exception.EmailNotFoundException;
+import com.ssafy.bgs.user.exception.FollowingNotFoundException;
+import com.ssafy.bgs.user.exception.UserNotFoundException;
 import com.ssafy.bgs.user.jwt.JwtTokenProvider;
 import com.ssafy.bgs.user.repository.FollowingRepository;
 import com.ssafy.bgs.user.repository.UserRepository;
@@ -19,17 +24,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -55,17 +56,17 @@ public class UserService {
     public UserResponseDto signup(UserSignupRequestDto requestDto) {
         // 1. 이메일 인증 여부 확인 (VerificationService는 Redis를 사용함)
         if (!verificationService.isEmailVerified(requestDto.getEmail())) {
-            throw new RuntimeException("이메일 인증이 완료되지 않았습니다.");
+            throw new UnauthorizedAccessException("이메일 인증이 완료되지 않았습니다.");
         }
 
         // 2. 닉네임 중복 체크
         if (userRepository.existsByNickname(requestDto.getNickname())) {
-            throw new RuntimeException("이미 사용 중인 닉네임입니다.");
+            throw new DuplicatedException("이미 사용 중인 닉네임입니다.");
         }
 
         // 3. 이메일 중복 체크
         if (userRepository.findByEmail(requestDto.getEmail()).isPresent()) {
-            throw new RuntimeException("이미 가입된 이메일입니다.");
+            throw new DuplicatedException("이미 가입된 이메일입니다.");
         }
 
         // 4. 비밀번호 암호화
@@ -102,12 +103,12 @@ public class UserService {
 
     public UserResponseDto kakaoSignup(Integer userId, KakaoSignupRequestDto kakaoSignupRequestDto) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException(userId));
         user.setName(kakaoSignupRequestDto.getName());
         // 로컬 로그인을 허용한다면, 비밀번호 저장 (BCrypt)
 
         if (userRepository.existsByNickname(kakaoSignupRequestDto.getNickname())) {
-            throw new RuntimeException("이미 사용 중인 닉네임입니다.");
+            throw new DuplicatedException("이미 사용 중인 닉네임입니다.");
         }
         user.setNickname(kakaoSignupRequestDto.getNickname());
 
@@ -153,17 +154,17 @@ public class UserService {
     public LoginResponseDto login(String email, String password) {
         // 1. 이메일로 사용자를 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("해당 이메일이 존재하지 않습니다."));
+                .orElseThrow(EmailNotFoundException::new);
 
 
         // 2. 계정 유형 확인
         if (user.getAccountType() == AccountType.KAKAO) {
-            throw new RuntimeException("소셜 계정입니다. 소셜 로그인을 사용하세요.");
+            throw new IllegalArgumentException("소셜 계정입니다. 소셜 로그인을 사용하세요.");
         }
 
         // 2. 비밀번호 확인 (BCrypt)
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("비밀번호가 틀립니다.");
+            throw new IllegalArgumentException("비밀번호가 틀립니다.");
         }
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getId());
@@ -201,7 +202,7 @@ public class UserService {
             return cachedUser;
         }
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         // 1) 기본 유저 정보 DTO 생성
         UserResponseDto dto = toUserResponseDto(user);
@@ -223,39 +224,33 @@ public class UserService {
      */
     @Transactional
     public UserResponseDto updateProfileImage(Integer userId, MultipartFile newProfileImage) {
-        try {
-            // 1. 사용자 조회
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
-            // 2. 기존 프로필 이미지 조회 및 삭제
-            Optional<Image> currentImageOpt = imageService.findLatestProfileImage(userId);
-            if (currentImageOpt.isPresent()) {
-                // 기존 이미지 삭제 (필요시 이미지 동일 여부 비교 로직 추가 가능)
-                imageService.deleteImage(currentImageOpt.get().getImageId());
-            }
-
-            // 3. 단일 이미지 업로드 (usageType='profile')
-            // 기존에는 List를 생성하여 업로드하였지만, 단일 업로드 메서드로 대체
-            Image newImage = imageService.uploadImage(newProfileImage, "profile", (long) userId);
-
-            // 4. Redis 캐시 무효화
-            String cacheKey = "user:" + userId;
-            redisService.deleteValue(cacheKey);
-
-            // 5. 최신 프로필 이미지로 갱신하여 사용자 정보 조회
-            User updatedUser = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-            UserResponseDto dto = toUserResponseDto(updatedUser);
-            imageService.findLatestProfileImage(userId)
-                    .ifPresent(img -> dto.setProfileImageUrl(imageService.getS3Url(img.getUrl())));
-
-            return dto;
-        } catch (IOException e) {
-            throw new RuntimeException("프로필 이미지 업로드 중 오류가 발생했습니다.", e);
-        } catch (Exception e) {
-            throw new RuntimeException("프로필 이미지 업데이트 중 오류가 발생했습니다.", e);
+        // 2. 기존 프로필 이미지 조회 및 삭제
+        Optional<Image> currentImageOpt = imageService.findLatestProfileImage(userId);
+        if (currentImageOpt.isPresent()) {
+            // 기존 이미지 삭제 (필요시 이미지 동일 여부 비교 로직 추가 가능)
+            imageService.deleteImage(currentImageOpt.get().getImageId());
         }
+
+        // 3. 단일 이미지 업로드 (usageType='profile')
+        // 기존에는 List를 생성하여 업로드하였지만, 단일 업로드 메서드로 대체
+        Image newImage = imageService.uploadImage(newProfileImage, "profile", (long) userId);
+
+        // 4. Redis 캐시 무효화
+        String cacheKey = "user:" + userId;
+        redisService.deleteValue(cacheKey);
+
+        // 5. 최신 프로필 이미지로 갱신하여 사용자 정보 조회
+        User updatedUser = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+        UserResponseDto dto = toUserResponseDto(updatedUser);
+        imageService.findLatestProfileImage(userId)
+                .ifPresent(img -> dto.setProfileImageUrl(imageService.getS3Url(img.getUrl())));
+
+        return dto;
     }
 
 
@@ -268,13 +263,13 @@ public class UserService {
                                           UserUpdateRequestDto requestDto) {
         // 1) 사용자 조회
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         // 2) 닉네임 중복 체크 (기존 로직)
         String newNickname = requestDto.getNickname();
         if (newNickname != null && !newNickname.equals(user.getNickname())) {
             if (userRepository.existsByNickname(newNickname)) {
-                throw new RuntimeException("이미 사용 중인 닉네임입니다.");
+                throw new DuplicatedException("이미 사용 중인 닉네임입니다.");
             }
             user.setNickname(newNickname);
         }
@@ -306,7 +301,7 @@ public class UserService {
      */
     public void deleteUser(Integer userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException(userId));
         user.setEmail(null);
         user.setName(null);
         user.setSex(null);
@@ -334,21 +329,21 @@ public class UserService {
      */
     public void changePassword(Integer userId, PasswordChangeRequestDto requestDto) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         // 1. ACCOUNT_TYPE이 LOCAL인지 확인
         if (user.getAccountType() != AccountType.LOCAL) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "로컬 계정만 비밀번호를 변경할 수 있습니다.");
+            throw new IllegalArgumentException("로컬 계정만 비밀번호를 변경할 수 있습니다.");
         }
 
         // 2. 현재 비밀번호 확인
         if (!passwordEncoder.matches(requestDto.getCurrentPassword(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "현재 비밀번호가 일치하지 않습니다.");
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
         }
 
         // 3. 새 비밀번호와 확인 비밀번호 일치 여부 확인
         if (!requestDto.getNewPassword().equals(requestDto.getConfirmNewPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
+            throw new IllegalArgumentException("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
         }
 
         // 4. 새 비밀번호 암호화 및 저장
@@ -365,11 +360,11 @@ public class UserService {
      */
     public PasswordResetResponseDto resetPassword(PasswordResetRequestDto requestDto) {
         User user = userRepository.findByEmail(requestDto.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 이메일을 사용하는 사용자가 없습니다."));
+                .orElseThrow(EmailNotFoundException::new);
 
         // 1. ACCOUNT_TYPE이 LOCAL인지 확인
         if (user.getAccountType() != AccountType.LOCAL) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "로컬 계정만 비밀번호를 재설정할 수 있습니다.");
+            throw new IllegalArgumentException("로컬 계정만 비밀번호를 재설정할 수 있습니다.");
         }
 
         // 2. 임시 비밀번호 생성
@@ -408,7 +403,7 @@ public class UserService {
      */
     public void checkAttendance(Integer userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         LocalDate today = LocalDate.now();
         if (user.getLastAttendance() == null || !user.getLastAttendance().isEqual(today)) {
@@ -423,7 +418,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponseDto getAttendance(Integer userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException(userId));
         return toUserResponseDto(user);
     }
 
@@ -434,13 +429,13 @@ public class UserService {
         FollowingId id = new FollowingId(followerId, followeeId);
 
         if (followingRepository.findById(id).isPresent()) {
-            throw new RuntimeException("이미 팔로우 중입니다.");
+            throw new DuplicatedException("이미 팔로우 중입니다.");
         }
 
         userRepository.findById(followeeId)
-                .orElseThrow(() -> new RuntimeException("팔로우 대상 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException(followeeId));
         userRepository.findById(followerId)
-                .orElseThrow(() -> new RuntimeException("팔로우를 거는 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException(followerId));
 
         Following following = Following.builder()
                 .id(id) // FollowingId 객체 설정
@@ -454,7 +449,7 @@ public class UserService {
         FollowingId id = new FollowingId(followerId, followeeId);
 
         Following relation = followingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("팔로잉 관계가 없습니다."));
+                .orElseThrow(() -> new FollowingNotFoundException("팔로잉 관계가 없습니다."));
         followingRepository.delete(relation);
     }
 
