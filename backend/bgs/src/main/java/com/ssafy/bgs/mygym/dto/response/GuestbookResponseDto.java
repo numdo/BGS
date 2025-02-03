@@ -13,4 +13,14 @@ public class GuestbookResponseDto {
     private Integer guestId;
     private String content;
     private Timestamp createdAt;
+    private Boolean deleted;
+
+    public GuestbookResponseDto(Integer guestbookId, Integer ownerId, Integer guestId, String content, Timestamp createdAt, Boolean deleted) {
+        this.guestbookId = guestbookId;
+        this.ownerId = ownerId;
+        this.guestId = guestId;
+        this.content = content;
+        this.createdAt = createdAt;
+        this.deleted = deleted;
+    }
 }

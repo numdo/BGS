@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 public class Place {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer placeId;
 
     @Column
