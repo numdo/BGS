@@ -1,5 +1,6 @@
 package com.ssafy.bgs.image.service;
 
+import com.ssafy.bgs.image.dto.response.ImageResponseDto;
 import com.ssafy.bgs.image.entity.Image;
 import com.ssafy.bgs.image.repository.ImageRepository;
 import lombok.RequiredArgsConstructor;
@@ -53,9 +54,49 @@ public class ImageService {
         return savedImages;
     }
 
+    @Transactional
+    public Image uploadImage(MultipartFile file, String usageType, Long usageId) throws IOException {
+        // 1) S3 업로드 -> key 반환
+        String s3Key = s3Uploader.upload(file, "images/" + usageType + "/" + usageId);
+
+        // 2) 파일 확장자 추출
+        String ext = getFileExtension(file.getOriginalFilename());
+
+        // 3) DB에 이미지 저장
+        Image image = Image.builder()
+                .url(s3Key)
+                .extension(ext)
+                .createdAt(LocalDateTime.now())
+                .deleted(false)
+                .usageType(usageType)
+                .usageId(usageId)
+                .build();
+        return imageRepository.save(image);
+    }
+
     public Image getImage(Long imageId) {
         return imageRepository.findById(imageId)
                 .orElseThrow(() -> new RuntimeException("이미지 ID를 찾을 수 없음: " + imageId));
+    }
+
+    /** 단일 이미지 조회 **/
+    public ImageResponseDto getImage(String usageType, Integer usageId) {
+        ImageResponseDto imageResponseDto = new ImageResponseDto();
+
+        List<Image> images = imageRepository.findByUsageTypeAndUsageIdAndDeletedFalse(usageType, Long.valueOf(usageId));
+        if (images.isEmpty()) {
+            throw new RuntimeException("이미지를 찾을 수 없음: " + usageId + "(" + usageType + ")");
+        }
+
+        imageResponseDto.setImageId(images.get(0).getImageId());
+        imageResponseDto.setUrl(images.get(0).getUrl());
+        imageResponseDto.setExtension(images.get(0).getExtension());
+
+        return imageResponseDto;
+    }
+
+    public List<Image> getImages(String usageType, Integer usageId) {
+        return imageRepository.findByUsageTypeAndUsageIdAndDeletedFalse (usageType, Long.valueOf(usageId));
     }
 
     @Transactional
@@ -63,7 +104,8 @@ public class ImageService {
         Image image = getImage(imageId);
         if (!image.isDeleted()) {
             image.setDeleted(true);
-            // S3 삭제
+            // DB & S3 삭제
+            imageRepository.save(image);
             s3Uploader.delete(image.getUrl());
         }
     }

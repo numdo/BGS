@@ -86,17 +86,18 @@ public class UserController {
     }
 
     /**
-     * 카카오 로그인 후 회원가입
-     * @param userId
-     * @param kakaoSignupRequestDto
-     * @return
+     * (카카오 로그인 후) 추가 정보 입력
+     * 기존에는 @PathVariable userId를 받았으나,
+     * 이제는 JWT로 인증된 사용자 본인의 ID를 사용.
+     * [PATCH] /api/users/me/kakao-signup
      */
-    @PatchMapping("/{userId}/kakao-signup")
+    @PatchMapping("/me/kakao-signup")
     public ResponseEntity<?> kakaoSignup(
-            @PathVariable Integer userId,
+            Authentication authentication,
             @RequestBody KakaoSignupRequestDto kakaoSignupRequestDto
     ) {
         try {
+            Integer userId = (Integer) authentication.getPrincipal();
             UserResponseDto result = userService.kakaoSignup(userId, kakaoSignupRequestDto);
             return ResponseEntity.ok(result);
         } catch (RuntimeException e) {
@@ -127,22 +128,23 @@ public class UserController {
      */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequest, HttpServletResponse response) {
-        LoginResponseDto loginResponse = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+        LoginResponseDto loginResponseDto = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
 
         // **추가**: 토큰을 Response Header에 담아서 내려주기
-        response.setHeader("Authorization", "Bearer " + loginResponse.getAccessToken());
-        response.setHeader("Refresh-Token", "Bearer " + loginResponse.getRefreshToken());
+        response.setHeader("Authorization", "Bearer " + loginResponseDto.getAccessToken());
+        response.setHeader("Refresh-Token", "Bearer " + loginResponseDto.getRefreshToken());
 
-        return ResponseEntity.ok(loginResponse);
+        return ResponseEntity.ok(loginResponseDto);
     }
     /**
-     * 로그아웃 (예시)
-     * 실제로는 세션/토큰 만료 로직 등이 필요
-     * [POST] /api/users/logout?userId=xxx
+     * 로그아웃 (기본 예시)
+     * 기존에는 ?userId=xxx 형태로 받았으나, 이제는 JWT에서 userId 추출
+     * [POST] /api/users/logout
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestParam Integer userId) {
+    public ResponseEntity<?> logout(Authentication authentication) {
         try {
+            Integer userId = (Integer) authentication.getPrincipal();
             userService.logout(userId);
             return ResponseEntity.ok("로그아웃 성공");
         } catch (RuntimeException e) {
@@ -151,12 +153,13 @@ public class UserController {
     }
 
     /**
-     * 내정보 조회
-     * [GET] /api/users/{userId}
+     * 내 정보 조회
+     * [GET] /api/users/me
      */
-    @GetMapping("/{userId}")
-    public ResponseEntity<?> getUserInfo(@PathVariable Integer userId) {
+    @GetMapping("/me")
+    public ResponseEntity<?> getUserInfo(Authentication authentication) {
         try {
+            Integer userId = (Integer) authentication.getPrincipal();
             UserResponseDto response = userService.getUserInfo(userId);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
@@ -165,24 +168,21 @@ public class UserController {
     }
 
 
+
     /**
-     * 내정보 변경
-     * [PATCH] /api/users/{userId}
+     * 내 정보 변경
+     * [PATCH] /api/users/me
      */
-    @PatchMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping(value = "/me")
     public ResponseEntity<?> updateUserInfo(
-            @PathVariable Integer userId,
-            // 프로필 이미지는 optional
-            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
-            // 나머지 수정 정보는 JSON 형식
-            @RequestPart("userInfo") UserUpdateRequestDto userInfo
+            Authentication authentication,
+            @RequestBody UserUpdateRequestDto userInfo
     ) {
         try {
-            // Service 로직에 MultipartFile(이미지), UserUpdateRequestDto 전달
-            UserResponseDto response = userService.updateUserInfo(userId, userInfo, profileImage);
+            Integer userId = (Integer) authentication.getPrincipal();
+            UserResponseDto response = userService.updateUserInfo(userId, userInfo);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            // 예외 처리
             if (e.getMessage().contains("찾을 수 없습니다")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
             }
@@ -192,11 +192,13 @@ public class UserController {
 
     /**
      * 회원 탈퇴
-     * [DELETE] /api/users/{userId}
+     * 기존: [DELETE] /api/users/{userId}
+     * 변경: [DELETE] /api/users/me
      */
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<?> deleteUser(@PathVariable Integer userId) {
+    @DeleteMapping("/me")
+    public ResponseEntity<?> deleteUser(Authentication authentication) {
         try {
+            Integer userId = (Integer) authentication.getPrincipal();
             userService.deleteUser(userId);
             return ResponseEntity.ok("{\"message\":\"탈퇴 처리되었습니다.\"}");
         } catch (RuntimeException e) {
@@ -225,11 +227,13 @@ public class UserController {
 
     /**
      * 출석 체크
-     * [POST] /api/users/{userId}/attendance
+     * 기존: [POST] /api/users/{userId}/attendance
+     * 변경: [POST] /api/users/me/attendance
      */
-    @PostMapping("/{userId}/attendance")
-    public ResponseEntity<?> checkAttendance(@PathVariable Integer userId) {
+    @PostMapping("/me/attendance")
+    public ResponseEntity<?> checkAttendance(Authentication authentication) {
         try {
+            Integer userId = (Integer) authentication.getPrincipal();
             userService.checkAttendance(userId);
             return ResponseEntity.ok("{\"message\":\"출석 체크가 완료되었습니다.\"}");
         } catch (RuntimeException e) {
@@ -238,20 +242,39 @@ public class UserController {
     }
 
     /**
-     * 비밀번호 변경
+     * 비밀번호 변경 (로컬)
      * [POST] /api/users/change-password
      */
     @PostMapping("/change-password")
-    public ResponseEntity<String> changePassword(@Valid @RequestBody PasswordChangeRequestDto requestDto, Authentication authentication) {
-        // Authentication 객체에서 사용자 ID 추출 (principal이 Integer로 설정되어 있다고 가정)
+    public ResponseEntity<String> changePassword(@Valid @RequestBody PasswordChangeRequestDto requestDto,
+                                                 Authentication authentication) {
         Integer userId = (Integer) authentication.getPrincipal();
-
         userService.changePassword(userId, requestDto);
         return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
     }
 
     /**
-     * 비밀번호 재설정
+     * 회원 프로필 이미지 변경
+     * @param authentication
+     * @param profileImage
+     * @return
+     */
+    @PatchMapping(value = "/me/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateProfileImage(
+            Authentication authentication,
+            @RequestPart("profileImage") MultipartFile profileImage) {
+        try {
+            Integer userId = (Integer) authentication.getPrincipal();
+            UserResponseDto response = userService.updateProfileImage(userId, profileImage);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+
+    /**
+     * 비밀번호 재설정 (이메일 인증 후)
      * [POST] /api/users/reset-password
      */
     @PostMapping("/reset-password")
@@ -259,16 +282,17 @@ public class UserController {
         PasswordResetResponseDto response = userService.resetPassword(requestDto);
         return ResponseEntity.ok(response);
     }
+
     /**
      * 출석 정보 조회
-     * [GET] /api/users/{userId}/attendance
+     * 기존: [GET] /api/users/{userId}/attendance
+     * 변경: [GET] /api/users/me/attendance
      */
-    @GetMapping("/{userId}/attendance")
-    public ResponseEntity<?> getAttendance(@PathVariable Integer userId) {
+    @GetMapping("/me/attendance")
+    public ResponseEntity<?> getAttendance(Authentication authentication) {
         try {
+            Integer userId = (Integer) authentication.getPrincipal();
             UserResponseDto response = userService.getAttendance(userId);
-            // 예: 연속 출석 일수만 반환하거나, 전체 User 정보를 반환할 수도 있음
-            // 여기서는 전체 정보를 반환한다고 가정
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());

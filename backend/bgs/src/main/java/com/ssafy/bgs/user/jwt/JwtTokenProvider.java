@@ -40,12 +40,10 @@ public class JwtTokenProvider {
     /**
      * Access Token 생성
      * @param userId
-     * @param email
      * @return
      */
-    public String createAccessToken(Integer userId, String email) {
+    public String createAccessToken(Integer userId) {
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
-        claims.put("email", email);
 
         Date now = new Date();
         Date validity = new Date(now.getTime() + accessTokenValidityInMilliseconds);
@@ -61,12 +59,10 @@ public class JwtTokenProvider {
     /**
      * Refresh Token 생성
      * @param userId
-     * @param email
      * @return
      */
-    public String createReFreshToken(Integer userId, String email) {
+    public String createReFreshToken(Integer userId) {
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
-        claims.put("email", email);
 
         Date now = new Date();
         Date validity = new Date(now.getTime() + refreshValidityInMilliseconds);
@@ -77,6 +73,11 @@ public class JwtTokenProvider {
                 .setExpiration(validity)
                 .signWith(refreshKey, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public String recreateAccessToken(String refreshToken) {
+        Integer userId = getUserId(refreshToken, false);
+        return createAccessToken(userId);
     }
     /**
      * 토큰 유효성 & 만료일자 확인
@@ -95,8 +96,11 @@ public class JwtTokenProvider {
     /**
      * JWT에서 userId(Subject) 추출
      */
-    public Integer getUserId(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(accessKey).build()
+    public Integer getUserId(String token, boolean isAccessToken) {
+        Key key = isAccessToken ? accessKey : refreshKey;
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
         return Integer.valueOf(claims.getSubject());

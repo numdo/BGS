@@ -1,14 +1,16 @@
 package com.ssafy.bgs.user.jwt;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
@@ -19,34 +21,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) {
+                                    FilterChain filterChain) throws ServletException, IOException {
 
         try {
+            // 1. Header에서 Token 추출
             String token = resolveToken(request);
-            if (token != null && jwtTokenProvider.validateToken(token,true)) {
-                // 토큰이 유효할 경우, userId를 추출하여 인증 정보 생성
-                Integer userId = jwtTokenProvider.getUserId(token);
 
-                // 예시로 UsernamePasswordAuthenticationToken를 생성해서 SecurityContext 저장
-                // 실제로는 UserDetailsService를 통해 유저정보를 load해도 됨
-                UsernamePasswordAuthenticationToken auth =
+            // 2. 토큰이 존재하고, 유효하면 인증 객체 생성
+            if (token != null && jwtTokenProvider.validateToken(token,true)) {
+                // JWT에서 userId 추출
+                Integer userId = jwtTokenProvider.getUserId(token, true);
+
+                // Principal = userId, Credentials = null, Authorities = null
+                UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(userId, null, null);
 
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                // SecurityContextHolder에 등록
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
+
+            // 다음 필터로 진행
             filterChain.doFilter(request, response);
 
         } catch (Exception e) {
-            // 토큰이 유효하지 않거나 에러 => HTTP 401 응답 (예시)
+            // 토큰이 유효하지 않거나, 검증 중 에러가 발생하면 401 반환
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
     }
 
+    /**
+     * "Authorization: Bearer <TOKEN>" 헤더에서 토큰을 잘라내는 메서드
+     */
     private String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-        // "Authorization: Bearer <token>" 형태 가정
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // "Bearer " 이후 문자열 자르기
+            return bearerToken.substring(7); // "Bearer " 문자열 길이만큼 자르기
         }
         return null;
     }

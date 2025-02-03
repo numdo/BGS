@@ -8,29 +8,73 @@ export default function MainPage() {
   return (
     <>
       <TopBar />
-      <button
-        onClick={() => { navigate("/workoutcreate") }}
-        className="m-auto mt-10 flex items-center p-4 bg-white border rounded-lg shadow-lg hover:bg-gray-100 transition-all duration-200"
-      >
-        <div className="text-left">
-          <p className="text-xl font-semibold text-gray-800">일지</p>
-          <p className="text-lg text-gray-600">바로 작성하기</p>
+      <div className='m-4'>
+        <div className="m-auto mt-4">
+          <input
+            type="text"
+            placeholder="검색"
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+          />
         </div>
-        <img
-          src={camera} // 이미지 URL을 적절히 교체하세요
-          alt="Camera Icon"
-          className="w-12 h-12"
-        />
-      </button>
-      <button
-        onClick={() => { navigate("/signup") }}
-        className="m-auto mt-10 flex items-center p-4 bg-white border rounded-lg shadow-lg hover:bg-gray-100 transition-all duration-200"
-      >
-        <div className="text-left">
-          <p className="text-xl font-semibold text-gray-800">로그인</p>
-          <p className="text-lg text-gray-600">바로 하러가기</p>
+
+        <div className="grid grid-cols-2 gap-4 mt-5">
+          <button
+            onClick={() => { navigate("/signup") }}
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+          >
+            <div className="text-left">
+              <p className="text-xl font-semibold text-gray-800">회원가입</p>
+              <p className="text-lg text-gray-600">바로 하러가기</p>
+            </div>
+          </button>
+          <button
+            onClick={() => { navigate("/login") }}
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+          >
+            <div className="text-left">
+              <p className="text-xl font-semibold text-gray-800">로그인</p>
+              <p className="text-lg text-gray-600">하러가기</p>
+            </div>
+          </button>
+          <button
+            onClick={() => { navigate("/mygym") }}
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+          >
+            <div className="text-left">
+              <p className="text-xl font-semibold text-gray-800">마이짐</p>
+              <p className="text-lg text-gray-600">바로가기</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => { navigate("/workoutcreate") }}
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+          >
+            <div className="text-left">
+              <p className="text-xl font-semibold text-gray-800">일지</p>
+              <p className="text-lg text-gray-600">작성하기</p>
+            </div>
+            <img
+              src={camera}
+              alt="Camera Icon"
+              className="w-12 h-12"
+            />
+          </button>
+
+
+
+          <button
+            onClick={() => { navigate("/feed") }}
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+          >
+            <div className="text-left">
+              <p className="text-xl font-semibold text-gray-800">피드</p>
+              <p className="text-lg text-gray-600">보러가기</p>
+            </div>
+          </button>
+
         </div>
-      </button>
+      </div>
       <BottomBar />
     </>
   );

@@ -22,8 +22,6 @@ public class DiaryWorkout {
     @Column
     private Integer workoutId;
     @Column
-    private Integer setSum;
-    @Column
     private Timestamp createdAt;
     @Column
     private Timestamp modifiedAt;

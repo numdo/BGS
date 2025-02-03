@@ -6,8 +6,10 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Getter
 @Setter
@@ -71,11 +73,11 @@ public class User {
     @Column(name = "coin")
     private Integer coin;
 
-    @Column(name = "created_at", updatable = false, insertable = false)
-    private Instant createdAt;
+    @Column(name = "created_at", updatable = false)
+    private Timestamp createdAt;
 
-    @Column(name = "modified_at", insertable = false)
-    private Instant modifiedAt;
+    @Column(name = "modified_at")
+    private Timestamp modifiedAt;
 
     @ColumnDefault("0")
     @Column(name = "deleted")
@@ -83,31 +85,28 @@ public class User {
 
     @PrePersist
     protected void onCreate() {
-        if (this.createdAt == null) {
-            this.createdAt = Instant.now();
-        }
-        if (this.modifiedAt == null) {
-            this.modifiedAt = Instant.now();
-        }
-        if(this.degree==null){
+        // Asia/Seoul 기준의 로컬 시간으로 설정
+        this.createdAt = Timestamp.valueOf(LocalDateTime.now());
+        this.modifiedAt = Timestamp.valueOf(LocalDateTime.now());
+        if (this.degree == null) {
             this.degree = BigDecimal.valueOf(36.5);
         }
-        if(this.totalWeight==null){
-            this.totalWeight = BigDecimal.valueOf(0);
+        if (this.totalWeight == null) {
+            this.totalWeight = BigDecimal.ZERO;
         }
-        if (this.coin == null) { // coin의 기본값 설정
+        if (this.coin == null) {
             this.coin = 0;
         }
-        if (this.deleted == null) { // deleted의 기본값 설정
+        if (this.deleted == null) {
             this.deleted = false;
         }
-        if (this.strickAttendance == null) { // strickAttendance의 기본값 설정
+        if (this.strickAttendance == null) {
             this.strickAttendance = 0;
         }
     }
 
     @PreUpdate
     protected void onUpdate() {
-        this.modifiedAt = Instant.now();
+        this.modifiedAt = Timestamp.valueOf(LocalDateTime.now());
     }
 }
