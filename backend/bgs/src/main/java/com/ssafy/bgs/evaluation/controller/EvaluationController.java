@@ -56,13 +56,19 @@ public class EvaluationController {
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<EvaluationResponseDto> createEvaluation(
             Authentication authentication,
-            @RequestPart(name = "evaluation") EvaluationRequestDto dto,
-            @RequestPart(name = "images", required = false) List<MultipartFile> images) throws IOException {
+            @RequestPart("data") String jsonData, // JSON 데이터를 String으로 받음
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException {
 
         Integer userId = Integer.parseInt(authentication.getName());
+
+        // JSON 문자열을 DTO로 변환
+        ObjectMapper objectMapper = new ObjectMapper();
+        EvaluationRequestDto dto = objectMapper.readValue(jsonData, EvaluationRequestDto.class);
+
         return ResponseEntity.ok(evaluationService.createEvaluation(userId, dto, images));
     }
-    
+
+
     /**
      * 평가 게시물 수정 (이미지 포함)
      */
