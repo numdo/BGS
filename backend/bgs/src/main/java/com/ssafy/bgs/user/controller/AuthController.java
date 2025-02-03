@@ -1,9 +1,9 @@
 package com.ssafy.bgs.user.controller;
 
 import com.ssafy.bgs.redis.service.RedisService;
-import com.ssafy.bgs.user.dto.response.LoginResponseDto;
+import com.ssafy.bgs.user.dto.response.SocialLoginResponseDto;
 import com.ssafy.bgs.user.jwt.JwtTokenProvider;
-import com.ssafy.bgs.user.service.KakaoAuthService;
+import com.ssafy.bgs.user.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -21,7 +21,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final KakaoAuthService kakaoAuthService;
+    private final AuthService authService;
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisService redisService;
 
@@ -63,7 +63,7 @@ public class AuthController {
 
         try {
             // 카카오 로그인 처리 후, 우리 서비스의 JWT 발급
-            LoginResponseDto loginResponse = kakaoAuthService.kakaoLogin(code);
+            SocialLoginResponseDto loginResponse = authService.kakaoLogin(code);
 
             // **추가**: JWT 토큰을 Response Header에 담아서 내려주기
             response.setHeader("Authorization", "Bearer " + loginResponse.getAccessToken());
