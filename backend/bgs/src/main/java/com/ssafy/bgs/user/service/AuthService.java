@@ -1,9 +1,7 @@
 package com.ssafy.bgs.user.service;
 
-import com.ssafy.bgs.user.dto.request.KakaoSignupRequestDto;
-import com.ssafy.bgs.user.dto.request.UserSignupRequestDto;
 import com.ssafy.bgs.user.dto.response.LoginResponseDto;
-import com.ssafy.bgs.user.dto.response.UserResponseDto;
+import com.ssafy.bgs.user.dto.response.SocialLoginResponseDto;
 import com.ssafy.bgs.user.entity.AccountType;
 import com.ssafy.bgs.user.entity.User;
 import com.ssafy.bgs.user.jwt.JwtTokenProvider;
@@ -25,7 +23,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class KakaoAuthService {
+public class AuthService {
 
     @Value("${kakao.oauth.client-id}")
     private String clientId;
@@ -44,7 +42,7 @@ public class KakaoAuthService {
      * 3) DB에 사용자 존재하면 로그인, 없으면 회원가입
      * 4) 로그인 성공 시 JWT 발급
      */
-    public LoginResponseDto kakaoLogin(String code) {
+    public SocialLoginResponseDto kakaoLogin(String code) {
         // 1) 인가코드로 카카오 Access Token 가져오기
         String accessToken = getKakaoAccessToken(code);
         if (accessToken == null) {
@@ -53,7 +51,7 @@ public class KakaoAuthService {
 
         // 2) 액세스 토큰으로 사용자 정보 가져오기
         KakaoUserInfo kakaoUserInfo = getKakaoUserInfo(accessToken);
-
+        boolean isNewUser = false;
         // 3) DB에 기존 사용자가 있는지 확인 (kakaoId로 조회)
         Optional<User> optionalUser = userRepository.findBySocialId(kakaoUserInfo.id());
         User user;
@@ -73,6 +71,7 @@ public class KakaoAuthService {
 
                 } else {
                     // 신규 가입 처리
+                    isNewUser = true;
                     user = new User();
                     user.setSocialId(kakaoUserInfo.id());
                     user.setEmail(kakaoUserInfo.email());
@@ -100,9 +99,10 @@ public class KakaoAuthService {
         String accessJwt = jwtTokenProvider.createAccessToken(user.getId());
         String refreshJwt = jwtTokenProvider.createReFreshToken(user.getId());
 
-        return LoginResponseDto.builder()
+        return SocialLoginResponseDto.builder()
                 .accessToken(accessJwt)
                 .refreshToken(refreshJwt)
+                .newUser(isNewUser)
                 .build();
     }
 
