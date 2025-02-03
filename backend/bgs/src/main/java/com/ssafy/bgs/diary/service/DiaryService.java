@@ -161,7 +161,6 @@ public class DiaryService {
         diaryResponseDto.setModifiedAt(diary.getModifiedAt());
         diaryResponseDto.setLikedCount(diaryLikedRepository.countDiaryLikedByIdDiaryId(diaryId));
         List<Hashtag> hashtags = hashtagRepository.findByIdDiaryId(diaryId);
-        diaryResponseDto.setLikedCount(diaryLikedRepository.countDiaryLikedByIdDiaryId(diaryId));
 
         // Hashtag 조회
         for (Hashtag hashtag : hashtags) {
