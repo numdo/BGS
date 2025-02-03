@@ -173,15 +173,14 @@ public class UserController {
      * 내 정보 변경
      * [PATCH] /api/users/me
      */
-    @PatchMapping(value = "/me", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping(value = "/me")
     public ResponseEntity<?> updateUserInfo(
             Authentication authentication,
-            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
-            @RequestPart("userInfo") UserUpdateRequestDto userInfo
+            @RequestBody UserUpdateRequestDto userInfo
     ) {
         try {
             Integer userId = (Integer) authentication.getPrincipal();
-            UserResponseDto response = userService.updateUserInfo(userId, userInfo, profileImage);
+            UserResponseDto response = userService.updateUserInfo(userId, userInfo);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             if (e.getMessage().contains("찾을 수 없습니다")) {
@@ -252,6 +251,25 @@ public class UserController {
         Integer userId = (Integer) authentication.getPrincipal();
         userService.changePassword(userId, requestDto);
         return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
+    }
+
+    /**
+     * 회원 프로필 이미지 변경
+     * @param authentication
+     * @param profileImage
+     * @return
+     */
+    @PatchMapping(value = "/me/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateProfileImage(
+            Authentication authentication,
+            @RequestPart("profileImage") MultipartFile profileImage) {
+        try {
+            Integer userId = (Integer) authentication.getPrincipal();
+            UserResponseDto response = userService.updateProfileImage(userId, profileImage);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
 

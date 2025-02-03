@@ -53,9 +53,33 @@ public class ImageService {
         return savedImages;
     }
 
+    @Transactional
+    public Image uploadImage(MultipartFile file, String usageType, Long usageId) throws IOException {
+        // 1) S3 업로드 -> key 반환
+        String s3Key = s3Uploader.upload(file, "images/" + usageType + "/" + usageId);
+
+        // 2) 파일 확장자 추출
+        String ext = getFileExtension(file.getOriginalFilename());
+
+        // 3) DB에 이미지 저장
+        Image image = Image.builder()
+                .url(s3Key)
+                .extension(ext)
+                .createdAt(LocalDateTime.now())
+                .deleted(false)
+                .usageType(usageType)
+                .usageId(usageId)
+                .build();
+        return imageRepository.save(image);
+    }
+
     public Image getImage(Long imageId) {
         return imageRepository.findById(imageId)
                 .orElseThrow(() -> new RuntimeException("이미지 ID를 찾을 수 없음: " + imageId));
+    }
+
+    public List<Image> getImages(String usageType, Long usageId) {
+        return imageRepository.findByUsageTypeAndUsageIdAndDeletedFalse (usageType, usageId);
     }
 
     @Transactional
@@ -63,7 +87,8 @@ public class ImageService {
         Image image = getImage(imageId);
         if (!image.isDeleted()) {
             image.setDeleted(true);
-            // S3 삭제
+            // DB & S3 삭제
+            imageRepository.save(image);
             s3Uploader.delete(image.getUrl());
         }
     }
