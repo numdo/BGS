@@ -1,5 +1,6 @@
 package com.ssafy.bgs.image.service;
 
+import com.ssafy.bgs.image.dto.response.ImageResponseDto;
 import com.ssafy.bgs.image.entity.Image;
 import com.ssafy.bgs.image.repository.ImageRepository;
 import lombok.RequiredArgsConstructor;
@@ -78,8 +79,24 @@ public class ImageService {
                 .orElseThrow(() -> new RuntimeException("이미지 ID를 찾을 수 없음: " + imageId));
     }
 
-    public List<Image> getImages(String usageType, Long usageId) {
-        return imageRepository.findByUsageTypeAndUsageIdAndDeletedFalse (usageType, usageId);
+    /** 단일 이미지 조회 **/
+    public ImageResponseDto getImage(String usageType, Integer usageId) {
+        ImageResponseDto imageResponseDto = new ImageResponseDto();
+
+        List<Image> images = imageRepository.findByUsageTypeAndUsageIdAndDeletedFalse(usageType, Long.valueOf(usageId));
+        if (images.isEmpty()) {
+            throw new RuntimeException("이미지를 찾을 수 없음: " + usageId + "(" + usageType + ")");
+        }
+
+        imageResponseDto.setImageId(images.get(0).getImageId());
+        imageResponseDto.setUrl(images.get(0).getUrl());
+        imageResponseDto.setExtension(images.get(0).getExtension());
+
+        return imageResponseDto;
+    }
+
+    public List<Image> getImages(String usageType, Integer usageId) {
+        return imageRepository.findByUsageTypeAndUsageIdAndDeletedFalse (usageType, Long.valueOf(usageId));
     }
 
     @Transactional

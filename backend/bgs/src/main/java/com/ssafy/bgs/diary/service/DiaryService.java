@@ -12,7 +12,6 @@ import com.ssafy.bgs.diary.entity.*;
 import com.ssafy.bgs.diary.repository.*;
 import com.ssafy.bgs.image.dto.response.ImageResponseDto;
 import com.ssafy.bgs.image.entity.Image;
-import com.ssafy.bgs.image.repository.ImageRepository;
 import com.ssafy.bgs.image.service.ImageService;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -162,7 +161,6 @@ public class DiaryService {
         diaryResponseDto.setModifiedAt(diary.getModifiedAt());
         diaryResponseDto.setLikedCount(diaryLikedRepository.countDiaryLikedByIdDiaryId(diaryId));
         List<Hashtag> hashtags = hashtagRepository.findByIdDiaryId(diaryId);
-        diaryResponseDto.setLikedCount(diaryLikedRepository.countDiaryLikedByIdDiaryId(diaryId));
 
         // Hashtag 조회
         for (Hashtag hashtag : hashtags) {
@@ -199,7 +197,7 @@ public class DiaryService {
         }
 
         // Image 조회
-        List<Image> images = imageService.getImages("diary", Long.valueOf(diaryId));
+        List<Image> images = imageService.getImages("diary", diaryId);
         for (Image image : images) {
             ImageResponseDto imageResponseDto = new ImageResponseDto();
             imageResponseDto.setImageId(image.getImageId());
@@ -244,7 +242,7 @@ public class DiaryService {
         workoutSetRepository.saveAll(workoutSets);
 
         // unused image delete
-        List<Image> existingImages = imageService.getImages("diary", Long.valueOf(existingDiary.getDiaryId()));
+        List<Image> existingImages = imageService.getImages("diary", existingDiary.getDiaryId());
         for (Image image : existingImages) {
             if (urls == null || !urls.contains(image.getUrl())) {
                 imageService.deleteImage(image.getImageId());
@@ -341,7 +339,7 @@ public class DiaryService {
         diaryRepository.save(diary);
 
         // Image soft delete
-        List<Image> images = imageService.getImages("diary", Long.valueOf(diaryId));
+        List<Image> images = imageService.getImages("diary", diaryId);
         for (Image image : images) {
             imageService.deleteImage(image.getImageId());
         }
