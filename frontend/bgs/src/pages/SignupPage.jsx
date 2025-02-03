@@ -38,7 +38,7 @@ const SignupPage = () => {
       setLoading(true);
       setError("");
       const response = await axios.post(
-        "http://i12c209.p.ssafy.io/api/users/email-verification",
+        "https://i12c209.p.ssafy.io/api/users/email-verification",
         null,
         {
           params: { email: formData.email },
@@ -111,7 +111,7 @@ const SignupPage = () => {
         <img src={name_image} alt="Name" className="h-15" />
       </div>
 
-      <h2 className="text-2xl font-bold mb-4">회원가입</h2>
+      <h2 className="text-4xl font-bold mb-4">회원가입</h2>
 
       <form className="space-y-4 w-full max-w-md" onSubmit={handleSubmit}>
         {/* 이메일 입력 */}
@@ -122,7 +122,7 @@ const SignupPage = () => {
             placeholder="이메일"
             value={formData.email}
             onChange={handleChange}
-            className="w-full p-2 border rounded focus:ring focus:ring-blue-300"
+            className="w-full p-2 border rounded border-black drop-shadow-lg focus:ring focus:ring-blue-300"
           />
           <button
             type="button"
@@ -145,7 +145,7 @@ const SignupPage = () => {
             placeholder="인증번호"
             value={formData.verificationCode}
             onChange={handleChange}
-            className="w-full p-2 border rounded focus:ring focus:ring-blue-300"
+            className="w-full p-2 border rounded border-black drop-shadow-lg focus:ring focus:ring-blue-300"
             disabled={!isEmailSent}
           />
           <button
@@ -169,7 +169,7 @@ const SignupPage = () => {
           placeholder="비밀번호"
           value={formData.password}
           onChange={handleChange}
-          className="w-full p-2 border rounded focus:ring focus:ring-blue-300"
+          className="w-full p-2 border rounded border-black drop-shadow-lg focus:ring focus:ring-blue-300"
         />
         <p className="text-gray-500 text-sm">
           - 대소문자, 숫자, 특수문자를 포함하고 10자리 이상으로 설정해주세요.
