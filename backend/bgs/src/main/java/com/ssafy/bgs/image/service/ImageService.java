@@ -94,11 +94,11 @@ public class ImageService {
 
         List<Image> images = imageRepository.findByUsageTypeAndUsageIdAndDeletedFalse(usageType, Long.valueOf(usageId));
         if (images.isEmpty()) {
-            throw new ImageNotFoundException(Long.valueOf(usageId));
+            return null;
         }
 
         imageResponseDto.setImageId(images.get(0).getImageId());
-        imageResponseDto.setUrl(images.get(0).getUrl());
+        imageResponseDto.setUrl(getS3Url(images.get(0).getUrl()));
         imageResponseDto.setExtension(images.get(0).getExtension());
 
         return imageResponseDto;
