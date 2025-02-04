@@ -38,7 +38,7 @@ public class SecurityConfig {
                     "https://i12c209.p.ssafy.io",
                     "https://i12c209.p.ssafy.io:5000"
             ));
-            config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+            config.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
             config.setAllowedHeaders(List.of("Authorization", "Refresh-Token", "Content-Type"));
             config.setExposedHeaders(List.of("Authorization", "Refresh-Token")); // 노출할 헤더
             config.setAllowCredentials(true); // 쿠키 허용 여부
