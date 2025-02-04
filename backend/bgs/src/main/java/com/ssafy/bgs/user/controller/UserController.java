@@ -1,5 +1,6 @@
 package com.ssafy.bgs.user.controller;
 
+import com.ssafy.bgs.auth.dto.request.SocialSignupRequestDto;
 import com.ssafy.bgs.user.dto.request.*;
 import com.ssafy.bgs.user.dto.response.LoginResponseDto;
 import com.ssafy.bgs.user.dto.response.PasswordResetResponseDto;
@@ -55,10 +56,10 @@ public class UserController {
         return verified ? ResponseEntity.ok("이메일 인증 성공") : ResponseEntity.badRequest().body("인증 코드가 일치하지 않습니다.");
     }
 
-    @PatchMapping("/me/kakao-signup")
-    public ResponseEntity<?> kakaoSignup(Authentication authentication, @RequestBody KakaoSignupRequestDto kakaoSignupRequestDto) {
+    @PatchMapping("/me/social-signup")
+    public ResponseEntity<?> kakaoSignup(Authentication authentication, @RequestBody SocialSignupRequestDto socialSignupRequestDto) {
         Integer userId = (Integer) authentication.getPrincipal();
-        UserResponseDto result = userService.kakaoSignup(userId, kakaoSignupRequestDto);
+        UserResponseDto result = userService.socialSignup(userId, socialSignupRequestDto);
         return ResponseEntity.ok(result);
     }
 

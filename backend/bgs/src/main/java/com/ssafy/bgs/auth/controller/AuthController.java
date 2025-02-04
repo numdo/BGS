@@ -1,9 +1,9 @@
-package com.ssafy.bgs.user.controller;
+package com.ssafy.bgs.auth.controller;
 
 import com.ssafy.bgs.redis.service.RedisService;
-import com.ssafy.bgs.user.dto.response.SocialLoginResponseDto;
-import com.ssafy.bgs.user.jwt.JwtTokenProvider;
-import com.ssafy.bgs.user.service.AuthService;
+import com.ssafy.bgs.auth.dto.response.SocialLoginResponseDto;
+import com.ssafy.bgs.auth.jwt.JwtTokenProvider;
+import com.ssafy.bgs.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -52,24 +52,30 @@ public class AuthController {
      * GET /api/auth/kakao/callback?code=xxx
      */
     @GetMapping("/kakao/callback")
-    public ResponseEntity<?> kakaoCallback(
+    public void kakaoCallback(
             @RequestParam(required = false) String code,
             HttpServletResponse response // 주입
-    ) {
+    ) throws IOException {
         if (!StringUtils.hasText(code)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("인가코드(code)가 존재하지 않습니다.");
+            response.sendError(HttpStatus.BAD_REQUEST.value(), "인가코드(code)가 존재하지 않습니다.");
+            return;
         }
 
         // 카카오 로그인 처리 후, 우리 서비스의 JWT 발급
         SocialLoginResponseDto loginResponse = authService.kakaoLogin(code);
 
         // **추가**: JWT 토큰을 Response Header에 담아서 내려주기
-        response.setHeader("Authorization", "Bearer " + loginResponse.getAccessToken());
-        response.setHeader("Refresh-Token", "Bearer " + loginResponse.getRefreshToken());
+        // 프론트엔드로 전달할 URL (예시: 프론트엔드의 특정 라우터 주소)
+        String frontRedirectUrl = "http://localhost:5173/login/oauth2/success";
 
-        // 바디로도 JSON 형태로 반환
-        return ResponseEntity.ok(loginResponse);
+        // 토큰을 URL 파라미터(혹은 fragment)로 붙여서 전달 (여기서는 fragment 예시)
+        String redirectUrl = frontRedirectUrl
+                + "#accessToken=" + loginResponse.getAccessToken()
+                + "&refreshToken=" + loginResponse.getRefreshToken()
+                + "&newUser=" + loginResponse.isNewUser();
+
+        // 프론트엔드로 리다이렉트
+        response.sendRedirect(redirectUrl);
     }
 
     @PostMapping("/refresh")

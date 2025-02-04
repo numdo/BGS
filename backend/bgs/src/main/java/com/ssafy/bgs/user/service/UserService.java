@@ -1,6 +1,7 @@
 package com.ssafy.bgs.user.service;
 
 
+import com.ssafy.bgs.auth.dto.request.SocialSignupRequestDto;
 import com.ssafy.bgs.common.DuplicatedException;
 import com.ssafy.bgs.common.UnauthorizedAccessException;
 import com.ssafy.bgs.image.entity.Image;
@@ -17,7 +18,7 @@ import com.ssafy.bgs.user.entity.User;
 import com.ssafy.bgs.user.exception.EmailNotFoundException;
 import com.ssafy.bgs.user.exception.FollowingNotFoundException;
 import com.ssafy.bgs.user.exception.UserNotFoundException;
-import com.ssafy.bgs.user.jwt.JwtTokenProvider;
+import com.ssafy.bgs.auth.jwt.JwtTokenProvider;
 import com.ssafy.bgs.user.repository.FollowingRepository;
 import com.ssafy.bgs.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -101,31 +102,31 @@ public class UserService {
         return toUserResponseDto(savedUser);
     }
 
-    public UserResponseDto kakaoSignup(Integer userId, KakaoSignupRequestDto kakaoSignupRequestDto) {
+    public UserResponseDto socialSignup(Integer userId, SocialSignupRequestDto socialSignupRequestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
-        user.setName(kakaoSignupRequestDto.getName());
+        user.setName(socialSignupRequestDto.getName());
         // 로컬 로그인을 허용한다면, 비밀번호 저장 (BCrypt)
 
-        if (userRepository.existsByNickname(kakaoSignupRequestDto.getNickname())) {
+        if (userRepository.existsByNickname(socialSignupRequestDto.getNickname())) {
             throw new DuplicatedException("이미 사용 중인 닉네임입니다.");
         }
-        user.setNickname(kakaoSignupRequestDto.getNickname());
+        user.setNickname(socialSignupRequestDto.getNickname());
 
-        if (kakaoSignupRequestDto.getBirthDate() != null) {
-            user.setBirthDate(kakaoSignupRequestDto.getBirthDate());
+        if (socialSignupRequestDto.getBirthDate() != null) {
+            user.setBirthDate(socialSignupRequestDto.getBirthDate());
         }
 
-        if (kakaoSignupRequestDto.getSex() != null && kakaoSignupRequestDto.getSex().length() > 0) {
-            user.setSex(kakaoSignupRequestDto.getSex().charAt(0));  // DB는 Character
+        if (socialSignupRequestDto.getSex() != null && socialSignupRequestDto.getSex().length() > 0) {
+            user.setSex(socialSignupRequestDto.getSex().charAt(0));  // DB는 Character
         }
 
-        if (kakaoSignupRequestDto.getHeight() != null) {
-            user.setHeight(kakaoSignupRequestDto.getHeight());
+        if (socialSignupRequestDto.getHeight() != null) {
+            user.setHeight(socialSignupRequestDto.getHeight());
         }
 
-        if (kakaoSignupRequestDto.getWeight() != null) {
-            user.setWeight(kakaoSignupRequestDto.getWeight());
+        if (socialSignupRequestDto.getWeight() != null) {
+            user.setWeight(socialSignupRequestDto.getWeight());
         }
 
         // 4) 저장

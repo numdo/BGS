@@ -1,4 +1,4 @@
-package com.ssafy.bgs.user.dto.response;
+package com.ssafy.bgs.auth.dto.response;
 
 import lombok.*;
 
@@ -8,6 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class SocialLoginResponseDto {
+    private String name;
     private String accessToken;
     private String refreshToken;
     private boolean newUser;

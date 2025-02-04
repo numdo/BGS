@@ -1,4 +1,4 @@
-package com.ssafy.bgs.user.jwt;
+package com.ssafy.bgs.auth.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
