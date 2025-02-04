@@ -1,17 +1,15 @@
 import React from "react";
 
-// 6개 색상
-const colors = ["#FFFFFF","#484547", "#EA871E",  "#79B465", "#005AFF", "#9E3AC3"];
+const colors = ["#FFFFFF", "#484547", "#FFEB00", "#79B465", "#005AFF", "#9E3AC3"];
 
 const BackGroundColorButton = ({ setBgColor }) => {
   return (
-    <div className="flex flex-wrap gap-4 p-4 items-center justify-center">
-
+    <div className="flex gap-2">
       {colors.map((color) => (
         <button
           key={color}
           onClick={() => setBgColor(color)}
-          className="w-4 h-6 rounded-full border-2 border-white shadow-md flex flex-col-"
+          className="w-8 h-8 rounded-full border-2 border-white shadow-md"
           style={{ backgroundColor: color }}
         />
       ))}

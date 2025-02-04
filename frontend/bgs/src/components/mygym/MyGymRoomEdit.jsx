@@ -1,3 +1,4 @@
+// src/components/mygym/MyGymRoomEdit.jsx
 import { useRef, useState } from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
 import removeItemPng from "../../assets/remove_item.png";
@@ -11,7 +12,7 @@ const polygonRatios = [
   [1.0, 1.0],
 ];
 
-// 다각형 내부 체크 (Ray-casting)
+// Ray-casting
 function pointInPolygon(px, py, polygon) {
   let isInside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
@@ -33,10 +34,10 @@ const MyGymRoomEdit = () => {
   const [startCoord, setStartCoord] = useState({ x: 0, y: 0 });
   const [isDraggingMode, setIsDraggingMode] = useState(false);
 
-  // Zustand store에서 items, setItems, roomColor 가져오기
-  const { items, setItems, roomColor } = useMyGymStore();
+  // 폴리곤 색은 wallColor, 아이템들(items)
+  const { items, setItems, wallColor } = useMyGymStore();
 
-  // (1) 아이템 드래그 시작
+  // pointerDown
   const handlePointerDown = (e, item) => {
     e.preventDefault();
     setIsDraggingMode(false);
@@ -48,12 +49,11 @@ const MyGymRoomEdit = () => {
     setDraggingItem({ id: item.id, offsetX, offsetY });
   };
 
-  // (2) 드래그 이동
+  // pointerMove
   const handlePointerMove = (e) => {
     if (!draggingItem) return;
     e.preventDefault();
 
-    // 클릭 vs 드래그 판정
     const diffX = e.clientX - startCoord.x;
     const diffY = e.clientY - startCoord.y;
     const distance = Math.sqrt(diffX * diffX + diffY * diffY);
@@ -76,27 +76,25 @@ const MyGymRoomEdit = () => {
     if (newX > rect.width - itemWidth) newX = rect.width - itemWidth;
     if (newY > rect.height - itemHeight) newY = rect.height - itemHeight;
 
-    // 폴리곤 내부 여부
+    // 폴리곤 내부 체크
     const centerX = newX + itemWidth / 2;
     const centerY = newY + itemHeight / 2;
     const polygonPx = polygonRatios.map(([rx, ry]) => [
       rx * rect.width,
       ry * rect.height,
     ]);
-
     if (!pointInPolygon(centerX, centerY, polygonPx)) {
-      // 밖이면 취소
       return;
     }
 
-    // 최종 업데이트: 콜백 대신 직접 새 배열
+    // 좌표 업데이트
     const newArr = items.map((it) =>
       it.id === id ? { ...it, x: newX, y: newY } : it
     );
     setItems(newArr);
   };
 
-  // (3) 드래그 끝
+  // pointerUp
   const handlePointerUp = () => {
     if (!isDraggingMode && draggingItem) {
       const { id } = draggingItem;
@@ -105,9 +103,14 @@ const MyGymRoomEdit = () => {
     setDraggingItem(null);
   };
 
-  // 아이템 삭제
+  // 삭제 -> 'deleted=true'로 세팅(소프트 삭제)
   const removeItem = (id) => {
-    const newArr = items.filter((it) => it.id !== id);
+    const newArr = items.map((it) => {
+      if (it.id === id) {
+        return { ...it, deleted: true };
+      }
+      return it;
+    });
     setItems(newArr);
   };
 
@@ -122,6 +125,9 @@ const MyGymRoomEdit = () => {
     setItems(newArr);
   };
 
+  // 렌더링 시 deleted==true인 아이템은 표시 안 함
+  const visibleItems = items.filter((it) => !it.deleted);
+
   return (
     <div className="relative flex flex-col items-center">
       <div
@@ -132,7 +138,7 @@ const MyGymRoomEdit = () => {
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
       >
-        {/* 윗부분 */}
+        {/* 윗부분 - 폴리곤 벽색 */}
         <div
           style={{
             position: "absolute",
@@ -140,7 +146,7 @@ const MyGymRoomEdit = () => {
             height: "100%",
             clipPath:
               "polygon(50% 7%, 100% 25%, 100% 60%, 50% 40%, 0% 60%, 0% 25%)",
-            backgroundColor: roomColor,
+            backgroundColor: wallColor,
             zIndex: 1,
           }}
         />
@@ -158,8 +164,8 @@ const MyGymRoomEdit = () => {
           }}
         />
 
-        {/* 아이템들 */}
-        {items.map((item) => {
+        {/* 아이템들 (deleted=false)만 */}
+        {visibleItems.map((item) => {
           const isFlipped = item.flipped || false;
           return (
             <div
@@ -169,7 +175,7 @@ const MyGymRoomEdit = () => {
               onPointerDown={(e) => handlePointerDown(e, item)}
             >
               <div className="relative w-16 h-16">
-                {/* 기구 이미지 */}
+                {/* 기구 이미지 (좌우 반전) */}
                 <div
                   className="absolute inset-0"
                   style={{
@@ -195,11 +201,7 @@ const MyGymRoomEdit = () => {
                     absolute w-6 h-6 cursor-pointer
                     -top-2 -right-2
                     transition-all duration-300
-                    ${
-                      selectedItemId === item.id
-                        ? "opacity-100 scale-100"
-                        : "opacity-0 scale-0"
-                    }
+                    ${selectedItemId === item.id ? "opacity-100 scale-100" : "opacity-0 scale-0"}
                   `}
                 />
 
@@ -215,15 +217,9 @@ const MyGymRoomEdit = () => {
                     absolute w-6 h-6 cursor-pointer
                     -top-2 left-0
                     transition-all duration-300
-                    ${
-                      selectedItemId === item.id
-                        ? "opacity-100 scale-100"
-                        : "opacity-0 scale-0"
-                    }
+                    ${selectedItemId === item.id ? "opacity-100 scale-100" : "opacity-0 scale-0"}
                   `}
-                  style={{
-                    transform: "translateX(-10%)",
-                  }}
+                  style={{ transform: "translateX(-10%)" }}
                 />
               </div>
             </div>

@@ -1,8 +1,7 @@
 // src/components/mygym/MyGymItem.jsx
 import { useState } from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
-
-// 예시 이미지 import
+// 예시 아이템 이미지 import
 import BenchPress from "../../assets/benchpress.png";
 import LatPulldown from "../../assets/Latpulldown.png";
 import Deadlift from "../../assets/deadlift.png";
@@ -13,11 +12,50 @@ import dumbbell from "../../assets/dumbbell.png";
 import men from "../../assets/men.png";
 import women from "../../assets/women.png";
 
-const MyGymItem = () => {
-  const { items, setItems } = useMyGymStore(); // Zustand store
+const MyGymItem = ({ setItems }) => {
+  // Zustand store에서 items를 가져와도 되지만, props로 setItems 받는 식도 가능
+  // const { items, setItems } = useMyGymStore();
+  
   const [isOpen, setIsOpen] = useState(false);
 
-  // 아이템 목록
+  const addItem = (item) => {
+    console.log(`${item.name} 추가`);
+
+    // 기존 items를 가져오기
+    // 만약 props로 받는 경우, 상위에서 items도 필요하니...
+    // 여기선 Zustand를 직접 써도 됨:
+    // const { items, setItems } = useMyGymStore.getState();
+
+    // (간단) Zustand에서 현재 items 가져옴
+    const { items } = useMyGymStore.getState();
+
+    // 중복 체크(예: name)
+    if (items.some((prev) => prev.name === item.name && !prev.deleted)) {
+      alert(`이미 '${item.name}'가(이) 배치되었습니다!`);
+      return;
+    }
+
+    // 새 아이템
+    const newItem = {
+      id: Date.now() % 1000000000,         // placeId=null → 새 record
+      itemId: Math.floor(Math.random() * 1000), // 임시 itemId
+      name: item.name,
+      image: item.image,
+      x: 160,
+      y: 160,
+      flipped: false,
+      deleted: false,   // 새 아이템은 당연히 삭제X
+    };
+
+    const newArr = [...items, newItem];
+    setItems(newArr);
+    setIsOpen(false);
+  };
+
+  const toggleBox = () => {
+    setIsOpen(!isOpen);
+  };
+
   const gymItems = [
     { name: "여자", image: women },
     { name: "남자", image: men },
@@ -30,44 +68,12 @@ const MyGymItem = () => {
     { name: "풀업", image: pullup },
   ];
 
-  // 아이템 추가
-  const addItem = (item) => {
-    console.log(`${item.name} 추가`);
-
-    // 현재 store 상태(배열)에서 중복 검사
-    if (items.some((prevItem) => prevItem.name === item.name)) {
-      alert(`이미 '${item.name}'가(이) 배치되었습니다!`);
-      return;
-    }
-
-    // 새 배열
-    const newArr = [
-      ...items,
-      {
-        id: Date.now(),
-        ...item,
-        x: 160, // 방 중앙
-        y: 160,
-      },
-    ];
-    setItems(newArr);
-
-    // 아이템 선택 후 목록 닫기
-    setIsOpen(false);
-  };
-
-  // 목록 열기/닫기
-  const toggleBox = () => {
-    setIsOpen(!isOpen);
-  };
-
   return (
     <div
       className={`fixed bottom-12 left-0 w-full bg-sky-100 rounded-t-3xl shadow-lg transition-transform duration-500 ${
         isOpen ? "translate-y-0" : "translate-y-[70%]"
       }`}
     >
-      {/* 닫기/열기 버튼 */}
       <button
         onClick={toggleBox}
         className="w-full py-3 bg-sky-100 text-gray-800 font-bold rounded-t-3xl"
@@ -75,9 +81,7 @@ const MyGymItem = () => {
         ㅡ
       </button>
 
-      {/* 아이템 목록 (가로 스크롤) */}
       <div className="p-4 overflow-x-auto scroll-snap-x-mandatory flex space-x-4">
-        {/* 3개씩 묶어 그리드 */}
         {gymItems
           .reduce((result, item, index) => {
             const groupIndex = Math.floor(index / 3);
@@ -90,18 +94,18 @@ const MyGymItem = () => {
               key={index}
               className="flex-shrink-0 w-full max-w-[calc(100%-1rem)] grid grid-cols-3 gap-4"
             >
-              {group.map((item, idx) => (
+              {group.map((it, idx) => (
                 <div
                   key={idx}
-                  onClick={() => addItem(item)}
+                  onClick={() => addItem(it)}
                   className="flex flex-col items-center cursor-pointer"
                 >
                   <img
-                    src={item.image}
-                    alt={item.name}
+                    src={it.image}
+                    alt={it.name}
                     className="w-16 h-16 object-contain mb-2"
                   />
-                  <span className="text-sm font-medium">{item.name}</span>
+                  <span className="text-sm font-medium">{it.name}</span>
                 </div>
               ))}
             </div>
