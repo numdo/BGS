@@ -74,7 +74,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         User user;
         if (optionalUser.isPresent()) {
             user = optionalUser.get();
-            user.setName(attributes.getName());
+            user.setName(null);
             // 기존 사용자라면, socialId가 없는 경우 업데이트
             if (user.getSocialId() == null) {
                 user.setSocialId(socialId);
@@ -102,7 +102,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 } else {
                     isNewUser = true;
                     User newUser = new User();
-                    newUser.setName(attributes.getName());
+                    newUser.setName(null);
                     newUser.setEmail(attributes.getEmail());
                     newUser.setSocialId(socialId);
                     newUser.setAccountType(AccountType.GOOGLE);
