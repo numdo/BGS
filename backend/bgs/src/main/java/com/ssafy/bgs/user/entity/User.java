@@ -25,9 +25,9 @@ public class User {
     private AccountType accountType;
 
     @Column(name = "social_id")
-    private Long socialId;
+    private String socialId;
 
-    @Column(name = "email", length = 128)
+    @Column(name = "email", length = 128, unique = true, nullable = false)
     private String email;
 
     @Column(name = "password")

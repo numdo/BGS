@@ -1,9 +1,9 @@
-package com.ssafy.bgs.user.controller;
+package com.ssafy.bgs.auth.controller;
 
 import com.ssafy.bgs.redis.service.RedisService;
-import com.ssafy.bgs.user.dto.response.SocialLoginResponseDto;
-import com.ssafy.bgs.user.jwt.JwtTokenProvider;
-import com.ssafy.bgs.user.service.AuthService;
+import com.ssafy.bgs.auth.dto.response.SocialLoginResponseDto;
+import com.ssafy.bgs.auth.jwt.JwtTokenProvider;
+import com.ssafy.bgs.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -17,7 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -36,7 +36,7 @@ public class AuthController {
      * 1) 카카오 로그인 유도 (프론트에서 직접 링크 이동해도 무방)
      * GET /api/auth/kakao/login
      */
-    @GetMapping("/kakao/login")
+    @GetMapping("/api/auth/kakao/login")
     public void redirectKakaoLogin(HttpServletResponse response) throws IOException {
         // 카카오 로그인 페이지로 리다이렉트
         // (실무에서는 프론트가 이 URL로 직접 이동하는 경우가 많음)
@@ -51,7 +51,7 @@ public class AuthController {
      * 2) 카카오 로그인 콜백
      * GET /api/auth/kakao/callback?code=xxx
      */
-    @GetMapping("/kakao/callback")
+    @GetMapping("/auth/kakao/callback")
     public ResponseEntity<?> kakaoCallback(
             @RequestParam(required = false) String code,
             HttpServletResponse response // 주입
@@ -72,7 +72,7 @@ public class AuthController {
         return ResponseEntity.ok(loginResponse);
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("/api/auth/refresh")
     public ResponseEntity<?> refreshAccessToken(
             @RequestHeader("Refresh-Token") String refreshToken) {
 
