@@ -7,6 +7,7 @@ import MyGymPage from "./pages/MyGymPage";
 import MyInfoPage from "./pages/MyInfoPage";
 import WorkoutPage from "./pages/WorkoutPage";
 import WorkoutCreatePage from "./pages/WorkoutCreatePage";
+import WorkoutUpdatePage from "./pages/WorkoutUpdatePage"
 import FeedPage from "./pages/FeedPage";
 import BullLoginPage from "./pages/BulLoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -35,6 +36,8 @@ function App() {
           <Route path="/Feed" element={<FeedPage />} />
           <Route path="/myinfo" element={<MyInfoPage />} />
           <Route path="/workoutcreate" element={<WorkoutCreatePage />} />
+          <Route path="/workoutupdate" element={<WorkoutUpdatePage />} />
+
         </Routes>
       </BrowserRouter>
     </>

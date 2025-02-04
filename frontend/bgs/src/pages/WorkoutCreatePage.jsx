@@ -4,114 +4,79 @@ import { useRef } from 'react';
 import BottomBar from '../components/BottomBar';
 import TopBar from '../components/TopBar';
 import selfie from './../assets/selfie.png';
+import { useNavigate } from 'react-router-dom';
 export default function WorkoutCreatePage() {
+  const navigate = useNavigate()
   const [diary, setDiary] = useState(
     {
-      "workoutDate": "2025-01-23",
+      "workoutDate": "2025-02-04",
       "content": "",
-      "allowedScope": "string",
+      "allowedScope": "A",
       "hashtags": ["운동일지", "헬스", "상체운동"],
-      "diaryWorkouts": [
-        {
-          "workoutId": 1,
-          "sets": [
-            {
-              "weight": 10,
-              "repetition": 10,
-              "workoutTime": 10
-            },
-            {
-              "weight": 10,
-              "repetition": 10,
-              "workoutTime": 10
-            },
-            {
-              "weight": 10,
-              "repetition": 10,
-              "workoutTime": 10
-            }
-          ]
-        },
-        {
-          "workoutId": 2,
-          "sets": [
-            {
-              "weight": 10,
-              "repetition": 10,
-              "workoutTime": 10
-            },
-            {
-              "weight": 10,
-              "repetition": 10,
-              "workoutTime": 10
-            }
-          ]
-        }
-      ]
+      "diaryWorkouts": []
     }
   )
-  const [workout, setWorkout] = useState(
-    {
-      "workoutId": 0,
-      "setSum": 0,
-      "deleted": true,
-      "sets": []
-    }
-  )
-  const [workoutSet, setWorkoutSet] = useState(
-    {
-      "weight": 0,
-      "repeat": 0,
-      "workoutTime": 0,
-      "deleted": true
-    }
-  )
+  const [workoutId, setWorkoutId] = useState("")
+  const [inputs, setInputs] = useState([{ weight: "", repetition: "", workoutTime: "" }])
   const [imageFile, setImageFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(selfie);
   const fileInputRef = useRef(null);
   const [file, setFile] = useState(null)
-  useEffect(() => {
-    console.log("workout : ", workout);
-  }, [workout]);
-
-  useEffect(() => {
-    console.log("workoutSet : ", workoutSet);
-  }, [workoutSet]);
-
+  const [accessLevel, setAccessLevel] = useState('public'); // 기본값은 '모두 공개'
+  const accessToken = localStorage.getItem('accessToken');
   useEffect(() => {
     console.log("diary : ", diary);
   }, [diary]);
-
-  const addWorkoutSet = () => {
-    setWorkout({
-      ...workout,
-      sets: [...workout.sets, workoutSet]
-    })
-  }
-  const addDiary = () => {
+  const addWorkout = (workoutId) => {
+    setInputs([...inputs, { weight: "", repetition: "", workoutTime: "" }])
     setDiary({
       ...diary,
-      workouts: [...diary.workouts, workout]
+      diaryWorkouts: [
+        ...diary.diaryWorkouts,
+        {
+          workoutId: workoutId,
+          sets: [{
+            "weight": 10,
+            "repetition": 10,
+            "workoutTime": 10
+          }]
+        }
+      ]
     })
-    setWorkout({
-      ...workout,
-      sets: []
-    })
-    console.log(diary)
-    console.log("다이어리 추가 기능 구현 예정")
   }
   const handleImageChange = (e) => {
     setFile(e.target.files[0]); // 사용자가 업로드한 파일
     console.log(file)
   };
+  const handleAddSet = (indexOfWorkout) => {
+    const newSets = diary.diaryWorkouts[indexOfWorkout].sets.concat({ "weight": inputs[indexOfWorkout].weight, "repetition": inputs[indexOfWorkout].repetition, "workoutTime": inputs[indexOfWorkout].workoutTime })
+    const newWorkout = { ...diary.diaryWorkouts[indexOfWorkout], sets: newSets }
+    const workouts = JSON.parse(JSON.stringify(diary.diaryWorkouts))
+    workouts.splice(indexOfWorkout, 1, newWorkout)
+    setDiary({ ...diary, diaryWorkouts: workouts })
+  }
+  const handleDeleteWorkout = (indexOfWorkout) => {
+    setDiary({ ...diary, diaryWorkouts: diary.diaryWorkouts.filter((_, indOfWorkout) => indOfWorkout !== indexOfWorkout) })
+    setInputs(inputs.slice(0, -1))
+  }
+  const handleDeleteSet = (indexOfWorkout, indexOfSet) => {
+    const newSets = diary.diaryWorkouts[indexOfWorkout].sets.filter((_, indOfSet) => indOfSet !== indexOfSet)
+    const newWorkout = { ...diary.diaryWorkouts[indexOfWorkout], sets: newSets }
+    const workouts = JSON.parse(JSON.stringify(diary.diaryWorkouts))
+    workouts.splice(indexOfWorkout, 1, newWorkout)
+    setDiary({ ...diary, diaryWorkouts: workouts })
+  }
+  const handleInputChange = (index, field, value) => {
+    const newInputs = [...inputs];
+    newInputs[index][field] = value;
+    setInputs(newInputs);
+  };
   useEffect(() => {
     if (file) {
-      const preview = URL.createObjectURL(file); // 이미지 미리보기 URL 생성
-      setPreviewUrl(preview);
+      const preview = URL.createObjectURL(file) // 이미지 미리보기 URL 생성
+      setPreviewUrl(preview)
     }
   }, [file])
-  const [accessLevel, setAccessLevel] = useState('public'); // 기본값은 '모두 공개'
-  const accessToken = localStorage.getItem('accessToken');
   const handleDiarySubmit = (e) => {
     e.preventDefault()
     const formData = new FormData();
@@ -121,16 +86,15 @@ export default function WorkoutCreatePage() {
     formData.append("files", file)
     axios.post("https://i12c209.p.ssafy.io/api/diaries", formData, {
       headers: {
-        'Authorization': `Bearer ${accessToken}`, // Bearer 토큰 추가
+        'Authorization': `Bearer ${accessToken}`,
       }
     }).then((response) => {
-      console.log(response);
-      console.log("저장성공")
+      console.log("운동일지 저장 성공", response)
+      navigate("/workout")
     })
       .catch((error) => {
-        console.log("error: ", error);
-        alert('운동일지 저장에 실패했습니다.');
-      });
+        console.log("운동일지 저장 실패", error)
+      })
   }
   return (
     <>
@@ -148,59 +112,76 @@ export default function WorkoutCreatePage() {
         </form>
         <div className="mb-4">
           <div className="space-y-3">
-            <div className="flex space-x-4">
-              <div className="flex-1">
+            <div className="flex flex-row space-x-4">
+              <div className="flex-1 flex-row">
                 <label className="block text-gray-700 font-medium" htmlFor="weight">운동 종류</label>
                 <input
                   type="number"
                   id="workout_id"
-                  value={workout.workout_id}
-                  onChange={(e) => setWorkout({ ...workout, workout_id: e.target.value, sets: [] })}
-                  className="mt-2 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 w-full"
+                  value={workoutId}
+                  placeholder='운동 종류'
+                  onChange={(e) => { setWorkoutId(e.target.value) }}
+                  className="mt-2 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
                 />
-              </div>
-              <div className="flex-1">
-                <label className="block text-gray-700 font-medium" htmlFor="weight">중량</label>
-                <input
-                  type="number"
-                  id="weight"
-                  value={workoutSet.weight}
-                  onChange={(e) => setWorkoutSet({ ...workoutSet, weight: e.target.value })}
-                  className="mt-2 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 w-full"
-                />
-              </div>
-              <div className="flex-1">
-                <label className="block text-gray-700 font-medium" htmlFor="repeat">횟수</label>
-                <input
-                  type="number"
-                  id="repeat"
-                  value={workoutSet.repeat}
-                  onChange={(e) => setWorkoutSet({ ...workoutSet, repeat: e.target.value })}
-                  className="mt-2 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 w-full"
-                />
-              </div>
-              <div className="flex-1">
-                <label className="block text-gray-700 font-medium" htmlFor="workout_time">운동시간</label>
-                <input
-                  type="number"
-                  id="workout_time"
-                  value={workoutSet.workout_time}
-                  onChange={(e) => setWorkoutSet({ ...workoutSet, workout_time: e.target.value })}
-                  className="mt-2 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 w-full"
-                />
+                <button
+                  onClick={() => { addWorkout(workoutId) }}
+                  className="m-1 p-3 bg-gray-500 text-white font-semibold rounded-md hover:bg-gray-600 focus:outline-none"
+                >
+                  운동 추가
+                </button>
               </div>
             </div>
-            {workout.sets.map((set, index) => (
-              <div key={index}>
-                <p>종류 : {workout.workout_id},세트 : {index + 1},무게 : {set.weight}kg,반복: {set.repeat}, 시간: {set.workout_time}s</p>
+            {diary.diaryWorkouts.map((workout, indexOfWorkout) => (
+              <div key={indexOfWorkout} className='border border-gray-300 rounded'>
+                <div className='flex'>
+                  <h2>운동{workout.workoutId}</h2>
+                  <button className='border border-red-300 rounded px-1 text-red-300'
+                    onClick={() => { handleDeleteWorkout(indexOfWorkout) }}>⨯</button>
+                </div>
+                {workout.sets.map((set, indexOfSet) => (
+                  <div key={indexOfSet} className='flex '>
+                    <div>
+                      무게:{set.weight}
+                    </div>
+                    <div>
+                      중량:{set.repetition}
+                    </div>
+                    <div>
+                      시간:{set.workoutTime}
+                    </div>
+                    <button className='border border-red-300 rounded px-1 text-red-300'
+                      onClick={() => { handleDeleteSet(indexOfWorkout, indexOfSet) }}>⨯</button>
+                  </div>
+                ))}
+                <div className='flex'>
+                  <input
+                    type="number"
+                    placeholder='무게'
+                    value={inputs[indexOfWorkout].weight}
+                    onChange={(e) => handleInputChange(indexOfWorkout, "weight", e.target.value)}
+                    className="border rounded w-10"
+                  />
+                  <input
+                    type="number"
+                    placeholder='중량'
+                    value={inputs[indexOfWorkout].repetition}
+                    onChange={(e) => handleInputChange(indexOfWorkout, "repetition", e.target.value)}
+                    className="border rounded w-10"
+                  />
+                  <input
+                    type="number"
+                    placeholder='시간'
+                    value={inputs[indexOfWorkout].workoutTime}
+                    onChange={(e) => handleInputChange(indexOfWorkout, "workoutTime", e.target.value)}
+                    className="border rounded w-10"
+                  />
+
+                  <button className='border border-blue-300 px-1 rounded text-blue-300'
+                    onClick={() => { handleAddSet(indexOfWorkout) }}
+                  >+</button>
+                </div>
               </div>
             ))}
-            <button
-              onClick={addWorkoutSet}
-              className="mt-4 w-full py-3 bg-gray-500 text-white font-semibold rounded-md hover:bg-gray-600 focus:outline-none"
-            >
-              세트 추가
-            </button>
           </div>
         </div>
         <div className="mb-4">
@@ -236,12 +217,11 @@ export default function WorkoutCreatePage() {
           <label htmlFor="access-level">공개범위 설정 </label>
           <select
             id="access-level"
-            value={accessLevel}
-            onChange={(e) => { setAccessLevel(e.target.value) }}
+            value={diary.allowedScope}
+            onChange={(e) => { setDiary({ ...diary, allowedScope: e.target.value }) }}
           >
-            <option value="public">모두 공개</option>
-            <option value="followers">팔로워한테만 공개</option>
-            <option value="private">비공개</option>
+            <option value="A">모두 공개</option>
+            <option value="M">비공개</option>
           </select>
         </div>
         <button
