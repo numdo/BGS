@@ -21,7 +21,7 @@ const useUserStore = create((set) => ({
     fetchUser: async () => {
         try {
             const token1 = localStorage.getItem("accessToken")
-            const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1IiwiaWF0IjoxNzM4NjcyMTgyLCJleHAiOjE3Mzg2NzU3ODJ9._HVT0Bux_m2z-EnVfyf3N4GQbnZsGXpfhdZCpOVt1uw"
+            const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1IiwiaWF0IjoxNzM4NjgxODE2LCJleHAiOjE3Mzg2ODU0MTZ9._4BV9dkyM00Os0c4BzA2tUDfjqVBEFIGqHFo2m1cYqM"
             const userId = localStorage.getItem("userId")
             const response = await axios.get(`https://i12c209.p.ssafy.io/api/users/me`, {
                 headers: {
