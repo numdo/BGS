@@ -1,4 +1,4 @@
-package com.ssafy.bgs.user.dto.request;
+package com.ssafy.bgs.auth.dto.request;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Builder
-public class KakaoSignupRequestDto {
+public class SocialSignupRequestDto {
     private String name;
     private String nickname;
     private LocalDate birthDate;
