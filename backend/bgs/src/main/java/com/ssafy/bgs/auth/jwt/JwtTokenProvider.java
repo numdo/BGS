@@ -1,4 +1,4 @@
-package com.ssafy.bgs.user.jwt;
+package com.ssafy.bgs.auth.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

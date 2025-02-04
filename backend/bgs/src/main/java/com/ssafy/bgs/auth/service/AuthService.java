@@ -1,10 +1,10 @@
-package com.ssafy.bgs.user.service;
+package com.ssafy.bgs.auth.service;
 
 import com.ssafy.bgs.common.DuplicatedException;
-import com.ssafy.bgs.user.dto.response.SocialLoginResponseDto;
+import com.ssafy.bgs.auth.dto.response.SocialLoginResponseDto;
 import com.ssafy.bgs.user.entity.AccountType;
 import com.ssafy.bgs.user.entity.User;
-import com.ssafy.bgs.user.jwt.JwtTokenProvider;
+import com.ssafy.bgs.auth.jwt.JwtTokenProvider;
 import com.ssafy.bgs.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +53,7 @@ public class AuthService {
         KakaoUserInfo kakaoUserInfo = getKakaoUserInfo(accessToken);
         boolean isNewUser = false;
         // 3) DB에 기존 사용자가 있는지 확인 (kakaoId로 조회)
-        Optional<User> optionalUser = userRepository.findBySocialId(kakaoUserInfo.id());
+        Optional<User> optionalUser = userRepository.findBySocialId(String.valueOf(kakaoUserInfo.id()));
         User user;
         if (optionalUser.isPresent()) {
             // 이미 가입된 카카오 사용자
@@ -73,7 +73,7 @@ public class AuthService {
                     // 신규 가입 처리
                     isNewUser = true;
                     user = new User();
-                    user.setSocialId(kakaoUserInfo.id());
+                    user.setSocialId(String.valueOf(kakaoUserInfo.id()));
                     user.setEmail(kakaoUserInfo.email());
                     user.setNickname(
                             (kakaoUserInfo.nickname() != null && !kakaoUserInfo.nickname().isBlank())
@@ -90,7 +90,7 @@ public class AuthService {
             } else {
                 // 이메일 정보를 받아오지 못했을 경우 -> 닉네임이나 kakaoId로 가입 처리
                 user = new User();
-                user.setSocialId(kakaoUserInfo.id());
+                user.setSocialId(String.valueOf(kakaoUserInfo.id()));
                 userRepository.save(user);
             }
         }
@@ -135,7 +135,7 @@ public class AuthService {
                 JSONObject body = new JSONObject(response.getBody());
                 return body.getString("access_token");
             } else {
-                log.error("카카오 토큰발급 실패: HTTP {}", response.getStatusCodeValue());
+                log.error("카카오 토큰발급 실패: HTTP {}", response.getStatusCode().value());
                 return null;
             }
         } catch (Exception e) {
@@ -178,7 +178,7 @@ public class AuthService {
 
                 return new KakaoUserInfo(id, email, nickname);
             } else {
-                log.error("카카오 사용자 정보 조회 실패: HTTP {}", response.getStatusCodeValue());
+                log.error("카카오 사용자 정보 조회 실패: HTTP {}", response.getStatusCode().value());
                 throw new IllegalArgumentException("카카오 사용자 정보 조회 실패");
             }
         } catch (Exception e) {
