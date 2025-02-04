@@ -6,18 +6,25 @@ import SelectColor from "../components/mygym/SelectColor";
 import TopBar from "../components/TopBar";
 import BottomBar from "../components/BottomBar";
 import useUserStore from "../stores/useUserStore";
+import useMyGymStore from "../stores/useMyGymStore";
 
 const MyGymPage = () => {
-  const [items, setItems] = useState([]);
-  const [roomColor, setRoomColor] = useState("#F5F1D9");
+  const { items, setItems, roomColor, setRoomColor, fetchMyGym, updateMyGym } = useMyGymStore();
   // 편집모드 false -> 보기모드 기본
   const [isEditing, setIsEditing] = useState(false);
 
   const handleEditMode = () => setIsEditing(true);
-  const handleFinishEdit = () => setIsEditing(false);
+  const handleFinishEdit = async () => {
+    const userId = localStorage.getItem("userId");
+    await updateMyGym(userId);
+    setIsEditing(false);
+  }
   const { user, fetchUser } = useUserStore();
   useEffect(() => {
-    fetchUser();
+    fetchUser().then(() => {
+      const userId = localStorage.getitem("userId");
+      if(userId) {fetchMyGym(userId);}
+    })
   },[])
   return (
     <div>
@@ -27,11 +34,7 @@ const MyGymPage = () => {
       {isEditing ? (
         /* 편집 모드 */
         <>
-          <MyGymRoomEdit
-            items={items}
-            setItems={setItems}
-            roomColor={roomColor}
-          />
+          <MyGymRoomEdit/>
 
           <button onClick={handleFinishEdit} className="bg-green-500 px-4 py-2 rounded-full text-white">
             완료

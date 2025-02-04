@@ -1,22 +1,17 @@
 import { useRef, useState } from "react";
-// import {useMyGymStore} from "../../stores/useMyGymStore";
-
+import useMyGymStore from "../../stores/useMyGymStore";
 import removeItemPng from "../../assets/remove_item.png";
-import selectColorPng from "../../assets/selectcolor.png";
 import Flip from "../../assets/Flip.png";
-import SelectColor from "./SelectColor";
 
-
-// 폴리곤 꼭짓점을 %로 정의 (육각형 clipPath에 맞춰 작성) 바닥육각형 ㅇㅇ
 const polygonRatios = [
-  [0.0, 0.60],  // 0%  60%
-  [0.5, 0.40],  // 50% 40%
-  [1.0, 0.60],  // 100% 60%
-  [0.5, 0.80],  // 50% 80%
-  [1.0, 1.0],   // 100% 100%
+  [0.0, 0.60],
+  [0.5, 0.40],
+  [1.0, 0.60],
+  [0.5, 0.80],
+  [1.0, 1.0],
 ];
 
-// Ray-casting algorithm
+// 다각형 내부 체크 (Ray-casting)
 function pointInPolygon(px, py, polygon) {
   let isInside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
@@ -30,8 +25,7 @@ function pointInPolygon(px, py, polygon) {
   return isInside;
 }
 
-
-const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
+const MyGymRoomEdit = () => {
   const roomRef = useRef(null);
 
   const [draggingItem, setDraggingItem] = useState(null);
@@ -39,7 +33,10 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
   const [startCoord, setStartCoord] = useState({ x: 0, y: 0 });
   const [isDraggingMode, setIsDraggingMode] = useState(false);
 
-  // pointerDown
+  // Zustand store에서 items, setItems, roomColor 가져오기
+  const { items, setItems, roomColor } = useMyGymStore();
+
+  // (1) 아이템 드래그 시작
   const handlePointerDown = (e, item) => {
     e.preventDefault();
     setIsDraggingMode(false);
@@ -51,7 +48,7 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
     setDraggingItem({ id: item.id, offsetX, offsetY });
   };
 
-  // pointerMove
+  // (2) 드래그 이동
   const handlePointerMove = (e) => {
     if (!draggingItem) return;
     e.preventDefault();
@@ -67,47 +64,39 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
     const { id, offsetX, offsetY } = draggingItem;
     const rect = roomRef.current.getBoundingClientRect();
 
-    // 새 좌표(왼상단)
     let newX = e.clientX - rect.left - offsetX;
     let newY = e.clientY - rect.top - offsetY;
 
-    // 아이템 크기 (예: w-16, h-16 => 64 px)
     const itemWidth = 64;
     const itemHeight = 64;
 
-    // 1) 사각 범위 제한 (일단 div 밖으로 못 나가도록)
+    // 사각 범위 제한
     if (newX < 0) newX = 0;
     if (newY < 0) newY = 0;
-    if (newX > rect.width - itemWidth) {
-      newX = rect.width - itemWidth;
-    }
-    if (newY > rect.height - itemHeight) {
-      newY = rect.height - itemHeight;
-    }
+    if (newX > rect.width - itemWidth) newX = rect.width - itemWidth;
+    if (newY > rect.height - itemHeight) newY = rect.height - itemHeight;
 
-    //    여기서는 "아이템 중심"이 폴리곤 내부인지 검사
+    // 폴리곤 내부 여부
     const centerX = newX + itemWidth / 2;
     const centerY = newY + itemHeight / 2;
-
-    // 폴리곤 % -> px 변환
     const polygonPx = polygonRatios.map(([rx, ry]) => [
       rx * rect.width,
       ry * rect.height,
     ]);
 
     if (!pointInPolygon(centerX, centerY, polygonPx)) {
-      // 폴리곤 밖이면 이동을 취소. (이전 좌표 그대로 둠)
-      // 보통은 "return;" 하거나, 혹은 직전 좌표로 되돌림
+      // 밖이면 취소
       return;
     }
 
-    // 최종적으로 OK면 상태 갱신
-    setItems((prev) =>
-      prev.map((it) => (it.id === id ? { ...it, x: newX, y: newY } : it))
+    // 최종 업데이트: 콜백 대신 직접 새 배열
+    const newArr = items.map((it) =>
+      it.id === id ? { ...it, x: newX, y: newY } : it
     );
+    setItems(newArr);
   };
 
-  // pointerUp
+  // (3) 드래그 끝
   const handlePointerUp = () => {
     if (!isDraggingMode && draggingItem) {
       const { id } = draggingItem;
@@ -116,35 +105,25 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
     setDraggingItem(null);
   };
 
-  // 팔레트 열기/닫기
-  const togglePalette = () => {
-    setIsPaletteOpen((prev) => !prev);
-  };
-
   // 아이템 삭제
   const removeItem = (id) => {
-    setItems((prev) => prev.filter((it) => it.id !== id));
-    if (selectedItemId === id) {
-      setSelectedItemId(null);
-    }
+    const newArr = items.filter((it) => it.id !== id);
+    setItems(newArr);
   };
 
   // 좌우 반전
   const toggleFlip = (id) => {
-    setItems((prev) =>
-      prev.map((it) => {
-        if (it.id === id) {
-          const flipped = it.flipped || false;
-          return { ...it, flipped: !flipped };
-        }
-        return it;
-      })
-    );
+    const newArr = items.map((it) => {
+      if (it.id === id) {
+        return { ...it, flipped: !it.flipped };
+      }
+      return it;
+    });
+    setItems(newArr);
   };
 
   return (
     <div className="relative flex flex-col items-center">
-      {/* 방 컨테이너 */}
       <div
         ref={roomRef}
         className="relative w-96 h-96"
@@ -186,11 +165,7 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
             <div
               key={item.id}
               className="absolute"
-              style={{
-                top: item.y,
-                left: item.x,
-                zIndex: 2,
-              }}
+              style={{ top: item.y, left: item.x, zIndex: 2 }}
               onPointerDown={(e) => handlePointerDown(e, item)}
             >
               <div className="relative w-16 h-16">
@@ -219,7 +194,7 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
                   className={`
                     absolute w-6 h-6 cursor-pointer
                     -top-2 -right-2
-                    transition-all duration-300 transform
+                    transition-all duration-300
                     ${
                       selectedItemId === item.id
                         ? "opacity-100 scale-100"
@@ -239,10 +214,10 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
                   className={`
                     absolute w-6 h-6 cursor-pointer
                     -top-2 left-0
-                    transition-all duration-300 transform
+                    transition-all duration-300
                     ${
                       selectedItemId === item.id
-                        ? "opacity-100 scale-100 pointer-events-none"
+                        ? "opacity-100 scale-100"
                         : "opacity-0 scale-0"
                     }
                   `}

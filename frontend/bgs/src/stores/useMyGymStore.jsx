@@ -5,7 +5,6 @@ import axios from 'axios'
 const useMyGymStore = create((set) => ({
   items: [],
   roomColor: "#F5F1D9",
-  
   setItems: (newItems) => set({ items: newItems }),
   setRoomColor: (color) => set({ roomColor: color }),
   
@@ -13,11 +12,12 @@ const useMyGymStore = create((set) => ({
   fetchMyGym: async (userId) => {
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await axios.get(`https://i12c209.p.ssafy.io/api/mygym/${userId}`, {
+      const res = await axios.get(`https://i12c209.p.ssafy.io/api/mygyms/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log(res.data);
       // 응답 데이터(배치 정보, 색상 등)를 Zustand state에 넣음
       set({
         items: res.data.places.map(place => ({
@@ -59,7 +59,7 @@ const useMyGymStore = create((set) => ({
         places: places,
       };
 
-      const res = await axios.post(`https://i12c209.p.ssafy.io/api/mygym/${userId}`, requestBody, {
+      const res = await axios.put(`https://i12c209.p.ssafy.io/api/mygyms/${userId}`, requestBody, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("마이짐 업데이트 성공", res.data);

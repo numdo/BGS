@@ -1,6 +1,8 @@
+// src/components/mygym/MyGymItem.jsx
 import { useState } from "react";
+import useMyGymStore from "../../stores/useMyGymStore";
 
-// 이미지 import
+// 예시 이미지 import
 import BenchPress from "../../assets/benchpress.png";
 import LatPulldown from "../../assets/Latpulldown.png";
 import Deadlift from "../../assets/deadlift.png";
@@ -11,40 +13,11 @@ import dumbbell from "../../assets/dumbbell.png";
 import men from "../../assets/men.png";
 import women from "../../assets/women.png";
 
-const MyGymItem = ({setItems}) => {
+const MyGymItem = () => {
+  const { items, setItems } = useMyGymStore(); // Zustand store
   const [isOpen, setIsOpen] = useState(false);
-  const addItem = (item) => {
-    console.log(`${item.name} 추가`);
-  
-    setItems((prevItems) => {
-      //  중복 여부 확인
-      const isDuplicate = prevItems.some((prevItem) => prevItem.name === item.name);
-  
-      if (isDuplicate) {
-        // 중복이면 알림만 띄우고 그 상태 그대로 반환
-        alert(`이미 '${item.name}'가(이) 배치되었습니다!`);
-        return prevItems;
-      }
-  
-      //  중복이 아니면 새 아이템 추가
-      return [
-        ...prevItems,
-        {
-          id: Date.now(),
-          ...item,
-          x: 160, // 방 중앙값
-          y: 160,
-        },
-      ];
-    });
-  };
-  
 
-  const toggleBox = () => {
-    setIsOpen(!isOpen); // 열림/닫힘 상태 변경
-  };
-
-  // 아이템 데이터 배열
+  // 아이템 목록
   const gymItems = [
     { name: "여자", image: women },
     { name: "남자", image: men },
@@ -57,37 +30,72 @@ const MyGymItem = ({setItems}) => {
     { name: "풀업", image: pullup },
   ];
 
-  return (
-    <>
-      {/* 네모 박스 */}
-      <div
-        className={`fixed bottom-12 left-0 w-full bg-sky-100 rounded-t-3xl shadow-lg transition-transform duration-500 ${
-          isOpen ? "translate-y-0" : "translate-y-[70%]"
-        }`}
-      >
-        {/* 열기/닫기 버튼 */}
-        <button
-          onClick={toggleBox}
-          className="w-full py-3 bg-sky-100 text-gray-800 font-bold rounded-t-3xl"
-        >
-          ㅡ
-        </button>
+  // 아이템 추가
+  const addItem = (item) => {
+    console.log(`${item.name} 추가`);
 
-        {/* 스크롤 가능한 아이템들 */}
-        <div onClick={toggleBox} className="p-4 overflow-x-auto scroll-snap-x-mandatory flex space-x-4">
-          {/* 슬라이드 하나 */}
-          {gymItems.reduce((result, item, index) => {
-            const groupIndex = Math.floor(index / 3); // 3개씩 묶기
-            if (!result[groupIndex]) result[groupIndex] = []; // 새로운 그룹 생성
+    // 현재 store 상태(배열)에서 중복 검사
+    if (items.some((prevItem) => prevItem.name === item.name)) {
+      alert(`이미 '${item.name}'가(이) 배치되었습니다!`);
+      return;
+    }
+
+    // 새 배열
+    const newArr = [
+      ...items,
+      {
+        id: Date.now(),
+        ...item,
+        x: 160, // 방 중앙
+        y: 160,
+      },
+    ];
+    setItems(newArr);
+
+    // 아이템 선택 후 목록 닫기
+    setIsOpen(false);
+  };
+
+  // 목록 열기/닫기
+  const toggleBox = () => {
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <div
+      className={`fixed bottom-12 left-0 w-full bg-sky-100 rounded-t-3xl shadow-lg transition-transform duration-500 ${
+        isOpen ? "translate-y-0" : "translate-y-[70%]"
+      }`}
+    >
+      {/* 닫기/열기 버튼 */}
+      <button
+        onClick={toggleBox}
+        className="w-full py-3 bg-sky-100 text-gray-800 font-bold rounded-t-3xl"
+      >
+        ㅡ
+      </button>
+
+      {/* 아이템 목록 (가로 스크롤) */}
+      <div className="p-4 overflow-x-auto scroll-snap-x-mandatory flex space-x-4">
+        {/* 3개씩 묶어 그리드 */}
+        {gymItems
+          .reduce((result, item, index) => {
+            const groupIndex = Math.floor(index / 3);
+            if (!result[groupIndex]) result[groupIndex] = [];
             result[groupIndex].push(item);
             return result;
-          }, []).map((group, index) => (
+          }, [])
+          .map((group, index) => (
             <div
               key={index}
               className="flex-shrink-0 w-full max-w-[calc(100%-1rem)] grid grid-cols-3 gap-4"
             >
               {group.map((item, idx) => (
-                <div key={idx} onClick={() => addItem(item)} className="flex flex-col items-center">
+                <div
+                  key={idx}
+                  onClick={() => addItem(item)}
+                  className="flex flex-col items-center cursor-pointer"
+                >
                   <img
                     src={item.image}
                     alt={item.name}
@@ -98,9 +106,8 @@ const MyGymItem = ({setItems}) => {
               ))}
             </div>
           ))}
-        </div>
       </div>
-    </>
+    </div>
   );
 };
 
