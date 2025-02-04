@@ -1,48 +1,60 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import BottomBar from "../components/BottomBar";
 import TopBar from "../components/TopBar";
 import FeedItem from "../components/feed/FeedItem";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-const API_URL = "http://localhost:8080/api/diaries/feeds";
+const API_URL = "https://i12c209.p.ssafy.io/api/diaries/feeds";
+const BEARER_TOKEN =
+  "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4IiwiaWF0IjoxNzM4NjcyMzUwLCJleHAiOjE3Mzg2NzU5NTB9.elo6_2q7DL-gLgHP40baxhdC4qOdcHm1z0YQzHrbHpM";
 
 const FeedPage = () => {
-  const [feeds, setFeeds] = useState([]); // 받아온 피드 데이터
-  const [page, setPage] = useState(1); // 페이지네이션
-  const [isLoading, setIsLoading] = useState(false); // 로딩 상태
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   const loaderRef = useRef(null);
   const navigate = useNavigate();
 
-  // 📌 API 요청 함수
-  const fetchFeeds = async () => {
-    if (isLoading) return; // 중복 요청 방지
-    setIsLoading(true);
-    
+  // 📌 API에서 데이터 가져오는 함수
+  const fetchImages = async () => {
+    if (loading) return;
+    setLoading(true);
+
     try {
-      const response = await axios.get(`${API_URL}?page=${page}&pageSize=9`);
-      
-      // 이미지 URL을 절대 경로로 변환
-      const newFeeds = response.data.map(feed => ({
-        ...feed,
-        imageUrl: `${feed.imageUrl}`,
+      const response = await axios.get(`${API_URL}?page=${page}&pageSize=9`, {
+        headers: {
+          Authorization: `Bearer ${BEARER_TOKEN}`,
+        },
+      });
+
+      console.log(response);
+
+      const newImages = response.data.map((item) => ({
+        id: item.diaryId,
+        imageUrl: item.imageUrl,
       }));
 
-      setFeeds((prev) => [...prev, ...newFeeds]); // 기존 데이터에 추가
-      setPage((prev) => prev + 1); // 페이지 증가
+      console.log(newImages);
+
+      setImages((prev) => [...prev, ...newImages]);
+
+      console.log(images);
+
+      setPage((prevPage) => prevPage + 1);
     } catch (error) {
-      console.error("데이터 불러오기 실패:", error);
+      console.error("데이터를 불러오는 중 오류 발생:", error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // 📌 Intersection Observer (무한 스크롤)
+  // 📌 Intersection Observer를 사용한 무한 스크롤
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
-          fetchFeeds(); // 스크롤 시 데이터 추가
+        if (entries[0].isIntersecting && !loading) {
+          fetchImages();
         }
       },
       { threshold: 1.0 }
@@ -55,7 +67,12 @@ const FeedPage = () => {
     return () => {
       if (loaderRef.current) observer.unobserve(loaderRef.current);
     };
-  }, []);
+  }, [loading]);
+
+  // 📌 상세 페이지 이동 함수
+  const handleImageClick = (id) => {
+    navigate(`/feed/${id}`);
+  };
 
   return (
     <>
@@ -63,17 +80,17 @@ const FeedPage = () => {
       <div className="max-w-4xl mx-auto p-4">
         <h2 className="text-2xl font-bold mb-4">탐색</h2>
         <div className="grid grid-cols-3 gap-1 md:gap-2">
-          {feeds.map((feed) => (
+          {images.map((image) => (
             <FeedItem
-              key={feed.diaryId}
-              feed={feed}
-              onClick={() => navigate(`/feed/${feed.diaryId}`)} // 클릭 시 상세 페이지 이동
+              key={image.id}
+              feed={image}
+              onClick={() => handleImageClick(image.id)}
             />
           ))}
         </div>
-        {/* 로딩 트리거 */}
+        {/* 로딩 트리거 (Intersection Observer 대상) */}
         <div ref={loaderRef} className="h-10 mt-4 flex justify-center items-center">
-          {isLoading && <p className="text-gray-500">Loading...</p>}
+          {loading && <p className="text-gray-500">Loading...</p>}
         </div>
       </div>
       <BottomBar />
