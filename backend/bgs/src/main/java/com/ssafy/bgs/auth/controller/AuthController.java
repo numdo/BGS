@@ -51,7 +51,7 @@ public class AuthController {
      * 2) 카카오 로그인 콜백
      * GET /api/auth/kakao/callback?code=xxx
      */
-    @GetMapping("/auth/kakao/callback")
+    @GetMapping("/oauth2/kakao/callback")
     public ResponseEntity<?> kakaoCallback(
             @RequestParam(required = false) String code,
             HttpServletResponse response // 주입
