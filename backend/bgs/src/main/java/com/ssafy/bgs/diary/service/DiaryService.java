@@ -25,7 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,17 +51,11 @@ public class DiaryService {
     }
 
     /** Diary Select **/
-    public Page<Diary> getDiaryList(Integer userId, Date workoutDate, int page, int pageSize) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
-        if (userId != null && workoutDate != null) {
-            return diaryRepository.findByUserIdAndWorkoutDateAndDeletedFalse(userId, workoutDate, pageable);
-        } else if (userId != null) {
-            return diaryRepository.findByUserIdAndDeletedFalse(userId, pageable);
-        } else if (workoutDate != null) {
-            return diaryRepository.findByWorkoutDateAndDeletedFalse(workoutDate, pageable);
-        } else {
-            return diaryRepository.findByDeletedFalse(pageable);
-        }
+    public List<Diary> getDiaryList(Integer userId, int year, int month) {
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+
+        return diaryRepository.findByUserIdAndWorkoutDateBetweenAndDeletedFalse(userId, startDate, endDate);
     }
 
     /** Diary insert **/

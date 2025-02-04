@@ -13,7 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -27,14 +27,16 @@ public class DiaryController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Diary>> getDiaryList(
-            @RequestParam(required = false) Integer userId,
-            @RequestParam(required = false) Date workoutDate,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int pageSize
+    public ResponseEntity<?> getDiaryList(
+            @RequestParam Integer userId,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month
     ) {
-        Page<Diary> diaryList = diaryService.getDiaryList(userId, workoutDate, page, pageSize);
+        LocalDate today = LocalDate.now();
+        int defaultYear = (year != null) ? year : today.getYear();
+        int defaultMonth = (month != null) ? month : today.getMonthValue();
 
+        List<Diary> diaryList = diaryService.getDiaryList(userId, defaultYear, defaultMonth);
         return new ResponseEntity<>(diaryList, HttpStatus.OK);
     }
 
