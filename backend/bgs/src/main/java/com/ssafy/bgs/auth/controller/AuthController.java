@@ -66,12 +66,13 @@ public class AuthController {
 
         // **추가**: JWT 토큰을 Response Header에 담아서 내려주기
         // 프론트엔드로 전달할 URL (예시: 프론트엔드의 특정 라우터 주소)
-        String frontRedirectUrl = "https://i12c209.p.ssafy.io/login/oauth2/success";
+        String frontRedirectUrl = "http://localhost:5173/login/oauth2/success";
 
         // 토큰을 URL 파라미터(혹은 fragment)로 붙여서 전달 (여기서는 fragment 예시)
         String redirectUrl = frontRedirectUrl
                 + "#accessToken=" + loginResponse.getAccessToken()
-                + "&refreshToken=" + loginResponse.getRefreshToken();
+                + "&refreshToken=" + loginResponse.getRefreshToken()
+                + "&newUser=" + loginResponse.isNewUser();
 
         // 프론트엔드로 리다이렉트
         response.sendRedirect(redirectUrl);
