@@ -10,6 +10,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -25,6 +28,8 @@ public class CustomOAuth2AuthenticationSuccessHandler implements AuthenticationS
 
     // ObjectMapper를 이용해 SocialLoginResponseDto를 JSON으로 변환합니다.
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private final String frontRedirectUrl = "https://i12c209.p.ssafy.io/login/oauth2/success";
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -43,21 +48,21 @@ public class CustomOAuth2AuthenticationSuccessHandler implements AuthenticationS
         // 예시에서는 SessionUser에 사용자 ID가 있다고 가정합니다.
         // 만약 SessionUser에 id 필드가 없다면, email 등 다른 고유 값을 기준으로 JWT를 생성하도록 변경하세요.
         Integer userId = sessionUser.getUserId(); // SessionUser 클래스에 getId()가 구현되어 있다고 가정
-        log.info("userId: {}", userId.toString());
         // JWT 토큰 생성 (각 토큰의 생성 로직은 JwtTokenProvider에 구현되어 있음)
         String accessToken = jwtTokenProvider.createAccessToken(userId);
         String refreshToken = jwtTokenProvider.createReFreshToken(userId);
 
-        // SocialLoginResponseDto 구성
-        SocialLoginResponseDto responseDto = new SocialLoginResponseDto();
-        responseDto.setName(sessionUser.getName());
-        responseDto.setAccessToken(accessToken);
-        responseDto.setRefreshToken(refreshToken);
-        responseDto.setNewUser(newUser != null ? newUser : false);
+        String name = sessionUser.getName();
+        String encodedName = URLEncoder.encode(name, StandardCharsets.UTF_8.toString());
 
-        // 응답 JSON 작성
-        response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(objectMapper.writeValueAsString(responseDto));
-        response.getWriter().flush();
+        // 기존에 JSON 응답을 보내던 코드를 주석 처리하거나 제거하고,
+        // 프론트엔드로 리다이렉트하며 토큰 정보를 URL fragment 혹은 쿼리 파라미터에 담습니다.
+        String redirectUrl = frontRedirectUrl
+                + "#accessToken=" + accessToken
+                + "&refreshToken=" + refreshToken
+                + "&newUser=" + (newUser != null ? newUser : false)
+                + "&name=" + encodedName;
+
+        response.sendRedirect(redirectUrl);
     }
 }
