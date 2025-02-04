@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MyGymRoomEdit from "../components/mygym/MyGymRoomEdit";
 import MyGymRoomView from "../components/mygym/MyGymRoomView";
 import MyGymItem from "../components/mygym/MyGymItem";
 import SelectColor from "../components/mygym/SelectColor";
 import TopBar from "../components/TopBar";
 import BottomBar from "../components/BottomBar";
+import useUserStore from "../stores/useUserStore";
 
 const MyGymPage = () => {
   const [items, setItems] = useState([]);
@@ -14,11 +15,14 @@ const MyGymPage = () => {
 
   const handleEditMode = () => setIsEditing(true);
   const handleFinishEdit = () => setIsEditing(false);
-
+  const { user, fetchUser } = useUserStore();
+  useEffect(() => {
+    fetchUser();
+  },[])
   return (
     <div>
       <TopBar />
-      <h1 className="text-2xl font-bold text-center py-2">내 마이짐</h1>
+      <h1 className="text-2xl font-bold text-center py-2">{user.nickname} 마이짐</h1>
 
       {isEditing ? (
         /* 편집 모드 */
