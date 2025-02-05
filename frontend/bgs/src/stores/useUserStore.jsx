@@ -30,6 +30,7 @@ const useUserStore = create((set) => ({
             });
             set({ user: response.data })
             console.log("userId로 데이터 불러오기 성공", response.data)
+            localStorage.setItem("userId", response.data.userId);
         } catch (error) {
             console.log("Error fetching user: ", error)
         }
