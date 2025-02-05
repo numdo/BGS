@@ -6,6 +6,7 @@ import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 
+
 @Entity
 @Table(name = "gyms")
 @Getter
