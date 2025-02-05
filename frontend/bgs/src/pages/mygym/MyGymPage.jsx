@@ -17,6 +17,7 @@ import { getUser } from "../../api/User";
 const MyGymPage = () => {
   // 유저 정보
   const { user, setUser } = useUserStore();
+  
   const {myGym,setMyGym,pageBgColor, setPageBgColor,setWallColor,setItems, updateMyGym} = useMyGymStore();
   useEffect(()=>{
     console.log("mygym",myGym)
