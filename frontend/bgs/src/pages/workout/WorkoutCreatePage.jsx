@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import axios from 'axios';
-import { useRef } from 'react';
+import { createDiary } from '../../api/Diary';
 import BottomBar from '../../components/bar/BottomBar';
 import TopBar from '../../components/bar/TopBar';
 import selfie from '../../assets/images/selfie.png';
 import { useNavigate } from 'react-router-dom';
+
 export default function WorkoutCreatePage() {
   const navigate = useNavigate()
   const [diary, setDiary] = useState(
@@ -84,17 +85,8 @@ export default function WorkoutCreatePage() {
     const diaryBlob = new Blob([diaryJson], { type: 'application/json' });
     formData.append("diary", diaryBlob)
     formData.append("files", file)
-    axios.post("https://i12c209.p.ssafy.io/api/diaries", formData, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      }
-    }).then((response) => {
-      console.log("운동일지 저장 성공", response)
-      navigate("/workout")
-    })
-      .catch((error) => {
-        console.log("운동일지 저장 실패", error)
-      })
+    createDiary(formData).then(navigate('/workout'))
+    
   }
   return (
     <>

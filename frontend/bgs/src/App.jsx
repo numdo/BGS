@@ -6,6 +6,7 @@ import MainPage from "./pages/home/MainPage";
 import MyGymPage from "./pages/mygym/MyGymPage";
 import MyInfoPage from "./pages/myinfo/MyInfoPage";
 import WorkoutPage from "./pages/workout/WorkoutPage";
+import WorkoutDiaryPage from "./pages/workout/WorkoutDiaryPage"
 import WorkoutCreatePage from "./pages/workout/WorkoutCreatePage";
 import WorkoutUpdatePage from "./pages/workout/WorkoutUpdatePage"
 import FeedPage from "./pages/feed/FeedPage";
@@ -35,10 +36,11 @@ function App() {
           />
           {/* ✅ 통합된 로그인 콜백 */}
           <Route path="/social-signup" element={<SocialSignupPage />} />
-          <Route path="/workout" element={<WorkoutPage />} />
           <Route path="/mygym" element={<MyGymPage />} />
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/myinfo" element={<MyInfoPage />} />
+          <Route path="/workout" element={<WorkoutPage />} />
+          <Route path="/workoutdiary" element={<WorkoutDiaryPage />} />
           <Route path="/workoutcreate" element={<WorkoutCreatePage />} />
           <Route path="/workoutupdate" element={<WorkoutUpdatePage />} />
 

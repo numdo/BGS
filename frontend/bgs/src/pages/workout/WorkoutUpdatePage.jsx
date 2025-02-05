@@ -6,6 +6,7 @@ import TopBar from '../../components/bar/TopBar';
 import selfie from '../../assets/images/selfie.png';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
+import { updateDiary } from '../../api/Diary';
 export default function WorkoutCreatePage() {
     const navigate = useNavigate()
     const [diary, setDiary] = useState(
@@ -114,16 +115,7 @@ export default function WorkoutCreatePage() {
         const diaryBlob = new Blob([diaryJson], { type: 'application/json' });
         formData.append("diary", diaryBlob)
         formData.append("files", file)
-        axios.patch(`https://i12c209.p.ssafy.io/api/diaries/${diaryId}`, formData, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-            }
-        }).then((response) => {
-            console.log("운동일지 수정 성공", response)
-            navigate("/workout")
-        }).catch((error) => {
-            console.log("운동일지 수정 실패", error)
-        })
+        updateDiary(diaryId,formData).then(navigate('/workout'))
     }
     return (
         <>

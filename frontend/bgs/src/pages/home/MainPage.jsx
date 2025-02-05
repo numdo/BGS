@@ -8,9 +8,8 @@ import useTokenManager from "../../utils/useTokenManager";
 
 export default function MainPage() {
   const navigate = useNavigate();
-
   useTokenManager(); // ✅ 토큰 자동 관리 (만료 체크 + 갱신)
-
+  
   return (
     <>
       <TopBar />
