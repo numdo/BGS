@@ -16,3 +16,4 @@ EXPOSE 8080
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "/app/app.jar", "--spring.config.location=/app/config/application.properties"]
+
