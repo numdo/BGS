@@ -5,6 +5,7 @@ import TopBar from '../components/TopBar';
 import camera from '../assets/camera.png'
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import { handleLogout } from "../utils/auth"; // ✅ handleLogout 함수 불러오기
 export default function MainPage() {
   const navigate = useNavigate()
   useEffect(() => {
