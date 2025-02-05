@@ -26,5 +26,4 @@ public interface DiaryRepository extends JpaRepository<Diary, Integer> {
     @Query("SELECT new com.ssafy.bgs.diary.dto.response.FeedResponseDto(d.diaryId, d.allowedScope) " +
             "FROM Diary d WHERE d.userId = :userId AND d.allowedScope = :allowedScope AND d.deleted = false")
     List<FeedResponseDto> findByUserIdAndAllowedScopeAndDeletedFalse(Integer userId, String allowedScope, Pageable pageable);
-
 }

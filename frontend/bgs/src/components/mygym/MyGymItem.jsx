@@ -1,6 +1,7 @@
+// src/components/mygym/MyGymItem.jsx
 import { useState } from "react";
-
-// 이미지 import
+import useMyGymStore from "../../stores/useMyGymStore";
+// 예시 아이템 이미지 import
 import BenchPress from "../../assets/benchpress.png";
 import LatPulldown from "../../assets/Latpulldown.png";
 import Deadlift from "../../assets/deadlift.png";
@@ -11,40 +12,50 @@ import dumbbell from "../../assets/dumbbell.png";
 import men from "../../assets/men.png";
 import women from "../../assets/women.png";
 
-const MyGymItem = ({setItems}) => {
+const MyGymItem = ({ setItems }) => {
+  // Zustand store에서 items를 가져와도 되지만, props로 setItems 받는 식도 가능
+  // const { items, setItems } = useMyGymStore();
+  
   const [isOpen, setIsOpen] = useState(false);
+
   const addItem = (item) => {
     console.log(`${item.name} 추가`);
-  
-    setItems((prevItems) => {
-      //  중복 여부 확인
-      const isDuplicate = prevItems.some((prevItem) => prevItem.name === item.name);
-  
-      if (isDuplicate) {
-        // 중복이면 알림만 띄우고 그 상태 그대로 반환
-        alert(`이미 '${item.name}'가(이) 배치되었습니다!`);
-        return prevItems;
-      }
-  
-      //  중복이 아니면 새 아이템 추가
-      return [
-        ...prevItems,
-        {
-          id: Date.now(),
-          ...item,
-          x: 160, // 방 중앙값
-          y: 160,
-        },
-      ];
-    });
+
+    // 기존 items를 가져오기
+    // 만약 props로 받는 경우, 상위에서 items도 필요하니...
+    // 여기선 Zustand를 직접 써도 됨:
+    // const { items, setItems } = useMyGymStore.getState();
+
+    // (간단) Zustand에서 현재 items 가져옴
+    const { items } = useMyGymStore.getState();
+
+    // 중복 체크(예: name)
+    if (items.some((prev) => prev.name === item.name && !prev.deleted)) {
+      alert(`이미 '${item.name}'가(이) 배치되었습니다!`);
+      return;
+    }
+
+    // 새 아이템
+    const newItem = {
+      id: Date.now() % 1000000000,         // placeId=null → 새 record
+      itemId: Math.floor(Math.random() * 1000), // 임시 itemId
+      name: item.name,
+      image: item.image,
+      x: 160,
+      y: 160,
+      flipped: false,
+      deleted: false,   // 새 아이템은 당연히 삭제X
+    };
+
+    const newArr = [...items, newItem];
+    setItems(newArr);
+    setIsOpen(false);
   };
-  
 
   const toggleBox = () => {
-    setIsOpen(!isOpen); // 열림/닫힘 상태 변경
+    setIsOpen(!isOpen);
   };
 
-  // 아이템 데이터 배열
   const gymItems = [
     { name: "여자", image: women },
     { name: "남자", image: men },
@@ -58,49 +69,49 @@ const MyGymItem = ({setItems}) => {
   ];
 
   return (
-    <>
-      {/* 네모 박스 */}
-      <div
-        className={`fixed bottom-12 left-0 w-full bg-sky-100 rounded-t-3xl shadow-lg transition-transform duration-500 ${
-          isOpen ? "translate-y-0" : "translate-y-[70%]"
-        }`}
+    <div
+      className={`fixed bottom-12 left-0 w-full bg-sky-100 rounded-t-3xl shadow-lg transition-transform duration-500 ${
+        isOpen ? "translate-y-0" : "translate-y-[70%]"
+      }`}
+    >
+      <button
+        onClick={toggleBox}
+        className="w-full py-3 bg-sky-100 text-gray-800 font-bold rounded-t-3xl"
       >
-        {/* 열기/닫기 버튼 */}
-        <button
-          onClick={toggleBox}
-          className="w-full py-3 bg-sky-100 text-gray-800 font-bold rounded-t-3xl"
-        >
-          ㅡ
-        </button>
+        ㅡ
+      </button>
 
-        {/* 스크롤 가능한 아이템들 */}
-        <div onClick={toggleBox} className="p-4 overflow-x-auto scroll-snap-x-mandatory flex space-x-4">
-          {/* 슬라이드 하나 */}
-          {gymItems.reduce((result, item, index) => {
-            const groupIndex = Math.floor(index / 3); // 3개씩 묶기
-            if (!result[groupIndex]) result[groupIndex] = []; // 새로운 그룹 생성
+      <div className="p-4 overflow-x-auto scroll-snap-x-mandatory flex space-x-4">
+        {gymItems
+          .reduce((result, item, index) => {
+            const groupIndex = Math.floor(index / 3);
+            if (!result[groupIndex]) result[groupIndex] = [];
             result[groupIndex].push(item);
             return result;
-          }, []).map((group, index) => (
+          }, [])
+          .map((group, index) => (
             <div
               key={index}
               className="flex-shrink-0 w-full max-w-[calc(100%-1rem)] grid grid-cols-3 gap-4"
             >
-              {group.map((item, idx) => (
-                <div key={idx} onClick={() => addItem(item)} className="flex flex-col items-center">
+              {group.map((it, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => addItem(it)}
+                  className="flex flex-col items-center cursor-pointer"
+                >
                   <img
-                    src={item.image}
-                    alt={item.name}
+                    src={it.image}
+                    alt={it.name}
                     className="w-16 h-16 object-contain mb-2"
                   />
-                  <span className="text-sm font-medium">{item.name}</span>
+                  <span className="text-sm font-medium">{it.name}</span>
                 </div>
               ))}
             </div>
           ))}
-        </div>
       </div>
-    </>
+    </div>
   );
 };
 

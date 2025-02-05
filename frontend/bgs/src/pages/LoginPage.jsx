@@ -13,9 +13,10 @@ const SocialLogin = () => {
     window.location.href = "https://i12c209.p.ssafy.io/api/auth/kakao/login";
   };
 
-  // 구글 로그인 (추후 구현 예정)
+  // 구글 로그인
   const handleGoogleLogin = () => {
-    alert("구글 로그인 준비 중");
+    window.location.href =
+      "https://i12c209.p.ssafy.io/oauth2/authorization/google";
   };
 
   return (

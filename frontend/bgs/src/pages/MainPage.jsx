@@ -33,7 +33,7 @@ export default function MainPage() {
   return (
     <>
       <TopBar />
-      <div className='m-4'>
+      <div className="m-4">
         <div className="m-auto mt-4">
           <input
             type="text"
@@ -44,7 +44,27 @@ export default function MainPage() {
 
         <div className="grid grid-cols-2 gap-4 mt-5">
           <button
-            onClick={() => { navigate("/mygym") }}
+            onClick={() => navigate("/signup")}
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+          >
+            <div className="text-left">
+              <p className="text-xl font-semibold text-gray-800">회원가입</p>
+              <p className="text-lg text-gray-600">바로 하러가기</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => navigate("/login")}
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+          >
+            <div className="text-left">
+              <p className="text-xl font-semibold text-gray-800">로그인</p>
+              <p className="text-lg text-gray-600">하러가기</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => navigate("/mygym")}
             className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
           >
             <div className="text-left">
@@ -54,24 +74,18 @@ export default function MainPage() {
           </button>
 
           <button
-            onClick={() => { navigate("/workoutcreate") }}
+            onClick={() => navigate("/workoutcreate")}
             className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
           >
             <div className="text-left">
               <p className="text-xl font-semibold text-gray-800">일지</p>
               <p className="text-lg text-gray-600">작성하기</p>
             </div>
-            <img
-              src={camera}
-              alt="Camera Icon"
-              className="w-12 h-12"
-            />
+            <img src={camera} alt="Camera Icon" className="w-12 h-12" />
           </button>
 
-
-
           <button
-            onClick={() => { navigate("/feed") }}
+            onClick={() => navigate("/feed")}
             className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
           >
             <div className="text-left">
@@ -79,10 +93,20 @@ export default function MainPage() {
               <p className="text-lg text-gray-600">보러가기</p>
             </div>
           </button>
-
         </div>
       </div>
+
+      {/* ✅ 로그아웃 버튼 (하단에 배치) */}
+      <div className="flex justify-center mt-10 mb-20">
+        <button
+          onClick={() => handleLogout(navigate)} // ✅ handleLogout 함수 실행
+          className="w-1/2 px-4 py-3 bg-red-500 text-white font-semibold rounded-lg shadow hover:bg-red-600 transition-all"
+        >
+          로그아웃
+        </button>
+      </div>
+
       <BottomBar />
     </>
   );
-};
+}

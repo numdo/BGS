@@ -26,6 +26,7 @@ export default function WorkoutCreatePage() {
                 Authorization: `Bearer ${accessToken}`
             }
         }).then(res => {
+            console.log("다이어리 불러오기 성공", res.data)
             setDiary({
                 workoutDate: res.data.workoutDate,
                 content: res.data.content,
