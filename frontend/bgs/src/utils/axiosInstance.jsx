@@ -38,7 +38,7 @@ axiosInstance.interceptors.response.use(
 
       try {
         const res = await axios.post(
-          "https://i12c209.p.ssafy.io/api/users/refresh-token",
+          "https://i12c209.p.ssafy.io/api/auth/refresh",
           {
             refreshToken,
           }
