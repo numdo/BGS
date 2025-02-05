@@ -1,11 +1,11 @@
 import React from 'react';
 import { useEffect } from 'react';
-import BottomBar from '../components/BottomBar';
-import TopBar from '../components/TopBar';
+import BottomBar from '../../components/bar/BottomBar';
+import TopBar from '../../components/bar/TopBar';
 import camera from '../assets/camera.png'
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import { handleLogout } from "../utils/auth"; // ✅ handleLogout 함수 불러오기
+import { handleLogout } from "../../utils/auth"; // ✅ handleLogout 함수 불러오기
 export default function MainPage() {
   const navigate = useNavigate()
   useEffect(() => {

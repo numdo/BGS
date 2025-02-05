@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import BottomBar from '../components/BottomBar';
 import TopBar from '../components/TopBar';
-import WorkoutCalendar from '../components/workout/WorkoutCalendar';
+import WorkoutCalendar from '../../components/workout/WorkoutCalendar';
 import { useState } from 'react';
 import { useLoaderData, useLocation, useNavigate } from 'react-router-dom';
 
-import useDiaryStore from '../stores/useDiaryStore';
+import useDiaryStore from '../../stores/useDiaryStore';
 export default function WorkoutPage() {
   const { diaries, setDiaries, deleteDiary } = useDiaryStore()
   useEffect(() => {

@@ -1,7 +1,7 @@
 import BottomBar from '../components/BottomBar';
 import TopBar from '../components/TopBar';
 import { useState, useEffect } from 'react';
-import useUserStore from '../stores/useUserStore';
+import useUserStore from '../../stores/useUserStore';
 export default function MyInfoPage() {
   const { user, fetchUser } = useUserStore()
   useEffect(() => {
