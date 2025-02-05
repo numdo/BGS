@@ -21,7 +21,7 @@ const useMyGymStore = create((set, get) => ({
   // GET /api/mygyms/{userId}
   fetchMyGym: async (userId) => {
     try {
-      const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1IiwiaWF0IjoxNzM4Njg5ODU3LCJleHAiOjE3Mzg2OTM0NTd9.5DaJPqF98GPXVumVGYbwas0z3j2k41kSq010dlNrPyg";
+      const token = localStorage.getItem("accessToken")
       const res = await axios.get(`https://i12c209.p.ssafy.io/api/mygyms/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -55,7 +55,7 @@ const useMyGymStore = create((set, get) => ({
   // PUT /api/mygyms/{userId}
   updateMyGym: async (userId) => {
     try {
-      const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1IiwiaWF0IjoxNzM4Njg5ODU3LCJleHAiOjE3Mzg2OTM0NTd9.5DaJPqF98GPXVumVGYbwas0z3j2k41kSq010dlNrPyg";
+      const token = localStorage.getItem("accessToken")
       const state = get();
 
       // items -> places

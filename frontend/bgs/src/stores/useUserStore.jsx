@@ -21,6 +21,7 @@ const useUserStore = create((set) => ({
     fetchUser: async () => {
         try {
             const token = localStorage.getItem("accessToken")
+            const userId = localStorage.getItem("userId")
             const response = await axios.get(`https://i12c209.p.ssafy.io/api/users/me`, {
                 headers: {
                     Authorization: `Bearer ${token}`, // 🔹 헤더에 토큰 추가
