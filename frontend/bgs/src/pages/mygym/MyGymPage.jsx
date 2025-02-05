@@ -10,15 +10,18 @@ import MyGymRoomBgColor from "../../components/mygym/MyGymRoomBgColor"
 
 import useUserStore from "../../stores/useUserStore";
 import useMyGymStore from "../../stores/useMyGymStore";
+import { getMygym,updateMygym,getGuestBooks,createGuestBooks } from "../../api/Mygym";
+import { getUser } from "../../api/User";
+
 
 const MyGymPage = () => {
-  // Zustand store: 화면배경(pageBgColor), 폴리곤색(wallColor), items
-  const {
-    pageBgColor, setPageBgColor,
-    wallColor, setWallColor,
-    items, setItems,
-    fetchMyGym, updateMyGym
-  } = useMyGymStore();
+  // 유저 정보
+  const { user, setUser } = useUserStore();
+  const {myGym,setMyGym,pageBgColor, setPageBgColor,setWallColor,setItems, updateMyGym} = useMyGymStore();
+  useEffect(()=>{
+    console.log("mygym",myGym)
+  },[myGym])
+  // Zustand store: 화면배경(pagqeBgColor), 폴리곤색(wallColor), items
 
   // 편집 모드
   const [isEditing, setIsEditing] = useState(false);
@@ -30,18 +33,11 @@ const MyGymPage = () => {
     setIsEditing(false);
   };
 
-  // 유저 정보
-  const { user, fetchUser } = useUserStore();
+  useEffect(()=>{
+    const userId = localStorage.getItem("userId");
+    getMygym(userId).then(MyGym=>setMyGym(MyGym))
+  },[])
 
-  // 페이지 로드 시
-  useEffect(() => {
-    fetchUser().then(() => {
-      const userId = localStorage.getItem("userId");
-      if (userId) {
-        fetchMyGym(userId); // DB에서 마이짐 상태 불러오기
-      }
-    });
-  }, []);
 
   return (
     // 전체 페이지 배경 → pageBgColor

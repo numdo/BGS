@@ -3,7 +3,7 @@ const BASE_URL = "https://i12c209.p.ssafy.io/";
 
 export async function getUser() {
   try {
-    const response = axios.get(BASE_URL + "api/users/me", {
+    const response = await axios.get(BASE_URL + "api/users/me", {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -15,7 +15,7 @@ export async function getUser() {
 }
 export async function updateUser() {
   try {
-    const response = axios.patch(BASE_URL + "api/users/me", {
+    const response = await axios.patch(BASE_URL + "api/users/me", {
       headers: {
         Authorization: `Bearer ${token}`
       }
