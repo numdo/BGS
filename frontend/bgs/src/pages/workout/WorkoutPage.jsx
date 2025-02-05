@@ -6,13 +6,25 @@ import { useState } from 'react';
 import { useLoaderData, useLocation, useNavigate } from 'react-router-dom';
 
 import useDiaryStore from '../../stores/useDiaryStore';
+import useUserStore from '../../stores/useUserStore';
+import { deleteDiary, getDiaries } from '../../api/Diary';
 export default function WorkoutPage() {
-  const { diaries, setDiaries, deleteDiary } = useDiaryStore()
-  useEffect(() => {
-    setDiaries(3)
-  }, [])
+  const {user,setUser} = useUserStore()
+  const [userId, setUserId] = useState("")
+  const navigate = useNavigate()
+  const { diaries, setDiaries } = useDiaryStore()
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [filteredDiaries, setFilteredDiaries] = useState([])
+  const state = useLocation().state
+  useEffect(() => {
+    if(!state){
+      console.log("user.userId",user.userId)
+      getDiaries(user.userId).then(diaries=>setDiaries(diaries))
+    }
+  }, [])
+  useEffect(() => {
+    console.log("filteredDiary 변경", filteredDiaries)
+  }, [filteredDiaries])
   useEffect(() => {
     const formattedDate = selectedDate.toLocaleDateString('ko-KR', {
       year: 'numeric',
@@ -20,16 +32,20 @@ export default function WorkoutPage() {
       day: '2-digit'
     }).replace(/\. /g, '-').replace('.', ''); // formattedDate 는 "2025-02-04" 형식
     setFilteredDiaries(diaries.filter((diary) => diary.workoutDate === formattedDate))
-  }, [deleteDiary, diaries, selectedDate])
-
-  useEffect(() => {
-    console.log("filteredDiary 변경", filteredDiaries)
-  }, [filteredDiaries])
+  }, [diaries, selectedDate])
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
   };
-  const navigate = useNavigate()
+  const handleDeleteDiary = async (diaryId) => {
+    try {
+        await deleteDiary(diaryId)
+        console.log("삭제 완료")
+        setDiaries(diaries.filter(diary => diary.diaryId !== diaryId));
+    } catch (error) {
+        console.error("삭제 중 오류 발생:", error);
+    }
+};
   return (
     <>
       <TopBar />
@@ -42,7 +58,9 @@ export default function WorkoutPage() {
               className="p-4 bg-white rounded-lg border border-gray-200 max-w-md"
             >
               <div className="flex justify-between">
+                <div onClick={()=>{navigate('/workoutdiary',{state:{diaryId:diary.diaryId}})}}>
                 <p className="text-gray-600">{diary.content}</p>
+                </div>
                 <div className="flex space-x-2">
                   <button className="px-auto py-2 border border-blue-300 rounded-md h-10 w-10"
                     onClick={() => { navigate('/workoutupdate', { state: { diaryId: diary.diaryId } }) }}
@@ -51,7 +69,7 @@ export default function WorkoutPage() {
                   </button>
                   <button
                     className="px-auto py-2 border border-red-300 rounded-md h-10 w-10"
-                    onClick={() => { deleteDiary(diary.diaryId) }}
+                    onClick={() => { handleDeleteDiary(diary.diaryId) }}
                   >
                     삭제
                   </button>

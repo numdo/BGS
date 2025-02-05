@@ -4,33 +4,9 @@ import BottomBar from '../../components/bar/BottomBar';
 import TopBar from '../../components/bar/TopBar';
 import camera from '../../assets/images/camera.png'
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
-import { handleLogout } from "../../utils/auth"; // ✅ handleLogout 함수 불러오기
+import { handleLogout } from "../../api/Auth"; // ✅ handleLogout 함수 불러오기
 export default function MainPage() {
   const navigate = useNavigate()
-  useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
-    try {
-      // JWT 토큰을 디코딩
-      const decodedToken = jwtDecode(token);
-      const currentTime = Date.now() / 1000; // 현재 시간 (초 단위)
-
-      // 만약 토큰이 만료되었으면 로그인 페이지로 이동
-      if (decodedToken.exp < currentTime) {
-        localStorage.removeItem('accessToken'); // 만료된 토큰 삭제
-        navigate('/login');
-      }
-    } catch (error) {
-      console.error('토큰 디코딩 오류:', error);
-      navigate('/login');
-    }
-  }, [navigate]);
   return (
     <>
       <TopBar />
