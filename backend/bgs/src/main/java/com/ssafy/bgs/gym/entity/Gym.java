@@ -33,6 +33,12 @@ public class Gym {
     @Column(name = "deleted", columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean deleted;
 
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
     @PrePersist
     public void prePersist() {
         if (this.createdAt == null) {
