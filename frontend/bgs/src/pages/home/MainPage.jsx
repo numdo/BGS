@@ -1,14 +1,3 @@
-<<<<<<< HEAD
-import React from 'react';
-import { useEffect } from 'react';
-import BottomBar from '../../components/bar/BottomBar';
-import TopBar from '../../components/bar/TopBar';
-import camera from '../../assets/images/camera.png'
-import { useNavigate } from 'react-router-dom';
-import { handleLogout } from "../../api/Auth"; // ✅ handleLogout 함수 불러오기
-export default function MainPage() {
-  const navigate = useNavigate()
-=======
 import React from "react";
 import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
@@ -19,10 +8,8 @@ import useTokenManager from "../../utils/useTokenManager";
 
 export default function MainPage() {
   const navigate = useNavigate();
-
   useTokenManager(); // ✅ 토큰 자동 관리 (만료 체크 + 갱신)
-
->>>>>>> e3c545817255dee435e4787998db2fd9f53291e3
+  
   return (
     <>
       <TopBar />
