@@ -16,14 +16,17 @@ public interface DiaryRepository extends JpaRepository<Diary, Integer> {
     List<Diary> findByUserIdAndWorkoutDateBetweenAndDeletedFalse(Integer userId, LocalDate startDate, LocalDate endDate);
 
     @Query("SELECT new  com.ssafy.bgs.diary.dto.response.FeedResponseDto(d.diaryId, d.allowedScope) " +
-            "FROM Diary d WHERE d.allowedScope = :allowedScope AND d.deleted = false")
+            "FROM Diary d WHERE d.allowedScope = :allowedScope AND d.deleted = false " +
+            "ORDER BY d.createdAt DESC ")
     List<FeedResponseDto> findByAllowedScopeAndDeletedFalse(String allowedScope, Pageable pageable);
 
     @Query("SELECT new com.ssafy.bgs.diary.dto.response.FeedResponseDto(d.diaryId, d.allowedScope) " +
-            "FROM Diary d WHERE d.userId = :userId AND d.deleted = false")
+            "FROM Diary d WHERE d.userId = :userId AND d.deleted = false " +
+            "ORDER BY d.createdAt DESC ")
     List<FeedResponseDto> findByUserIdAndDeletedFalse(Integer userId, Pageable pageable);
 
     @Query("SELECT new com.ssafy.bgs.diary.dto.response.FeedResponseDto(d.diaryId, d.allowedScope) " +
-            "FROM Diary d WHERE d.userId = :userId AND d.allowedScope = :allowedScope AND d.deleted = false")
+            "FROM Diary d WHERE d.userId = :userId AND d.allowedScope = :allowedScope AND d.deleted = false " +
+            "ORDER BY d.createdAt DESC ")
     List<FeedResponseDto> findByUserIdAndAllowedScopeAndDeletedFalse(Integer userId, String allowedScope, Pageable pageable);
 }
