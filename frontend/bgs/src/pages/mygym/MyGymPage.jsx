@@ -1,15 +1,15 @@
 // src/pages/MyGymPage.jsx
 import { useState, useEffect } from "react";
-import TopBar from "../components/TopBar";
-import BottomBar from "../components/BottomBar";
-import MyGymRoomEdit from "../components/mygym/MyGymRoomEdit";
-import MyGymRoomView from "../components/mygym/MyGymRoomView";
-import MyGymItem from "../components/mygym/MyGymItem";
-import SelectColor from "../components/mygym/SelectColor";
-import MyGymRoomBgColor from "../components/mygym/MyGymRoomBgColor"
+import TopBar from "../../components/bar/TopBar";
+import BottomBar from "../../components/bar/BottomBar";
+import MyGymRoomEdit from "../../components/mygym/MyGymRoomEdit";
+import MyGymRoomView from "../../components/mygym/MyGymRoomView";
+import MyGymItem from "../../components/mygym/MyGymItem";
+import SelectColor from "../../components/mygym/SelectColor";
+import MyGymRoomBgColor from "../../components/mygym/MyGymRoomBgColor"
 
-import useUserStore from "../stores/useUserStore";
-import useMyGymStore from "../stores/useMyGymStore";
+import useUserStore from "../../stores/useUserStore";
+import useMyGymStore from "../../stores/useMyGymStore";
 
 const MyGymPage = () => {
   // Zustand store: 화면배경(pageBgColor), 폴리곤색(wallColor), items

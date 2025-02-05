@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import HomeLogo from './../assets/Home.png'
-import FeedLogo from './../assets/Feed.png'
-import MyGymLogo from './../assets/MyGym.png'
-import WorkoutLogo from './../assets/Workout.png'
-import MyInfo from './../assets/MyInfo.png'
+import HomeLogo from '../../assets/icons/Home.png'
+import FeedLogo from '../../assets/icons/Feed.png'
+import MyGymLogo from '../../assets/icons/MyGym.png'
+import WorkoutLogo from '../../assets/icons/Workout.png'
+import MyInfo from '../../assets/icons/MyInfo.png'
 
 export default function BottomBar() {
   const navigate = useNavigate()

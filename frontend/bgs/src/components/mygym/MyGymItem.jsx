@@ -2,20 +2,20 @@
 import { useState } from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
 // 예시 아이템 이미지 import
-import BenchPress from "../../assets/benchpress.png";
-import LatPulldown from "../../assets/Latpulldown.png";
-import Deadlift from "../../assets/deadlift.png";
-import cycle from "../../assets/cycle.png";
-import runningmachine from "../../assets/runningmachine.png";
-import pullup from "../../assets/pullup.png";
-import dumbbell from "../../assets/dumbbell.png";
-import men from "../../assets/men.png";
-import women from "../../assets/women.png";
+import BenchPress from "../../assets/items/benchpress.png";
+import LatPulldown from "../../assets/items/Latpulldown.png";
+import Deadlift from "../../assets/items/deadlift.png";
+import cycle from "../../assets/items/cycle.png";
+import runningmachine from "../../assets/items/runningmachine.png";
+import pullup from "../../assets/items/pullup.png";
+import dumbbell from "../../assets/items/dumbbell.png";
+import men from "../../assets/items/men.png";
+import women from "../../assets/items/women.png";
 
 const MyGymItem = ({ setItems }) => {
   // Zustand store에서 items를 가져와도 되지만, props로 setItems 받는 식도 가능
   // const { items, setItems } = useMyGymStore();
-  
+
   const [isOpen, setIsOpen] = useState(false);
 
   const addItem = (item) => {
@@ -70,9 +70,8 @@ const MyGymItem = ({ setItems }) => {
 
   return (
     <div
-      className={`fixed bottom-12 left-0 w-full bg-sky-100 rounded-t-3xl shadow-lg transition-transform duration-500 ${
-        isOpen ? "translate-y-0" : "translate-y-[70%]"
-      }`}
+      className={`fixed bottom-12 left-0 w-full bg-sky-100 rounded-t-3xl shadow-lg transition-transform duration-500 ${isOpen ? "translate-y-0" : "translate-y-[70%]"
+        }`}
     >
       <button
         onClick={toggleBox}

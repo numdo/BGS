@@ -1,6 +1,6 @@
 // src/components/mygym/SelectColor.jsx
 import { useState } from "react";
-import selectColorPng from "../../assets/selectcolor.png";
+import selectColorPng from "../../assets/images/selectcolor.png";
 
 const colors = ["#ffcccc", "#ffffcc", "#ccffcc", "#F5F1D9"];
 

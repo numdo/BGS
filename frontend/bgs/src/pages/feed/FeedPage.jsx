@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import BottomBar from "../components/BottomBar";
-import TopBar from "../components/TopBar";
-import FeedItem from "../components/feed/FeedItem";
+import BottomBar from "../../components//bar/BottomBar";
+import TopBar from "../../components/bar/TopBar";
+import FeedItem from "../../components/feed/FeedItem";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 

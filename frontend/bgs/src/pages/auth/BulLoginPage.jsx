@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axiosInstance from "../utils/axiosInstance"; // ✅ axiosInstance 사용
+import axiosInstance from "../../utils/axiosInstance"; // ✅ axiosInstance 사용
 
 const BulLoginPage = () => {
   const [email, setEmail] = useState("");
@@ -46,7 +46,7 @@ const BulLoginPage = () => {
       // 에러 메시지 표시
       setError(
         err.response?.data?.message ||
-          "로그인에 실패했습니다. 다시 시도해주세요."
+        "로그인에 실패했습니다. 다시 시도해주세요."
       );
     }
   };
