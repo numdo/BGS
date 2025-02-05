@@ -8,3 +8,16 @@ export async function getGyms() {
 export async function createGym() {
 
 }
+
+export async function getMachines() {
+
+}
+
+export async function createGymMachine() {
+
+}
+
+export async function getGymMachines() {
+
+}
+
