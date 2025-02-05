@@ -64,7 +64,7 @@ public class DiaryService {
         feedList.forEach(diary -> {
             ImageResponseDto image = imageService.getImage("diary", diary.getDiaryId());
             if (image != null) {
-                diary.setImageUrl(image.getUrl());
+                diary.setImageUrl(imageService.getS3Url(image.getUrl()));
             }
         });
 
@@ -216,7 +216,7 @@ public class DiaryService {
         for (Image image : images) {
             ImageResponseDto imageResponseDto = new ImageResponseDto();
             imageResponseDto.setImageId(image.getImageId());
-            imageResponseDto.setUrl(image.getUrl());
+            imageResponseDto.setUrl(imageService.getS3Url(image.getUrl()));
             imageResponseDto.setExtension(image.getExtension());
 
             // images 리스트에 추가
@@ -231,7 +231,7 @@ public class DiaryService {
     public void updateDiary(Integer userId, DiaryRequestDto diaryRequestDto, List<String> urls, List<MultipartFile> files) {
         // 다이어리 미존재
         Diary existingDiary = diaryRepository.findById(diaryRequestDto.getDiaryId()).orElse(null);
-        if (existingDiary == null || !existingDiary.getDeleted()) {
+        if (existingDiary == null || existingDiary.getDeleted()) {
             throw new DiaryNotFoundException(diaryRequestDto.getDiaryId());
         }
 
@@ -262,7 +262,7 @@ public class DiaryService {
         // unused image delete
         List<Image> existingImages = imageService.getImages("diary", existingDiary.getDiaryId());
         for (Image image : existingImages) {
-            if (urls == null || !urls.contains(image.getUrl())) {
+            if ( urls == null || !urls.contains(imageService.getS3Url(image.getUrl())) ) {
                 imageService.deleteImage(image.getImageId());
             }
         }

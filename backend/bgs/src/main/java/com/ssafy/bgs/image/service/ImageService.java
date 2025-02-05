@@ -98,17 +98,14 @@ public class ImageService {
         }
 
         imageResponseDto.setImageId(images.get(0).getImageId());
-        imageResponseDto.setUrl(getS3Url(images.get(0).getUrl()));
+        imageResponseDto.setUrl(images.get(0).getUrl());
         imageResponseDto.setExtension(images.get(0).getExtension());
 
         return imageResponseDto;
     }
 
     public List<Image> getImages(String usageType, Integer usageId) {
-        List<Image> images = imageRepository.findByUsageTypeAndUsageIdAndDeletedFalse(usageType, Long.valueOf(usageId));
-        images.forEach(image -> image.setUrl(getS3Url(image.getUrl())));
-
-        return images;
+        return imageRepository.findByUsageTypeAndUsageIdAndDeletedFalse(usageType, Long.valueOf(usageId));
     }
 
     @Transactional

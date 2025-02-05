@@ -68,6 +68,7 @@ public class EvaluationService {
         List<String> imageUrls = imageService.getImages("evaluation", evaluationId)
                 .stream()
                 .map(Image::getUrl)
+                .map(imageService::getS3Url)
                 .collect(Collectors.toList());
 
         EvaluationResponseDto responseDto = convertToDto(evaluation);
@@ -137,6 +138,17 @@ public class EvaluationService {
 
         evaluation.setModifiedAt(new Timestamp(System.currentTimeMillis()));
 
+        // 🔹 기존 이미지 조회
+        List<Image> existingImages = imageService.getImages("evaluation", evaluationId);
+
+        // 🔹 사용되지 않는 이미지 삭제
+        for (Image image : existingImages) {
+            if (existingImageUrls == null || !existingImageUrls.contains(imageService.getS3Url(image.getUrl()))) {
+                imageService.deleteImage(image.getImageId());
+            }
+        }
+
+        // 🔹 새로운 이미지 업로드
         if (newImages != null && !newImages.isEmpty()) {
             imageService.uploadImages(newImages, "evaluation", Long.valueOf(evaluationId));
         }
@@ -168,7 +180,14 @@ public class EvaluationService {
         // 3. Soft Delete 처리: deleted = true 로 변경
         evaluation.setDeleted(true);
         evaluationRepository.save(evaluation);
+
+        // 4. 이미지 삭제
+        List<Image> images = imageService.getImages("evaluation", evaluationId);
+        for (Image image : images) {
+            imageService.deleteImage(image.getImageId());
+        }
     }
+
 
 
     /**
