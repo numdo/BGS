@@ -6,8 +6,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const API_URL = "https://i12c209.p.ssafy.io/api/diaries/feeds";
-const BEARER_TOKEN =
-  "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4IiwiaWF0IjoxNzM4NjcyMzUwLCJleHAiOjE3Mzg2NzU5NTB9.elo6_2q7DL-gLgHP40baxhdC4qOdcHm1z0YQzHrbHpM";
+const accessToken = localStorage.getItem("accessToken");
 
 const FeedPage = () => {
   const [images, setImages] = useState([]);
@@ -24,7 +23,7 @@ const FeedPage = () => {
     try {
       const response = await axios.get(`${API_URL}?page=${page}&pageSize=9`, {
         headers: {
-          Authorization: `Bearer ${BEARER_TOKEN}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 

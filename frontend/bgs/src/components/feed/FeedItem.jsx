@@ -1,7 +1,7 @@
 import React from "react";
+import FeedDefaultImage from "../../assets/FeedDefaultImage.png";
 
-const DEFAULT_IMAGE_URL =
-  "https://bgs-ssafy-bucket.s3.ap-northeast-2.amazonaws.com/images/diary/15/d4501711-1e98-419f-85c2-4f09cddb4105_e4970519f9571c4bdd4c27ec4c1050173cd7f61eae53168a0bb03d76106d7397.jpg";
+const DEFAULT_IMAGE_URL = FeedDefaultImage;
 
 const FeedItem = ({ feed, onClick }) => {
   return (
