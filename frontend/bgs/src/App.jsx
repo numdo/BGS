@@ -1,21 +1,21 @@
 import React from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
 
-import LoginPage from "./pages/LoginPage";
-import MainPage from "./pages/MainPage";
-import MyGymPage from "./pages/MyGymPage";
-import MyInfoPage from "./pages/MyInfoPage";
-import WorkoutPage from "./pages/WorkoutPage";
-import WorkoutCreatePage from "./pages/WorkoutCreatePage";
-import WorkoutUpdatePage from "./pages/WorkoutUpdatePage"
-import FeedPage from "./pages/FeedPage";
-import BullLoginPage from "./pages/BulLoginPage";
-import SignupPage from "./pages/SignupPage";
-import UserDetailsPage from "./pages/UserDetailsPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ChangePasswordPage from "./pages/ChangePasswordPage";
-import SocialSignupPage from "./pages/SocialSignupPage";
-import SocialRedirectPage from "./pages/SocialRedirectPage"; // ✅ 통합된 페이지
+import LoginPage from "./pages/auth/LoginPage";
+import MainPage from "./pages/home/MainPage";
+import MyGymPage from "./pages/mygym/MyGymPage";
+import MyInfoPage from "./pages/myinfo/MyInfoPage";
+import WorkoutPage from "./pages/workout/WorkoutPage";
+import WorkoutCreatePage from "./pages/workout/WorkoutCreatePage";
+import WorkoutUpdatePage from "./pages/workout/WorkoutUpdatePage"
+import FeedPage from "./pages/feed/FeedPage";
+import BullLoginPage from "./pages/auth/BulLoginPage";
+import SignupPage from "./pages/auth/SignupPage";
+import UserDetailsPage from "./pages/auth/UserDetailsPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
+import SocialSignupPage from "./pages/auth/SocialSignupPage";
+import SocialRedirectPage from "./pages/auth/SocialRedirectPage"; // ✅ 통합된 페이지
 
 function App() {
   return (

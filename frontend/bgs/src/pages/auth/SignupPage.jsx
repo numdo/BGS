@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import logo_image from "../assets/logo_image.png";
-import name_image from "../assets/name.png";
+import logo_image from "../../assets/images/logo_image.png";
+import name_image from "../../assets/images/name.png";
 import axios from "axios";
 
 const SignupPage = () => {

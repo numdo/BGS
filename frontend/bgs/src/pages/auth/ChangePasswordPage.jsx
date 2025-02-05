@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import logoImage from "../assets/logo_image.png";
-import nameImage from "../assets/name.png";
+import logoImage from "../../assets/images/logo_image.png";
+import nameImage from "../../assets/images/name.png";
 
 const ChangePasswordPage = () => {
   const navigate = useNavigate();
@@ -134,11 +134,10 @@ const ChangePasswordPage = () => {
         <button
           type="submit"
           onClick={handleSubmit}
-          className={`w-full p-3 rounded-lg text-base font-semibold transition ${
-            isPasswordValid()
-              ? "bg-blue-500 text-white hover:bg-blue-600"
-              : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
-          }`}
+          className={`w-full p-3 rounded-lg text-base font-semibold transition ${isPasswordValid()
+            ? "bg-blue-500 text-white hover:bg-blue-600"
+            : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
+            }`}
           disabled={!isPasswordValid() || loading}
         >
           {loading ? "변경 중..." : "비밀번호 변경"}

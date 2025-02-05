@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo+name.png";
-import kakaoLogo from "../assets/kakao-logo.png";
-import googleLogo from "../assets/google-logo.png";
+import logo from "../../assets/images/logo+name.png";
+import kakaoLogo from "../../assets/images/kakao-logo.png";
+import googleLogo from "../../assets/images/google-logo.png";
 
 const SocialLogin = () => {
   const navigate = useNavigate();

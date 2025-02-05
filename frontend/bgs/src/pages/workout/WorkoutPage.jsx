@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import BottomBar from '../components/BottomBar';
-import TopBar from '../components/TopBar';
+import BottomBar from '../../components/bar/BottomBar';
+import TopBar from '../../components/bar/TopBar';
 import WorkoutCalendar from '../../components/workout/WorkoutCalendar';
 import { useState } from 'react';
 import { useLoaderData, useLocation, useNavigate } from 'react-router-dom';

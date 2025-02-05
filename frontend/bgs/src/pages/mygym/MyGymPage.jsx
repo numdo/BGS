@@ -1,7 +1,7 @@
 // src/pages/MyGymPage.jsx
 import { useState, useEffect } from "react";
-import TopBar from "../components/TopBar";
-import BottomBar from "../components/BottomBar";
+import TopBar from "../../components/bar/TopBar";
+import BottomBar from "../../components/bar/BottomBar";
 import MyGymRoomEdit from "../../components/mygym/MyGymRoomEdit";
 import MyGymRoomView from "../../components/mygym/MyGymRoomView";
 import MyGymItem from "../../components/mygym/MyGymItem";

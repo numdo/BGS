@@ -1,8 +1,8 @@
 // src/components/mygym/MyGymRoomEdit.jsx
 import { useRef, useState } from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
-import removeItemPng from "../../assets/remove_item.png";
-import Flip from "../../assets/Flip.png";
+import removeItemPng from "../../assets/icons/remove_item.png";
+import Flip from "../../assets/icons/Flip.png";
 
 const polygonRatios = [
   [0.0, 0.60],

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import logoImage from "../assets/logo_image.png";
-import nameImage from "../assets/name.png";
+import logoImage from "../../assets/images/logo_image.png";
+import nameImage from "../../assets/images/name.png";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -26,7 +26,7 @@ const ForgotPasswordPage = () => {
 
       setMessage(
         response.data.message ||
-          "비밀번호 재설정 링크가 이메일로 전송되었습니다."
+        "비밀번호 재설정 링크가 이메일로 전송되었습니다."
       );
       setTimeout(() => navigate("/login"), 10000); // 10초 후 로그인 페이지로 이동
     } catch (err) {
@@ -35,7 +35,7 @@ const ForgotPasswordPage = () => {
       } else {
         setError(
           err.response?.data?.message ||
-            "비밀번호 재설정 요청 실패. 다시 시도해주세요."
+          "비밀번호 재설정 요청 실패. 다시 시도해주세요."
         );
       }
     } finally {
@@ -80,11 +80,10 @@ const ForgotPasswordPage = () => {
         <button
           type="submit"
           onClick={handleSubmit}
-          className={`w-full p-4 rounded-lg text-lg font-semibold transition ${
-            email && !loading
-              ? "bg-blue-500 text-white hover:bg-blue-600"
-              : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
-          }`}
+          className={`w-full p-4 rounded-lg text-lg font-semibold transition ${email && !loading
+            ? "bg-blue-500 text-white hover:bg-blue-600"
+            : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
+            }`}
           disabled={!email || loading}
         >
           {loading ? "처리 중..." : "임시 비밀번호 발급"}

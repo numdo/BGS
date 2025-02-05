@@ -1,5 +1,5 @@
 import React from "react";
-import FeedDefaultImage from "../../assets/FeedDefaultImage.png";
+import FeedDefaultImage from "../../assets/images/FeedDefaultImage.png";
 
 const DEFAULT_IMAGE_URL = FeedDefaultImage;
 

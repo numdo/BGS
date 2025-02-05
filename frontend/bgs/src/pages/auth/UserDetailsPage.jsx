@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; // useLocation 추가
-import logo_image from "../assets/logo_image.png";
-import name_image from "../assets/name.png";
+import logo_image from "../../assets/images/logo_image.png";
+import name_image from "../../assets/images/name.png";
 import axios from "axios";
 
 const UserDetailsPage = () => {
@@ -45,7 +45,7 @@ const UserDetailsPage = () => {
     } catch (err) {
       alert(
         "회원가입 실패: " +
-          (err.response?.data?.message || "알 수 없는 오류가 발생했습니다.")
+        (err.response?.data?.message || "알 수 없는 오류가 발생했습니다.")
       );
     }
   };
@@ -112,11 +112,10 @@ const UserDetailsPage = () => {
         {/* 제출 버튼 */}
         <button
           type="submit"
-          className={`w-full p-3 rounded mt-4 ${
-            isFormComplete()
-              ? "bg-blue-500 text-white hover:bg-blue-600"
-              : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
-          }`}
+          className={`w-full p-3 rounded mt-4 ${isFormComplete()
+            ? "bg-blue-500 text-white hover:bg-blue-600"
+            : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
+            }`}
           disabled={!isFormComplete()}
         >
           가입 완료

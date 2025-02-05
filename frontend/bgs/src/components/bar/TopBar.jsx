@@ -1,8 +1,8 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom'; 
-import ArrowBackLogo from './../assets/ArrowBack.png'
-import ShareLogo from './../assets/Share.png'
-import Favicon from './../assets/Favicon.png'
+import { useNavigate } from 'react-router-dom';
+import ArrowBackLogo from '../../assets/icons/ArrowBack.png'
+import ShareLogo from '../../assets/icons/Share.png'
+import Favicon from '../../assets/images/Favicon.png'
 export default function TopBar() {
   const navigate = useNavigate(); // useNavigate 훅 사용
 
@@ -16,7 +16,7 @@ export default function TopBar() {
         <button className="text-gray-600 hover:text-blue-500">
           <img src={ArrowBackLogo} alt="Home" className="w-6 h-6" />
         </button>
-        
+
         <button
           onClick={() => handleNavigation('/')}
           className="text-gray-600 hover:text-blue-500">

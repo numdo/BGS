@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRef } from 'react';
-import BottomBar from '../components/BottomBar';
-import TopBar from '../components/TopBar';
-import selfie from './../assets/selfie.png';
+import BottomBar from '../../components/bar/BottomBar';
+import TopBar from '../../components/bar/TopBar';
+import selfie from '../../assets/images/selfie.png';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 export default function WorkoutCreatePage() {

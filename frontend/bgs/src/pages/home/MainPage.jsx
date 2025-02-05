@@ -2,7 +2,7 @@ import React from 'react';
 import { useEffect } from 'react';
 import BottomBar from '../../components/bar/BottomBar';
 import TopBar from '../../components/bar/TopBar';
-import camera from '../assets/camera.png'
+import camera from '../../assets/images/camera.png'
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { handleLogout } from "../../utils/auth"; // ✅ handleLogout 함수 불러오기
