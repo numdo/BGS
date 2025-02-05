@@ -37,14 +37,15 @@ const MyGymItem = ({ setItems }) => {
 
     // 새 아이템
     const newItem = {
-      id: Date.now() % 1000000000,         // placeId=null → 새 record
+      id: Date.now() % 1000000000,  // 임시 ID (나중에 DB에서 받은 값으로 대체)
+      isNew: true,                // 신규 아이템임을 나타내는 플래그
       itemId: Math.floor(Math.random() * 1000), // 임시 itemId
       name: item.name,
       image: item.image,
       x: 160,
       y: 160,
       flipped: false,
-      deleted: false,   // 새 아이템은 당연히 삭제X
+      deleted: false,
     };
 
     const newArr = [...items, newItem];
