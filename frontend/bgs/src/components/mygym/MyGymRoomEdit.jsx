@@ -1,22 +1,18 @@
+// src/components/mygym/MyGymRoomEdit.jsx
 import { useRef, useState } from "react";
-// import {useMyGymStore} from "../../stores/useMyGymStore";
-
+import useMyGymStore from "../../stores/useMyGymStore";
 import removeItemPng from "../../assets/remove_item.png";
-import selectColorPng from "../../assets/selectcolor.png";
 import Flip from "../../assets/Flip.png";
-import SelectColor from "./SelectColor";
 
-
-// 폴리곤 꼭짓점을 %로 정의 (육각형 clipPath에 맞춰 작성) 바닥육각형 ㅇㅇ
 const polygonRatios = [
-  [0.0, 0.60],  // 0%  60%
-  [0.5, 0.40],  // 50% 40%
-  [1.0, 0.60],  // 100% 60%
-  [0.5, 0.80],  // 50% 80%
-  [1.0, 1.0],   // 100% 100%
+  [0.0, 0.60],
+  [0.5, 0.40],
+  [1.0, 0.60],
+  [0.5, 0.80],
+  [1.0, 1.0],
 ];
 
-// Ray-casting algorithm
+// Ray-casting
 function pointInPolygon(px, py, polygon) {
   let isInside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
@@ -30,14 +26,16 @@ function pointInPolygon(px, py, polygon) {
   return isInside;
 }
 
-
-const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
+const MyGymRoomEdit = () => {
   const roomRef = useRef(null);
 
   const [draggingItem, setDraggingItem] = useState(null);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [startCoord, setStartCoord] = useState({ x: 0, y: 0 });
   const [isDraggingMode, setIsDraggingMode] = useState(false);
+
+  // 폴리곤 색은 wallColor, 아이템들(items)
+  const { items, setItems, wallColor } = useMyGymStore();
 
   // pointerDown
   const handlePointerDown = (e, item) => {
@@ -56,7 +54,6 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
     if (!draggingItem) return;
     e.preventDefault();
 
-    // 클릭 vs 드래그 판정
     const diffX = e.clientX - startCoord.x;
     const diffY = e.clientY - startCoord.y;
     const distance = Math.sqrt(diffX * diffX + diffY * diffY);
@@ -67,44 +64,34 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
     const { id, offsetX, offsetY } = draggingItem;
     const rect = roomRef.current.getBoundingClientRect();
 
-    // 새 좌표(왼상단)
     let newX = e.clientX - rect.left - offsetX;
     let newY = e.clientY - rect.top - offsetY;
 
-    // 아이템 크기 (예: w-16, h-16 => 64 px)
     const itemWidth = 64;
     const itemHeight = 64;
 
-    // 1) 사각 범위 제한 (일단 div 밖으로 못 나가도록)
+    // 사각 범위 제한
     if (newX < 0) newX = 0;
     if (newY < 0) newY = 0;
-    if (newX > rect.width - itemWidth) {
-      newX = rect.width - itemWidth;
-    }
-    if (newY > rect.height - itemHeight) {
-      newY = rect.height - itemHeight;
-    }
+    if (newX > rect.width - itemWidth) newX = rect.width - itemWidth;
+    if (newY > rect.height - itemHeight) newY = rect.height - itemHeight;
 
-    //    여기서는 "아이템 중심"이 폴리곤 내부인지 검사
+    // 폴리곤 내부 체크
     const centerX = newX + itemWidth / 2;
     const centerY = newY + itemHeight / 2;
-
-    // 폴리곤 % -> px 변환
     const polygonPx = polygonRatios.map(([rx, ry]) => [
       rx * rect.width,
       ry * rect.height,
     ]);
-
     if (!pointInPolygon(centerX, centerY, polygonPx)) {
-      // 폴리곤 밖이면 이동을 취소. (이전 좌표 그대로 둠)
-      // 보통은 "return;" 하거나, 혹은 직전 좌표로 되돌림
       return;
     }
 
-    // 최종적으로 OK면 상태 갱신
-    setItems((prev) =>
-      prev.map((it) => (it.id === id ? { ...it, x: newX, y: newY } : it))
+    // 좌표 업데이트
+    const newArr = items.map((it) =>
+      it.id === id ? { ...it, x: newX, y: newY } : it
     );
+    setItems(newArr);
   };
 
   // pointerUp
@@ -116,35 +103,33 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
     setDraggingItem(null);
   };
 
-  // 팔레트 열기/닫기
-  const togglePalette = () => {
-    setIsPaletteOpen((prev) => !prev);
-  };
-
-  // 아이템 삭제
+  // 삭제 -> 'deleted=true'로 세팅(소프트 삭제)
   const removeItem = (id) => {
-    setItems((prev) => prev.filter((it) => it.id !== id));
-    if (selectedItemId === id) {
-      setSelectedItemId(null);
-    }
+    const newArr = items.map((it) => {
+      if (it.id === id) {
+        return { ...it, deleted: true };
+      }
+      return it;
+    });
+    setItems(newArr);
   };
 
   // 좌우 반전
   const toggleFlip = (id) => {
-    setItems((prev) =>
-      prev.map((it) => {
-        if (it.id === id) {
-          const flipped = it.flipped || false;
-          return { ...it, flipped: !flipped };
-        }
-        return it;
-      })
-    );
+    const newArr = items.map((it) => {
+      if (it.id === id) {
+        return { ...it, flipped: !it.flipped };
+      }
+      return it;
+    });
+    setItems(newArr);
   };
+
+  // 렌더링 시 deleted==true인 아이템은 표시 안 함
+  const visibleItems = items.filter((it) => !it.deleted);
 
   return (
     <div className="relative flex flex-col items-center">
-      {/* 방 컨테이너 */}
       <div
         ref={roomRef}
         className="relative w-96 h-96"
@@ -153,7 +138,7 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
       >
-        {/* 윗부분 */}
+        {/* 윗부분 - 폴리곤 벽색 */}
         <div
           style={{
             position: "absolute",
@@ -161,7 +146,7 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
             height: "100%",
             clipPath:
               "polygon(50% 7%, 100% 25%, 100% 60%, 50% 40%, 0% 60%, 0% 25%)",
-            backgroundColor: roomColor,
+            backgroundColor: wallColor,
             zIndex: 1,
           }}
         />
@@ -179,22 +164,18 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
           }}
         />
 
-        {/* 아이템들 */}
-        {items.map((item) => {
+        {/* 아이템들 (deleted=false)만 */}
+        {visibleItems.map((item) => {
           const isFlipped = item.flipped || false;
           return (
             <div
               key={item.id}
               className="absolute"
-              style={{
-                top: item.y,
-                left: item.x,
-                zIndex: 2,
-              }}
+              style={{ top: item.y, left: item.x, zIndex: 2 }}
               onPointerDown={(e) => handlePointerDown(e, item)}
             >
               <div className="relative w-16 h-16">
-                {/* 기구 이미지 */}
+                {/* 기구 이미지 (좌우 반전) */}
                 <div
                   className="absolute inset-0"
                   style={{
@@ -219,12 +200,8 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
                   className={`
                     absolute w-6 h-6 cursor-pointer
                     -top-2 -right-2
-                    transition-all duration-300 transform
-                    ${
-                      selectedItemId === item.id
-                        ? "opacity-100 scale-100"
-                        : "opacity-0 scale-0"
-                    }
+                    transition-all duration-300
+                    ${selectedItemId === item.id ? "opacity-100 scale-100" : "opacity-0 scale-0"}
                   `}
                 />
 
@@ -239,16 +216,10 @@ const MyGymRoomEdit = ({ items, setItems, roomColor}) => {
                   className={`
                     absolute w-6 h-6 cursor-pointer
                     -top-2 left-0
-                    transition-all duration-300 transform
-                    ${
-                      selectedItemId === item.id
-                        ? "opacity-100 scale-100 pointer-events-none"
-                        : "opacity-0 scale-0"
-                    }
+                    transition-all duration-300
+                    ${selectedItemId === item.id ? "opacity-100 scale-100" : "opacity-0 scale-0"}
                   `}
-                  style={{
-                    transform: "translateX(-10%)",
-                  }}
+                  style={{ transform: "translateX(-10%)" }}
                 />
               </div>
             </div>
