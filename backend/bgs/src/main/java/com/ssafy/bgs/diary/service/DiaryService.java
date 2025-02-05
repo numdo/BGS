@@ -5,10 +5,7 @@ import com.ssafy.bgs.diary.dto.request.CommentRequestDto;
 import com.ssafy.bgs.diary.dto.request.DiaryRequestDto;
 import com.ssafy.bgs.diary.dto.request.DiaryWorkoutRequestDto;
 import com.ssafy.bgs.diary.dto.request.WorkoutSetRequestDto;
-import com.ssafy.bgs.diary.dto.response.CommentResponseDto;
-import com.ssafy.bgs.diary.dto.response.DiaryResponseDto;
-import com.ssafy.bgs.diary.dto.response.DiaryWorkoutResponseDto;
-import com.ssafy.bgs.diary.dto.response.WorkoutSetResponseDto;
+import com.ssafy.bgs.diary.dto.response.*;
 import com.ssafy.bgs.diary.entity.*;
 import com.ssafy.bgs.diary.exception.CommentNotFoundException;
 import com.ssafy.bgs.diary.exception.DiaryNotFoundException;
@@ -25,7 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,18 +47,36 @@ public class DiaryService {
         this.imageService = imageService;
     }
 
-    /** Diary Select **/
-    public Page<Diary> getDiaryList(Integer userId, Date workoutDate, int page, int pageSize) {
+    /** Feed select **/
+    public List<FeedResponseDto> getFeedList(Integer readerId, Integer userId, int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
-        if (userId != null && workoutDate != null) {
-            return diaryRepository.findByUserIdAndWorkoutDateAndDeletedFalse(userId, workoutDate, pageable);
-        } else if (userId != null) {
-            return diaryRepository.findByUserIdAndDeletedFalse(userId, pageable);
-        } else if (workoutDate != null) {
-            return diaryRepository.findByWorkoutDateAndDeletedFalse(workoutDate, pageable);
-        } else {
-            return diaryRepository.findByDeletedFalse(pageable);
+        List<FeedResponseDto> feedList;
+        if (userId == null) {
+            feedList = diaryRepository.findByAllowedScopeAndDeletedFalse("A", pageable);
         }
+        else if (readerId.equals(userId)) {
+            feedList = diaryRepository.findByUserIdAndDeletedFalse(userId, pageable);
+        }
+        else {
+            feedList = diaryRepository.findByUserIdAndAllowedScopeAndDeletedFalse(userId, "A", pageable);
+        }
+
+        feedList.forEach(diary -> {
+            ImageResponseDto image = imageService.getImage("diary", diary.getDiaryId());
+            if (image != null) {
+                diary.setImageUrl(image.getUrl());
+            }
+        });
+
+        return feedList;
+    }
+
+    /** Diary select **/
+    public List<Diary> getDiaryList(Integer userId, int year, int month) {
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+
+        return diaryRepository.findByUserIdAndWorkoutDateBetweenAndDeletedFalse(userId, startDate, endDate);
     }
 
     /** Diary insert **/

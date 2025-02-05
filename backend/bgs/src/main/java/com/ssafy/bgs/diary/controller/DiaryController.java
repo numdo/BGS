@@ -4,6 +4,7 @@ import com.ssafy.bgs.diary.dto.request.CommentRequestDto;
 import com.ssafy.bgs.diary.dto.request.DiaryRequestDto;
 import com.ssafy.bgs.diary.dto.response.CommentResponseDto;
 import com.ssafy.bgs.diary.dto.response.DiaryResponseDto;
+import com.ssafy.bgs.diary.dto.response.FeedResponseDto;
 import com.ssafy.bgs.diary.entity.Diary;
 import com.ssafy.bgs.diary.service.DiaryService;
 import org.springframework.data.domain.Page;
@@ -13,7 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -26,15 +27,28 @@ public class DiaryController {
         this.diaryService = diaryService;
     }
 
-    @GetMapping
-    public ResponseEntity<Page<Diary>> getDiaryList(
+    @GetMapping("/feeds")
+    public ResponseEntity<?> getFeedList(
+            @AuthenticationPrincipal Integer readerId,
             @RequestParam(required = false) Integer userId,
-            @RequestParam(required = false) Date workoutDate,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int pageSize
+            @RequestParam(defaultValue = "9") int pageSize
     ) {
-        Page<Diary> diaryList = diaryService.getDiaryList(userId, workoutDate, page, pageSize);
+        List<FeedResponseDto> feedList = diaryService.getFeedList(readerId, userId, page, pageSize);
+        return new ResponseEntity<>(feedList, HttpStatus.OK);
+    }
 
+    @GetMapping
+    public ResponseEntity<?> getDiaryList(
+            @RequestParam Integer userId,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month
+    ) {
+        LocalDate today = LocalDate.now();
+        int defaultYear = (year != null) ? year : today.getYear();
+        int defaultMonth = (month != null) ? month : today.getMonthValue();
+
+        List<Diary> diaryList = diaryService.getDiaryList(userId, defaultYear, defaultMonth);
         return new ResponseEntity<>(diaryList, HttpStatus.OK);
     }
 

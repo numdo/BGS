@@ -1,18 +1,30 @@
 package com.ssafy.bgs.diary.repository;
 
+import com.ssafy.bgs.diary.dto.response.FeedResponseDto;
 import com.ssafy.bgs.diary.entity.Diary;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Date;
+import java.time.LocalDate;
+import java.util.List;
 
 @Repository
 public interface DiaryRepository extends JpaRepository<Diary, Integer> {
 
-    Page<Diary> findByUserIdAndWorkoutDateAndDeletedFalse(Integer userId, Date workoutDate, Pageable pageable);
-    Page<Diary> findByUserIdAndDeletedFalse(Integer userId, Pageable pageable);
-    Page<Diary> findByWorkoutDateAndDeletedFalse(Date workoutDate, Pageable pageable);
-    Page<Diary> findByDeletedFalse(Pageable pageable);
+    List<Diary> findByUserIdAndWorkoutDateBetweenAndDeletedFalse(Integer userId, LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT new  com.ssafy.bgs.diary.dto.response.FeedResponseDto(d.diaryId, d.allowedScope) " +
+            "FROM Diary d WHERE d.allowedScope = :allowedScope AND d.deleted = false")
+    List<FeedResponseDto> findByAllowedScopeAndDeletedFalse(String allowedScope, Pageable pageable);
+
+    @Query("SELECT new com.ssafy.bgs.diary.dto.response.FeedResponseDto(d.diaryId, d.allowedScope) " +
+            "FROM Diary d WHERE d.userId = :userId AND d.deleted = false")
+    List<FeedResponseDto> findByUserIdAndDeletedFalse(Integer userId, Pageable pageable);
+
+    @Query("SELECT new com.ssafy.bgs.diary.dto.response.FeedResponseDto(d.diaryId, d.allowedScope) " +
+            "FROM Diary d WHERE d.userId = :userId AND d.allowedScope = :allowedScope AND d.deleted = false")
+    List<FeedResponseDto> findByUserIdAndAllowedScopeAndDeletedFalse(Integer userId, String allowedScope, Pageable pageable);
+
 }

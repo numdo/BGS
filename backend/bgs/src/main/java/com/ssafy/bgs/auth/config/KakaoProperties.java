@@ -1,4 +1,4 @@
-package com.ssafy.bgs.user.config;
+package com.ssafy.bgs.auth.config;
 
 import lombok.Getter;
 import lombok.Setter;
