@@ -2,11 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import BottomBar from "../../components//bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import FeedItem from "../../components/feed/FeedItem";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "https://i12c209.p.ssafy.io/api/diaries/feeds";
-const accessToken = localStorage.getItem("accessToken");
+const API_URL = "/diaries/feeds";
 
 const FeedPage = () => {
   const [feeds, setFeeds] = useState([]);
@@ -21,11 +20,7 @@ const FeedPage = () => {
     setLoading(true);
 
     try {
-      const response = await axios.get(`${API_URL}?page=${page}&pageSize=9`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const response = await axiosInstance.get(`${API_URL}?page=${page}&pageSize=9`);
 
       const newImages = response.data.map((item) => ({
         id: item.diaryId,

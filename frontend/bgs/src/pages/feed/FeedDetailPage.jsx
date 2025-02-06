@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance";
 import Slider from "react-slick";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
 import CommentList from "../../components/feed/CommentList";
 import CommentInput from "../../components/feed/CommentInput";
+import FeedDefalutImage from "../../assets/images/FeedDefaultImage.png"
 import ProfileDefaultImage from "../../assets/icons/MyInfo.png";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-const API_URL = "https://i12c209.p.ssafy.io/api/diaries";
+const API_URL = "/diaries";
 
 const FeedDetailPage = () => {
   const { diaryId } = useParams();
@@ -19,23 +20,22 @@ const FeedDetailPage = () => {
   const [userId, setUserId] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
   const [likedCount, setLikedCount] = useState(0);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
 
     if (token) {
       try {
-        const decodedToken = JSON.parse(atob(token.split(".")[1]));
+        const decodedToken = JSON.parse(atob(token.split("."))[1]);
         setUserId(decodedToken.sub);
       } catch (error) {
         console.error("토큰 디코딩 오류:", error);
       }
     }
 
-    axios
-      .get(`${API_URL}/${diaryId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+    axiosInstance
+      .get(`${API_URL}/${diaryId}`)
       .then((response) => {
         setFeed(response.data);
         setLikedCount(response.data.likedCount);
@@ -48,17 +48,12 @@ const FeedDetailPage = () => {
 
   // 좋아요 토글 함수
   const onLikeToggle = async () => {
-    const token = localStorage.getItem("accessToken");
     try {
       if (isLiked) {
-        await axios.delete(`${API_URL}/${diaryId}/liked`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await axiosInstance.delete(`${API_URL}/${diaryId}/liked`);
         setLikedCount((prev) => prev - 1);
       } else {
-        await axios.post(`${API_URL}/${diaryId}/liked`, null, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await axiosInstance.post(`${API_URL}/${diaryId}/liked`);
         setLikedCount((prev) => prev + 1);
       }
       setIsLiked(!isLiked);
@@ -71,11 +66,7 @@ const FeedDetailPage = () => {
   const handleDelete = async () => {
     if (window.confirm("정말 삭제하시겠습니까?")) {
       try {
-        await axios.delete(`${API_URL}/${diaryId}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        });
+        await axiosInstance.delete(`${API_URL}/${diaryId}`);
         alert("삭제되었습니다.");
         navigate("/feed");
       } catch (error) {
@@ -84,10 +75,15 @@ const FeedDetailPage = () => {
     }
   };
 
+  // 메뉴 토글 함수
+  const toggleMenu = () => {
+    setIsMenuOpen((prev) => !prev);
+  };
+
   // 캐러셀 설정
   const settings = {
     dots: true,
-    infinite: true,
+    infinite: false,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
@@ -101,11 +97,40 @@ const FeedDetailPage = () => {
           {/* 프로필 & 작성자 */}
           <div className="flex items-center mb-4">
             <img
-              src={ProfileDefaultImage}
+              src={feed.profileImageUrl || ProfileDefaultImage}
               alt="프로필"
               className="w-10 h-10 rounded-full"
             />
-            <p className="ml-2 font-bold">상운</p>
+            <p className="ml-2 font-bold">{feed.writer}</p>
+
+            {/* 메뉴바 */}
+            <div className="ml-auto relative">
+              <button onClick={toggleMenu} className="text-xl">
+                ⋮
+              </button>
+
+              {/* 메뉴 */}
+              {isMenuOpen && (
+                <div className="absolute right-0 mt-2 bg-white border shadow-lg rounded-md w-40 z-10">
+                  <ul>
+                    <li
+                      onClick={() => {
+                        navigate("/workoutupdate"); // 수정 페이지로 이동
+                      }}
+                      className="px-4 py-2 cursor-pointer hover:bg-gray-200"
+                    >
+                      수정
+                    </li>
+                    <li
+                      onClick={handleDelete}
+                      className="px-4 py-2 cursor-pointer hover:bg-gray-200"
+                    >
+                      삭제
+                    </li>
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* 이미지 캐러셀 */}
@@ -121,8 +146,8 @@ const FeedDetailPage = () => {
               ))
             ) : (
               <img
-                src={ProfileDefaultImage}
-                alt="기본 이미지"
+                src={FeedDefalutImage}
+                alt="게시글 기본 이미지"
                 className="w-full rounded-md"
               />
             )}
