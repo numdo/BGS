@@ -17,6 +17,7 @@ public class DiaryResponseDto {
     private Date workoutDate;
     private String content;
     private String allowedScope;
+    private Boolean isLiked;
     private Long likedCount;
     private Timestamp createdAt;
     private Timestamp modifiedAt;
