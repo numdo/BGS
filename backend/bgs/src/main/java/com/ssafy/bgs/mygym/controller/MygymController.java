@@ -112,4 +112,16 @@ public class MygymController {
         mygymService.updateItem(item, file);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @PatchMapping("/items/{itemId}/enable")
+    public ResponseEntity<?> enableItem(@PathVariable Integer itemId) {
+        mygymService.enableItem(itemId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PatchMapping("/items/{itemId}/disable")
+    public ResponseEntity<?> disableItem(@PathVariable Integer itemId) {
+        mygymService.disableItem(itemId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

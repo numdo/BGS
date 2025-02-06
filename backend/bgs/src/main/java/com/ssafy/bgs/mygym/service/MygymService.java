@@ -14,6 +14,7 @@ import com.ssafy.bgs.mygym.entity.Item;
 import com.ssafy.bgs.mygym.entity.MygymColor;
 import com.ssafy.bgs.mygym.entity.Place;
 import com.ssafy.bgs.mygym.exception.GuestbookNotFoundException;
+import com.ssafy.bgs.mygym.exception.ItemNotFoundException;
 import com.ssafy.bgs.mygym.exception.PlaceNotFoundException;
 import com.ssafy.bgs.mygym.repository.*;
 import com.ssafy.bgs.user.entity.User;
@@ -198,5 +199,15 @@ public class MygymService {
             imageService.deleteImage(imageService.getImage("item", savedItem.getItemId()).getImageId());
             imageService.uploadImage(file, "item", Long.valueOf(savedItem.getItemId()));
         }
+    }
+
+    public void enableItem(Integer itemId) {
+        Item savedItem = itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException(itemId));
+        savedItem.setUsable(true);
+    }
+
+    public void disableItem(Integer itemId) {
+        Item savedItem = itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException(itemId));
+        savedItem.setUsable(false);
     }
 }
