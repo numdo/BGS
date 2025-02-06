@@ -112,7 +112,7 @@ const MyGymRoomEdit = () => {
       }
       return it;
     });
-    setItems(newArr);
+    setMyGym({ ...myGym, places: newArr });
   };
 
   // 좌우 반전
@@ -123,7 +123,7 @@ const MyGymRoomEdit = () => {
       }
       return it;
     });
-    setItems(newArr);
+    setMyGym({ ...myGym, places: newArr });
   };
 
   // 렌더링 시 deleted==true인 아이템은 표시 안 함
