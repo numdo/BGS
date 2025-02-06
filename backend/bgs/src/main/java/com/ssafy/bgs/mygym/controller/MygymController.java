@@ -102,13 +102,14 @@ public class MygymController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @PatchMapping("/items")
+    @PatchMapping("/items/{itemId}")
     public ResponseEntity<?> updateItem(
+            @PathVariable Integer itemId,
             @RequestPart(name = "item") Item item,
             @RequestPart(required = false, name = "file") MultipartFile file
     ) {
+        item.setItemId(itemId);
         mygymService.updateItem(item, file);
-
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
