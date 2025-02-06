@@ -2,6 +2,7 @@ package com.ssafy.bgs.gym.service;
 
 import com.ssafy.bgs.common.DuplicatedException;
 import com.ssafy.bgs.gym.dto.request.GymRequestDto;
+import com.ssafy.bgs.gym.dto.response.GymLocationResponseDto;
 import com.ssafy.bgs.gym.dto.response.GymResponseDto;
 import com.ssafy.bgs.gym.dto.response.MachineResponseDto;
 import com.ssafy.bgs.gym.entity.*;
