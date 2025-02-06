@@ -6,10 +6,12 @@ import com.ssafy.bgs.diary.dto.response.CommentResponseDto;
 import com.ssafy.bgs.diary.dto.response.DiaryResponseDto;
 import com.ssafy.bgs.diary.dto.response.FeedResponseDto;
 import com.ssafy.bgs.diary.entity.Diary;
+import com.ssafy.bgs.diary.entity.Workout;
 import com.ssafy.bgs.diary.service.DiaryService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -54,21 +56,25 @@ public class DiaryController {
 
     @PostMapping
     public ResponseEntity<DiaryResponseDto> addDiary(
-            @AuthenticationPrincipal Integer userId,
+            Authentication authentication,
             @RequestPart(name = "diary") DiaryRequestDto diaryRequestDto,
             @RequestPart(name = "files", required = false) List<MultipartFile> files
     ) {
+        if (authentication == null || authentication.getName() == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Integer userId = Integer.parseInt(authentication.getName());
         diaryRequestDto.setUserId(userId);
         diaryService.addDiary(diaryRequestDto, files);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+
+
     @GetMapping("/{diaryId}")
-    public ResponseEntity<DiaryResponseDto> getDiary(
-            @AuthenticationPrincipal Integer userId,
-            @PathVariable Integer diaryId
-    ) {
-        DiaryResponseDto diaryResponseDto = diaryService.getDiary(userId, diaryId);
+    public ResponseEntity<DiaryResponseDto> getDiary(@PathVariable Integer diaryId) {
+        DiaryResponseDto diaryResponseDto = diaryService.getDiary(diaryId);
         return new ResponseEntity<>(diaryResponseDto, HttpStatus.OK);
     }
 
@@ -147,6 +153,19 @@ public class DiaryController {
             @PathVariable Integer commentId) {
         diaryService.deleteComment(userId, commentId);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/workout")
+    public ResponseEntity<List<Workout>> getAllWorkouts() {
+        List<Workout> workouts = diaryService.getAllWorkouts();
+        return new ResponseEntity<>(workouts, HttpStatus.OK);
+    }
+
+    // 특정 운동 검색
+    @GetMapping("/workout/search")
+    public ResponseEntity<List<Workout>> searchWorkouts(@RequestParam String keyword) {
+        List<Workout> workouts = diaryService.searchWorkouts(keyword);
+        return new ResponseEntity<>(workouts, HttpStatus.OK);
     }
 
 }
