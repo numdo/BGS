@@ -64,8 +64,11 @@ public class DiaryController {
     }
 
     @GetMapping("/{diaryId}")
-    public ResponseEntity<DiaryResponseDto> getDiary(@PathVariable Integer diaryId) {
-        DiaryResponseDto diaryResponseDto = diaryService.getDiary(diaryId);
+    public ResponseEntity<DiaryResponseDto> getDiary(
+            @AuthenticationPrincipal Integer userId,
+            @PathVariable Integer diaryId
+    ) {
+        DiaryResponseDto diaryResponseDto = diaryService.getDiary(userId, diaryId);
         return new ResponseEntity<>(diaryResponseDto, HttpStatus.OK);
     }
 

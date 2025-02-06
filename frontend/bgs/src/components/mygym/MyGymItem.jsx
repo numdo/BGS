@@ -12,12 +12,9 @@ import dumbbell from "../../assets/items/dumbbell.png";
 import men from "../../assets/items/men.png";
 import women from "../../assets/items/women.png";
 
-const MyGymItem = ({ setItems }) => {
-  // Zustand store에서 items를 가져와도 되지만, props로 setItems 받는 식도 가능
-  // const { items, setItems } = useMyGymStore();
-
+const MyGymItem = () => {
+  const { myGym, setMyGym } = useMyGymStore();
   const [isOpen, setIsOpen] = useState(false);
-
   const addItem = (item) => {
     console.log(`${item.name} 추가`);
 
@@ -27,29 +24,25 @@ const MyGymItem = ({ setItems }) => {
     // const { items, setItems } = useMyGymStore.getState();
 
     // (간단) Zustand에서 현재 items 가져옴
-    const { items } = useMyGymStore.getState();
 
     // 중복 체크(예: name)
-    if (items.some((prev) => prev.name === item.name && !prev.deleted)) {
+    if (myGym.places.some((prev) => prev.name === item.name && !prev.deleted)) {
       alert(`이미 '${item.name}'가(이) 배치되었습니다!`);
       return;
     }
-
+    console.log("item", item)
     // 새 아이템
     const newItem = {
-      id: Date.now() % 1000000000,  // 임시 ID (나중에 DB에서 받은 값으로 대체)
-      isNew: true,                // 신규 아이템임을 나타내는 플래그
-      itemId: Math.floor(Math.random() * 1000), // 임시 itemId
-      name: item.name,
+      itemId: item.id, // 임시 itemId
       image: item.image,
+      name: item.name,
       x: 160,
       y: 160,
-      flipped: false,
-      deleted: false,
+      rotated: false,
+      deleted: false,   // 새 아이템은 당연히 삭제X
     };
-
-    const newArr = [...items, newItem];
-    setItems(newArr);
+    const newArr = [...myGym.places, newItem];
+    setMyGym({ ...myGym, places: newArr });
     setIsOpen(false);
   };
 
@@ -58,15 +51,15 @@ const MyGymItem = ({ setItems }) => {
   };
 
   const gymItems = [
-    { name: "여자", image: women },
-    { name: "남자", image: men },
-    { name: "벤치프레스", image: BenchPress },
-    { name: "랫풀다운", image: LatPulldown },
-    { name: "데드리프트", image: Deadlift },
-    { name: "사이클", image: cycle },
-    { name: "런닝머신", image: runningmachine },
-    { name: "덤벨", image: dumbbell },
-    { name: "풀업", image: pullup },
+    { id: 1, name: "여자", image: women },
+    { id: 2, name: "남자", image: men },
+    { id: 3, name: "벤치프레스", image: BenchPress },
+    { id: 4, name: "랫풀다운", image: LatPulldown },
+    { id: 5, name: "데드리프트", image: Deadlift },
+    { id: 6, name: "사이클", image: cycle },
+    { id: 7, name: "런닝머신", image: runningmachine },
+    { id: 8, name: "덤벨", image: dumbbell },
+    { id: 9, name: "풀업", image: pullup },
   ];
 
   return (
