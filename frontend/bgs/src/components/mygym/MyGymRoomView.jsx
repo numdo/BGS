@@ -1,23 +1,8 @@
 // src/components/mygym/MyGymRoomView.jsx
 import React from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
-import { useEffect } from "react";
-import { getMygym } from "../../api/Mygym";
-import { getUser } from "../../api/User";
-import useUserStore from "../../stores/useUserStore";
 const MyGymRoomView = () => {
-  const { myGym, setMyGym } = useMyGymStore();
-  const { user, setUser } = useUserStore()
-  useEffect(() => {
-    async function enterMyGymRoomView() {
-      const response = await getUser()
-      setUser(response)
-      const userId = user.userId
-      getMygym(userId).then(MyGym => { console.log("mygym res", MyGym); setMyGym(MyGym) })
-    }
-    enterMyGymRoomView()
-  }, [])
-
+  const { myGym } = useMyGymStore();
   // deleted=false인 아이템만 표시
   // const visibleItems = myGym.places.filter((it) => !it.deleted);
   const visibleItems = myGym.places.filter((it) => !it.deleted);
@@ -65,7 +50,7 @@ const MyGymRoomView = () => {
                   }}
                 >
                   <img
-                    src={item.image}
+                    src={item.image.url}
                     alt={item.name}
                     className="w-full h-full"
                   />

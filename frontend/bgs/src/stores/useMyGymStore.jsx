@@ -2,8 +2,14 @@
 import { create } from 'zustand'
 import axios from 'axios'
 
-const useMyGymStore = create((set, get) => ({
-  myGym: { places: [] },
+const useMyGymStore = create((set) => ({
+  myGym: {
+    places:[],
+    backgroundColor:"",
+    wallColor:"",
+    userId:"",
+    nickname:"",
+  },
   setMyGym: (MyGym) => set({ myGym: MyGym }),
 }));
 
