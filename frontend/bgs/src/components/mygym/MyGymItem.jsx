@@ -51,9 +51,9 @@ const MyGymItem = () => {
   };
 
   const gymItems = [
-    { id: 3, name: "여자", image: {url:women} },
+    { id: 1, name: "여자", image: {url:women} },
     { id: 2, name: "남자", image: {url:men}  },
-    { id: 1, name: "벤치프레스", image: {url:BenchPress}  },
+    { id: 3, name: "벤치프레스", image: {url:BenchPress}  },
     { id: 4, name: "랫풀다운", image: {url:LatPulldown}  },
     { id: 5, name: "데드리프트", image: {url:Deadlift}  },
     { id: 6, name: "사이클", image: {url:cycle}  },
