@@ -72,6 +72,16 @@ export default function MainPage() {
               <p className="text-lg text-gray-600">보러가기</p>
             </div>
           </button>
+
+          <button
+            onClick={() => navigate("/admin-item")}
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+          >
+            <div className="text-left">
+              <p className="text-xl font-semibold text-gray-800">아이템</p>
+              <p className="text-lg text-gray-600">관리하기</p>
+            </div>
+          </button>
         </div>
       </div>
 

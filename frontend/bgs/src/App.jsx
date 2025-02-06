@@ -18,6 +18,7 @@ import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
 import SocialSignupPage from "./pages/auth/SocialSignupPage";
 import SocialRedirectPage from "./pages/auth/SocialRedirectPage"; // ✅ 통합된 페이지
+import AdminItemPage from "./pages/admin/AdminItemPage";
 
 function App() {
   return (
@@ -31,13 +32,10 @@ function App() {
           <Route path="/user-details" element={<UserDetailsPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
-          <Route
-            path="/login/oauth2/success"
-            element={<SocialRedirectPage />}
-          />
-          {/* ✅ 통합된 로그인 콜백 */}
+          <Route path="/login/oauth2/success" element={<SocialRedirectPage />} />
           <Route path="/social-signup" element={<SocialSignupPage />} />
           <Route path="/mygym" element={<MyGymPage />} />
+          <Route path="/admin-item" element={<AdminItemPage />} />
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/feed/:diaryId" element={<FeedDetailPage />} />
           <Route path="/myinfo" element={<MyInfoPage />} />
