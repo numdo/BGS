@@ -1,5 +1,6 @@
 package com.ssafy.bgs.mygym.service;
 
+import com.ssafy.bgs.image.dto.response.ImageResponseDto;
 import com.ssafy.bgs.image.service.ImageService;
 import com.ssafy.bgs.mygym.dto.request.GuestbookRequestDto;
 import com.ssafy.bgs.mygym.dto.request.MygymRequestDto;
@@ -70,7 +71,13 @@ public class MygymService {
             placeResponseDto.setX(place.getX());
             placeResponseDto.setY(place.getY());
             placeResponseDto.setRotated(place.getRotated());
-            placeResponseDto.setImage(imageService.getImage("item", place.getItemId()));
+
+            ImageResponseDto image = imageService.getImage("item", place.getItemId());
+            if (image != null) {
+                image.setUrl(imageService.getS3Url(image.getUrl()));
+            }
+            placeResponseDto.setImage(image);
+
 
             mygymResponseDto.getPlaces().add(placeResponseDto);
         }
