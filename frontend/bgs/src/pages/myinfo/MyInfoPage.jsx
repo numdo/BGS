@@ -3,6 +3,7 @@ import TopBar from '../../components/bar/TopBar';
 import { useState, useEffect } from 'react';
 import useUserStore from '../../stores/useUserStore';
 import { getUser } from '../../api/User';
+import MyGymRoomView from '../../components/mygym/MyGymRoomView';
 export default function MyInfoPage() {
   const { user, setUser } = useUserStore()
   useEffect(() => {
@@ -73,7 +74,7 @@ export default function MyInfoPage() {
         <div className="p-4">
           {activeTab === "posts" && <p>게시물 탭입니다</p>}
           {activeTab === "stats" && <p>통계 탭입니다</p>}
-          {activeTab === "myGym" && <p>마이짐 탭입니다</p>}
+          {activeTab === "myGym" && <MyGymRoomView />}
         </div>
       </div>
       <div className='m-10'>

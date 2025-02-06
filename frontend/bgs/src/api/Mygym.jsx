@@ -9,6 +9,7 @@ export async function getMygym(userId) {
         Authorization: `Bearer ${token}`
       }
     })
+    console.log(response)
     return response.data
   } catch (error) {
     throw error;
@@ -79,7 +80,7 @@ export async function updateMygym(userId, object) {
         Authorization: `Bearer ${token}`
       }
     })
-    console.log("mygym update")
+    console.log("mygym update",response)
     return response.data
   } catch (error) {
     throw error;
