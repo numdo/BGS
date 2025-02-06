@@ -18,8 +18,8 @@ const FeedItem = ({ feed, onClick }) => {
 
       {/* 좋아요 & 댓글 정보 */}
       <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-sm px-2 py-1 rounded-md flex gap-2">
-        <span>❤️ {feed.likes ?? 0}</span>
-        <span>💬 {feed.comments ?? 0}</span>
+        <span>❤️ {feed.likedCount || 0}</span>
+        <span>💬 {feed.commentCount ?? 0}</span>
       </div>
     </div>
   );
