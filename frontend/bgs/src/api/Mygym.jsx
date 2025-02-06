@@ -73,6 +73,7 @@ export async function getMygym(userId) {
 export async function updateMygym(userId, object) {
   try {
     const token = localStorage.getItem("accessToken")
+    console.log("object", object)
     const response = await axios.put(BASE_URL + `api/mygyms/${userId}`, object, {
       headers: {
         Authorization: `Bearer ${token}`

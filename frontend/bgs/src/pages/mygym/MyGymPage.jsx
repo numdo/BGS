@@ -28,7 +28,7 @@ const MyGymPage = () => {
     console.log("MyGymPage handleFinishEdit -> userId:", userId);
     console.log("mygym:", myGym)
     console.log("obj", obj)
-    const newPlaces = obj.places.map(item => { const { name, image, flipped, ...restitem } = item; return restitem })
+    const newPlaces = obj.places.map(item => { const { name, image, ...restitem } = item; return restitem })
     const newObj = { ...obj, places: newPlaces }
     console.log("newObj", newObj)
     await updateMygym(userId, newObj);

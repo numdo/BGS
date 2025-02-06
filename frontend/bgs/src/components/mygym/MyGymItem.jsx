@@ -38,7 +38,7 @@ const MyGymItem = () => {
       name: item.name,
       x: 160,
       y: 160,
-      flipped: false,
+      rotated: false,
       deleted: false,   // 새 아이템은 당연히 삭제X
     };
     const newArr = [...myGym.places, newItem];
