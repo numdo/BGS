@@ -204,10 +204,12 @@ public class MygymService {
     public void enableItem(Integer itemId) {
         Item savedItem = itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException(itemId));
         savedItem.setUsable(true);
+        itemRepository.save(savedItem);
     }
 
     public void disableItem(Integer itemId) {
         Item savedItem = itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException(itemId));
         savedItem.setUsable(false);
+        itemRepository.save(savedItem);
     }
 }
