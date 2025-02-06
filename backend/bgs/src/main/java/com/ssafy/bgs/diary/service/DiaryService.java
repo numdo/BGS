@@ -157,7 +157,7 @@ public class DiaryService {
     }
 
     /** Diary 단건 조회 **/
-    public DiaryResponseDto getDiary(Integer diaryId) {
+    public DiaryResponseDto getDiary(Integer userId, Integer diaryId) {
         DiaryResponseDto diaryResponseDto = new DiaryResponseDto();
 
         // 미존재
@@ -174,10 +174,14 @@ public class DiaryService {
         diaryResponseDto.setAllowedScope(diary.getAllowedScope());
         diaryResponseDto.setCreatedAt(diary.getCreatedAt());
         diaryResponseDto.setModifiedAt(diary.getModifiedAt());
+
+        // 좋아요 누른 여부 & 좋아요 수 조회
+        DiaryLiked diaryLiked = diaryLikedRepository.findById(new DiaryLikedId(diaryId, userId)).orElse(null);
+        diaryResponseDto.setIsLiked(diaryLiked == null ? false : true);
         diaryResponseDto.setLikedCount(diaryLikedRepository.countDiaryLikedByIdDiaryId(diaryId));
-        List<Hashtag> hashtags = hashtagRepository.findByIdDiaryId(diaryId);
 
         // Hashtag 조회
+        List<Hashtag> hashtags = hashtagRepository.findByIdDiaryId(diaryId);
         for (Hashtag hashtag : hashtags) {
             diaryResponseDto.getHashtags().add(hashtag.getId().getTag());
         }
