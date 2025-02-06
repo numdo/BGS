@@ -13,4 +13,6 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
     @Query("SELECT new com.ssafy.bgs.diary.dto.response.CommentResponseDto(c.commentId, c.diaryId, u.nickname, c.content, c.createdAt, c.modifiedAt, c.deleted) " +
             "FROM Comment c JOIN User u ON c.userId = u.id WHERE c.diaryId = :diaryId")
     Page<CommentResponseDto> findCommentsByDiaryId(@Param("diaryId") Integer diaryId, Pageable pageable);
+
+    Long countCommentByDiaryId(Integer diaryId);
 }

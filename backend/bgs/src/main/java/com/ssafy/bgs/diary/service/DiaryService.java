@@ -62,10 +62,17 @@ public class DiaryService {
         }
 
         feedList.forEach(diary -> {
+            // 이미지 목록 조회
             ImageResponseDto image = imageService.getImage("diary", diary.getDiaryId());
             if (image != null) {
                 diary.setImageUrl(imageService.getS3Url(image.getUrl()));
             }
+
+            // 좋아요 수 조회
+            diary.setLikedCount(diaryLikedRepository.countDiaryLikedByIdDiaryId(diary.getDiaryId()));
+
+            // 댓글 수 조회
+            diary.setCommentCount(commentRepository.countCommentByDiaryId(diary.getDiaryId()));
         });
 
         return feedList;
