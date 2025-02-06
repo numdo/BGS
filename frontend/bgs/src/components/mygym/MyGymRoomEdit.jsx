@@ -126,7 +126,7 @@ const MyGymRoomEdit = () => {
     const newArr = myGym.places.map((it) => {
       if (it.itemId === id) {
         console.log("it.itemId", it.itemId)
-        return { ...it, flipped: !it.flipped };
+        return { ...it, rotated: !it.rotated };
       }
       return it;
     });
@@ -191,7 +191,7 @@ const MyGymRoomEdit = () => {
                   }}
                 >
                   <img
-                    src={item.image}
+                    src={item.image.url}
                     alt={item.name}
                     className="w-full h-full"
                   />
