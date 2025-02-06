@@ -1,17 +1,14 @@
 package com.ssafy.bgs.auth.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ssafy.bgs.auth.dto.response.SocialLoginResponseDto;
 import com.ssafy.bgs.auth.jwt.JwtTokenProvider;
 import com.ssafy.bgs.auth.oauth.SessionUser;
-import com.ssafy.bgs.user.entity.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +26,7 @@ public class CustomOAuth2AuthenticationSuccessHandler implements AuthenticationS
     // ObjectMapper를 이용해 SocialLoginResponseDto를 JSON으로 변환합니다.
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final String frontRedirectUrl = "http://localhost:5173/login/oauth2/success";
+    private final String frontRedirectUrl = "https://i12c209.p.ssafy.io/oauth2/login/success";
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,

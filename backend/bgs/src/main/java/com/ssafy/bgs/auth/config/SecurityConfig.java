@@ -69,7 +69,7 @@ public class SecurityConfig {
 
         http.oauth2Login(oauth2 -> oauth2
                 // 로그인 성공 후 기본 리다이렉트 URL을 지정하거나 커스텀 핸들러를 사용할 수 있음
-                .defaultSuccessUrl("/auth/google/success", true)
+                .defaultSuccessUrl("/oauth2/login/success", true)
                 .successHandler(successHandler)
                 .failureUrl("/api/auth/oauth2/failure")
                 .userInfoEndpoint(userInfo -> userInfo
