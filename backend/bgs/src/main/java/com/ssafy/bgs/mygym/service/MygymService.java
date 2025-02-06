@@ -6,6 +6,7 @@ import com.ssafy.bgs.mygym.dto.request.GuestbookRequestDto;
 import com.ssafy.bgs.mygym.dto.request.MygymRequestDto;
 import com.ssafy.bgs.mygym.dto.request.PlaceRequestDto;
 import com.ssafy.bgs.mygym.dto.response.GuestbookResponseDto;
+import com.ssafy.bgs.mygym.dto.response.ItemResponseDto;
 import com.ssafy.bgs.mygym.dto.response.MygymResponseDto;
 import com.ssafy.bgs.mygym.dto.response.PlaceResponseDto;
 import com.ssafy.bgs.mygym.entity.Guestbook;
@@ -25,6 +26,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -162,6 +164,27 @@ public class MygymService {
         // 방명록 soft delete
         guestbook.setDeleted(true);
         guestbookRepository.save(guestbook);
+    }
+
+    public List<ItemResponseDto> getItemList() {
+        List<ItemResponseDto> itemList = new ArrayList<>();
+
+        itemRepository.findAll().forEach(item -> {
+            ItemResponseDto itemResponseDto = new ItemResponseDto();
+            itemResponseDto.setItemId(item.getItemId());
+            itemResponseDto.setItemName(item.getItemName());
+            itemResponseDto.setWidth(item.getWidth());
+            itemResponseDto.setHeight(item.getHeight());
+            itemResponseDto.setPrice(item.getPrice());
+            itemResponseDto.setUsable(item.getUsable());
+
+            ImageResponseDto image = imageService.getImage("item", item.getItemId());
+            itemResponseDto.setImageUrl(imageService.getS3Url(image.getUrl()));
+
+            itemList.add(itemResponseDto);
+        });
+
+        return itemList;
     }
 
     public void addItem(Item item, MultipartFile file) {
