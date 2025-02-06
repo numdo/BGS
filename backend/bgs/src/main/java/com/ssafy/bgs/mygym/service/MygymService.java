@@ -101,6 +101,7 @@ public class MygymService {
             }
 
             // Place column update
+            place.setItemId(placeRequestDto.getItemId());
             place.setX(placeRequestDto.getX());
             place.setY(placeRequestDto.getY());
             place.setRotated(placeRequestDto.getRotated());

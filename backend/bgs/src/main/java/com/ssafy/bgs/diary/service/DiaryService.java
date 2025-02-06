@@ -15,6 +15,8 @@ import com.ssafy.bgs.diary.repository.*;
 import com.ssafy.bgs.image.dto.response.ImageResponseDto;
 import com.ssafy.bgs.image.entity.Image;
 import com.ssafy.bgs.image.service.ImageService;
+import com.ssafy.bgs.user.entity.User;
+import com.ssafy.bgs.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,9 +37,10 @@ public class DiaryService {
     private final HashtagRepository hashtagRepository;
     private final CommentRepository commentRepository;
     private final ImageService imageService;
+    private final UserRepository userRepository;
 
 
-    public DiaryService(DiaryRepository diaryRepository, DiaryWorkoutRepository diaryWorkoutRepository, WorkoutSetRepository workoutSetRepository, DiaryLikedRepository diaryLikedRepository, HashtagRepository hashtagRepository, CommentRepository commentRepository, ImageService imageService) {
+    public DiaryService(DiaryRepository diaryRepository, DiaryWorkoutRepository diaryWorkoutRepository, WorkoutSetRepository workoutSetRepository, DiaryLikedRepository diaryLikedRepository, HashtagRepository hashtagRepository, CommentRepository commentRepository, ImageService imageService, UserRepository userRepository) {
         this.diaryRepository = diaryRepository;
         this.diaryWorkoutRepository = diaryWorkoutRepository;
         this.workoutSetRepository = workoutSetRepository;
@@ -45,6 +48,7 @@ public class DiaryService {
         this.hashtagRepository = hashtagRepository;
         this.commentRepository = commentRepository;
         this.imageService = imageService;
+        this.userRepository = userRepository;
     }
 
     /** Feed select **/
@@ -62,10 +66,17 @@ public class DiaryService {
         }
 
         feedList.forEach(diary -> {
+            // 이미지 목록 조회
             ImageResponseDto image = imageService.getImage("diary", diary.getDiaryId());
             if (image != null) {
                 diary.setImageUrl(imageService.getS3Url(image.getUrl()));
             }
+
+            // 좋아요 수 조회
+            diary.setLikedCount(diaryLikedRepository.countDiaryLikedByIdDiaryId(diary.getDiaryId()));
+
+            // 댓글 수 조회
+            diary.setCommentCount(commentRepository.countCommentByDiaryId(diary.getDiaryId()));
         });
 
         return feedList;
@@ -157,7 +168,7 @@ public class DiaryService {
     }
 
     /** Diary 단건 조회 **/
-    public DiaryResponseDto getDiary(Integer userId, Integer diaryId) {
+    public DiaryResponseDto getDiary(Integer viewerId, Integer diaryId) {
         DiaryResponseDto diaryResponseDto = new DiaryResponseDto();
 
         // 미존재
@@ -175,8 +186,15 @@ public class DiaryService {
         diaryResponseDto.setCreatedAt(diary.getCreatedAt());
         diaryResponseDto.setModifiedAt(diary.getModifiedAt());
 
+        // 작성자 조회
+        User writer = userRepository.findById(diaryResponseDto.getUserId()).orElse(null);
+        if (writer != null) {
+            diaryResponseDto.setWriter(writer.getNickname());
+            diaryResponseDto.setProfileImageUrl(imageService.getS3Url(imageService.getImage("profile", writer.getId()).getUrl()));
+        }
+
         // 좋아요 누른 여부 & 좋아요 수 조회
-        DiaryLiked diaryLiked = diaryLikedRepository.findById(new DiaryLikedId(diaryId, userId)).orElse(null);
+        DiaryLiked diaryLiked = diaryLikedRepository.findById(new DiaryLikedId(diaryId, viewerId)).orElse(null);
         diaryResponseDto.setIsLiked(diaryLiked == null ? false : true);
         diaryResponseDto.setLikedCount(diaryLikedRepository.countDiaryLikedByIdDiaryId(diaryId));
 

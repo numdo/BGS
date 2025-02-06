@@ -2,14 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import BottomBar from "../../components//bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import FeedItem from "../../components/feed/FeedItem";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "https://i12c209.p.ssafy.io/api/diaries/feeds";
-const accessToken = localStorage.getItem("accessToken");
+const API_URL = "/diaries/feeds";
 
 const FeedPage = () => {
-  const [images, setImages] = useState([]);
+  const [feeds, setFeeds] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const loaderRef = useRef(null);
@@ -21,25 +20,15 @@ const FeedPage = () => {
     setLoading(true);
 
     try {
-      const response = await axios.get(`${API_URL}?page=${page}&pageSize=9`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      console.log(response);
+      const response = await axiosInstance.get(`${API_URL}?page=${page}&pageSize=9`);
 
       const newImages = response.data.map((item) => ({
         id: item.diaryId,
         imageUrl: item.imageUrl,
+        likedCount: item.likedCount,
+        commentCount: item.commentCount,
       }));
-
-      console.log(newImages);
-
-      setImages((prev) => [...prev, ...newImages]);
-
-      console.log(images);
-
+      setFeeds((prev) => [...prev, ...newImages]);
       setPage((prevPage) => prevPage + 1);
     } catch (error) {
       console.error("데이터를 불러오는 중 오류 발생:", error);
@@ -79,11 +68,11 @@ const FeedPage = () => {
       <div className="max-w-4xl mx-auto p-4">
         <h2 className="text-2xl font-bold mb-4">탐색</h2>
         <div className="grid grid-cols-3 gap-1 md:gap-2">
-          {images.map((image) => (
+          {feeds.map((feed) => (
             <FeedItem
-              key={image.id}
-              feed={image}
-              onClick={() => handleImageClick(image.id)}
+              key={feed.id}
+              feed={feed}
+              onClick={() => handleImageClick(feed.id)}
             />
           ))}
         </div>
