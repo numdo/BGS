@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance";
 
-const COMMENT_API_URL = "https://i12c209.p.ssafy.io/api/diaries";
+const API_URL = "/diaries";
 
 const CommentList = ({ diaryId }) => {
   const [comments, setComments] = useState([]);
@@ -9,13 +9,7 @@ const CommentList = ({ diaryId }) => {
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const token = localStorage.getItem("accessToken");
-        const response = await axios.get(
-          `${COMMENT_API_URL}/${diaryId}/comments`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await axiosInstance.get(`${API_URL}/${diaryId}/comments`);
         setComments(response.data.content);
       } catch (error) {
         console.error("댓글 불러오기 오류:", error);

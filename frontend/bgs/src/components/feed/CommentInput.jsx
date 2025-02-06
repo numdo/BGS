@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance";
 
-const COMMENT_API_URL = "https://i12c209.p.ssafy.io/api/diaries";
+const API_URL = "/diaries";
 
 const CommentInput = ({ diaryId, onCommentAdded }) => {
   const [comment, setComment] = useState("");
@@ -12,15 +12,10 @@ const CommentInput = ({ diaryId, onCommentAdded }) => {
     if (!comment.trim()) return;
 
     try {
-      const token = localStorage.getItem("accessToken");
-      const decodedToken = JSON.parse(atob(token.split(".")[1]));
-      const userId = decodedToken.sub;
-
-      await axios.post(
-        `${COMMENT_API_URL}/${diaryId}/comments`,
-        { diaryId, userId, content: comment },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axiosInstance.post(`${API_URL}/${diaryId}/comments`, {
+        diaryId,
+        content: comment,
+      });
 
       setComment("");
       onCommentAdded(); // 댓글 추가 후 목록 갱신
