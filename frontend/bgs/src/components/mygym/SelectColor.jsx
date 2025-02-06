@@ -1,10 +1,11 @@
 // src/components/mygym/SelectColor.jsx
 import { useState } from "react";
 import selectColorPng from "../../assets/images/selectcolor.png";
-
+import useMyGymStore from "../../stores/useMyGymStore";
 const colors = ["#ffcccc", "#ffffcc", "#ccffcc", "#F5F1D9"];
 
 const SelectColor = ({ setRoomColor }) => {
+  const { myGym, setMyGym } = useMyGymStore()
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
 
   const togglePalette = () => {
@@ -34,7 +35,7 @@ const SelectColor = ({ setRoomColor }) => {
             key={idx}
             className="w-8 h-8 rounded-full border-2 border-white shadow-md mx-1"
             style={{ backgroundColor: color }}
-            onClick={() => setRoomColor(color)}
+            onClick={() => setMyGym({ ...myGym, wallColor: color })}
           />
         ))}
       </div>

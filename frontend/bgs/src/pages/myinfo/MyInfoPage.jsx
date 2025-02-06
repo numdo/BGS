@@ -2,11 +2,15 @@ import BottomBar from '../../components/bar/BottomBar';
 import TopBar from '../../components/bar/TopBar';
 import { useState, useEffect } from 'react';
 import useUserStore from '../../stores/useUserStore';
+import { getUser } from '../../api/User';
 export default function MyInfoPage() {
-  const { user, fetchUser } = useUserStore()
+  const { user, setUser } = useUserStore()
   useEffect(() => {
-    fetchUser();
+    getUser().then(res => setUser(res))
   }, [])
+  useEffect(() => {
+    console.log(user)
+  }, [user])
   console.log(localStorage.getItem("accessToken"))
   const [activeTab, setActiveTab] = useState("posts"); // 현재 활성화된 탭
   const [showFollowers, setShowFollowers] = useState(false); // 팔로워 모달
