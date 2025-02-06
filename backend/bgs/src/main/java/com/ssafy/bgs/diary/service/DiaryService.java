@@ -190,7 +190,10 @@ public class DiaryService {
         User writer = userRepository.findById(diaryResponseDto.getUserId()).orElse(null);
         if (writer != null) {
             diaryResponseDto.setWriter(writer.getNickname());
-            diaryResponseDto.setProfileImageUrl(imageService.getS3Url(imageService.getImage("profile", writer.getId()).getUrl()));
+            ImageResponseDto image = imageService.getImage("profile", writer.getId());
+            if (image != null) {
+                diaryResponseDto.setProfileImageUrl(imageService.getS3Url(image.getUrl()));
+            }
         }
 
         // 좋아요 누른 여부 & 좋아요 수 조회
