@@ -1,33 +1,45 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 const GoogleRedirectPage = () => {
   const navigate = useNavigate();
+  const isHandled = useRef(false); // ✅ 중복 실행 방지
 
   useEffect(() => {
+    if (isHandled.current) return;
+    isHandled.current = true;
+
     const handleGoogleLogin = () => {
-      // ✅ 현재 URL에서 서버가 전달한 쿼리 파라미터 추출
-      const params = new URLSearchParams(window.location.search);
-      const accessToken = params.get("accessToken");
-      const refreshToken = params.get("refreshToken");
-      const newUser = params.get("newUser") === "true"; // "true" → boolean 변환
+      try {
+        // ✅ URL에서 해시 값 가져오기 (카카오 로그인과 동일하게 처리)
+        const hash = window.location.hash.substring(1); // # 제거
+        const params = new URLSearchParams(hash);
 
-      if (accessToken && refreshToken) {
-        console.log("✅ 구글 로그인 성공!");
+        const accessToken = params.get("accessToken");
+        const refreshToken = params.get("refreshToken");
+        const newUser = params.get("newUser") === "true";
 
-        // ✅ 토큰을 localStorage에 저장
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken);
+        console.log("🔹 [Google] 토큰 저장 처리 중...");
 
-        // ✅ 회원 여부에 따라 페이지 이동
-        if (newUser) {
-          navigate("/social-signup?provider=google");
+        if (accessToken && refreshToken) {
+          localStorage.setItem("accessToken", accessToken);
+          localStorage.setItem("refreshToken", refreshToken);
+
+          setTimeout(() => {
+            if (newUser) {
+              navigate(`/social-signup`);
+            } else {
+              navigate("/");
+            }
+          }, 500);
         } else {
-          navigate("/");
+          console.error("❌ [Google] 로그인 실패: 유효한 토큰 없음");
+          alert("구글 로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
+          navigate("/login");
         }
-      } else {
-        console.error("❌ 구글 로그인 실패: 유효한 토큰 없음");
-        alert("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
+      } catch (error) {
+        console.error("❌ [Google] 로그인 처리 중 오류 발생:", error);
+        alert("구글 로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
         navigate("/login");
       }
     };

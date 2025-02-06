@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom"; // useLocation 추가
+import { useNavigate, useLocation } from "react-router-dom";
+import { signup } from "../../api/Auth"; // ✅ API 함수 불러오기
 import logo_image from "../../assets/images/logo_image.png";
 import name_image from "../../assets/images/name.png";
-import axios from "axios";
 
 const UserDetailsPage = () => {
   // useLocation을 통해 SignupPage에서 전달된 state(email, password)를 가져옴
@@ -32,20 +32,21 @@ const UserDetailsPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // 회원가입 완료 정보를 서버로 전송
-      await axios.post("https://i12c209.p.ssafy.io/api/users/signup", {
+      // ✅ 회원가입 완료 정보를 서버로 전송 (API 함수 사용)
+      await signup({
         email,
         password,
         ...details,
       });
+
       alert("회원가입이 완료되었습니다!");
 
-      // 회원가입 성공 후 메인 페이지로 이동 (예: '/')
+      // ✅ 회원가입 성공 후 메인 페이지로 이동
       navigate("/");
     } catch (err) {
       alert(
         "회원가입 실패: " +
-        (err.response?.data?.message || "알 수 없는 오류가 발생했습니다.")
+          (err.response?.data?.message || "알 수 없는 오류가 발생했습니다.")
       );
     }
   };
@@ -78,7 +79,7 @@ const UserDetailsPage = () => {
         <input
           name="birthDate"
           type="date"
-          value={details.birthdate}
+          value={details.birthDate}
           onChange={handleChange}
           className="w-full p-2 border rounded focus:ring focus:ring-blue-300"
         />
@@ -100,22 +101,23 @@ const UserDetailsPage = () => {
         />
         <select
           name="sex"
-          value={details.gender}
+          value={details.sex}
           onChange={handleChange}
           className="w-full p-2 border rounded focus:ring focus:ring-blue-300"
         >
           <option value="">성별 선택</option>
-          <option value="male">남성</option>
-          <option value="female">여성</option>
+          <option value="M">남성</option>
+          <option value="F">여성</option>
         </select>
 
         {/* 제출 버튼 */}
         <button
           type="submit"
-          className={`w-full p-3 rounded mt-4 ${isFormComplete()
-            ? "bg-blue-500 text-white hover:bg-blue-600"
-            : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
-            }`}
+          className={`w-full p-3 rounded mt-4 ${
+            isFormComplete()
+              ? "bg-blue-500 text-white hover:bg-blue-600"
+              : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
+          }`}
           disabled={!isFormComplete()}
         >
           가입 완료

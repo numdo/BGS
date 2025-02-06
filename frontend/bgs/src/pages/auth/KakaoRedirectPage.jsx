@@ -1,33 +1,44 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 const KakaoRedirectPage = () => {
   const navigate = useNavigate();
+  const isHandled = useRef(false); // ✅ 중복 실행 방지
 
   useEffect(() => {
+    if (isHandled.current) return; // ✅ 이미 실행된 경우 다시 실행하지 않음
+    isHandled.current = true; // ✅ 첫 실행 이후에는 실행 안 하도록 설정
+
     const handleKakaoLogin = () => {
-      // ✅ 현재 URL에서 서버가 전달한 쿼리 파라미터 추출
-      const params = new URLSearchParams(window.location.search);
-      const accessToken = params.get("accessToken");
-      const refreshToken = params.get("refreshToken");
-      const newUser = params.get("newUser") === "true"; // "true" → boolean 변환
+      try {
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
 
-      if (accessToken && refreshToken) {
-        console.log("✅ 카카오 로그인 성공!");
+        const accessToken = params.get("accessToken");
+        const refreshToken = params.get("refreshToken");
+        const newUser = params.get("newUser") === "true";
 
-        // ✅ 토큰을 localStorage에 저장
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken);
+        console.log("🔹 [Kakao] 토큰 저장 처리 중...");
 
-        // ✅ 회원 여부에 따라 페이지 이동
-        if (newUser) {
-          navigate("/social-signup?provider=kakao");
+        if (accessToken && refreshToken) {
+          localStorage.setItem("accessToken", accessToken);
+          localStorage.setItem("refreshToken", refreshToken);
+
+          setTimeout(() => {
+            if (newUser) {
+              navigate(`/social-signup`); // ✅ 신규 유저일 경우 회원가입 페이지 이동
+            } else {
+              navigate("/"); // ✅ 기존 유저는 메인 페이지 이동
+            }
+          }, 500);
         } else {
-          navigate("/");
+          console.error("❌ [Kakao] 로그인 실패: 유효한 토큰 없음");
+          alert("카카오 로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
+          navigate("/login");
         }
-      } else {
-        console.error("❌ 카카오 로그인 실패: 유효한 토큰 없음");
-        alert("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
+      } catch (error) {
+        console.error("❌ [Kakao] 로그인 처리 중 오류 발생:", error);
+        alert("카카오 로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
         navigate("/login");
       }
     };
