@@ -1,3 +1,4 @@
+// src/api/Mygym.jsx
 import axios from "axios";
 const BASE_URL = "https://i12c209.p.ssafy.io/";
 // 사용자ID 받아 해당 사용자의 마이짐의 정보 GET요청
