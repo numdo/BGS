@@ -8,6 +8,7 @@ import com.ssafy.bgs.image.entity.Image;
 import com.ssafy.bgs.image.service.ImageService;
 import com.ssafy.bgs.redis.service.RedisService;
 import com.ssafy.bgs.user.dto.request.*;
+import com.ssafy.bgs.user.dto.response.InfoResponseDto;
 import com.ssafy.bgs.user.dto.response.LoginResponseDto;
 import com.ssafy.bgs.user.dto.response.PasswordResetResponseDto;
 import com.ssafy.bgs.user.dto.response.UserResponseDto;
@@ -192,7 +193,7 @@ public class UserService {
     }
 
     /**
-     * 특정 사용자 정보 조회
+     * 내 정보 조회
      */
     @Transactional(readOnly = true)
     public UserResponseDto getUserInfo(Integer userId) {
@@ -214,6 +215,17 @@ public class UserService {
 
         redisService.setValue(cacheKey, dto, 30);
 
+        return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public InfoResponseDto getInfo(Integer userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
+        InfoResponseDto dto = toInfoResponseDto(user);
+
+        imageService.findLatestProfileImage(userId)
+                .ifPresent(image -> dto.setProfileImageUrl(imageService.getS3Url(image.getUrl())));
         return dto;
     }
 
@@ -521,6 +533,15 @@ public class UserService {
                 .lastAttendance(user.getLastAttendance())
                 .coin(user.getCoin())
                 .profileImageUrl(null) // 여기서는 기본 null로 두고, 호출부에서 최신 이미지를 세팅
+                .build();
+    }
+
+    private InfoResponseDto toInfoResponseDto(User user) {
+        return InfoResponseDto.builder()
+                .userId(user.getId())
+                .nickname(user.getNickname())
+                .introduce(user.getIntroduction())
+                .profileImageUrl(null)
                 .build();
     }
 }
