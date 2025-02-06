@@ -30,10 +30,10 @@ const MyGymItem = () => {
       alert(`이미 '${item.name}'가(이) 배치되었습니다!`);
       return;
     }
-
+    console.log("item", item)
     // 새 아이템
     const newItem = {
-      itemId: Math.floor(Math.random() * 1000), // 임시 itemId
+      itemId: item.id, // 임시 itemId
       image: item.image,
       name: item.name,
       x: 160,
@@ -51,15 +51,15 @@ const MyGymItem = () => {
   };
 
   const gymItems = [
-    { name: "여자", image: women },
-    { name: "남자", image: men },
-    { name: "벤치프레스", image: BenchPress },
-    { name: "랫풀다운", image: LatPulldown },
-    { name: "데드리프트", image: Deadlift },
-    { name: "사이클", image: cycle },
-    { name: "런닝머신", image: runningmachine },
-    { name: "덤벨", image: dumbbell },
-    { name: "풀업", image: pullup },
+    { id: 1, name: "여자", image: women },
+    { id: 2, name: "남자", image: men },
+    { id: 3, name: "벤치프레스", image: BenchPress },
+    { id: 4, name: "랫풀다운", image: LatPulldown },
+    { id: 5, name: "데드리프트", image: Deadlift },
+    { id: 6, name: "사이클", image: cycle },
+    { id: 7, name: "런닝머신", image: runningmachine },
+    { id: 8, name: "덤벨", image: dumbbell },
+    { id: 9, name: "풀업", image: pullup },
   ];
 
   return (

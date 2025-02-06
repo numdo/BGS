@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
 import removeItemPng from "../../assets/icons/remove_item.png";
 import Flip from "../../assets/icons/Flip.png";
+import { useEffect } from "react";
 
 const polygonRatios = [
   [0.0, 0.60],
@@ -33,7 +34,12 @@ const MyGymRoomEdit = () => {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [startCoord, setStartCoord] = useState({ x: 0, y: 0 });
   const [isDraggingMode, setIsDraggingMode] = useState(false);
-
+  useEffect(() => {
+    console.log("selectedItemId changed", selectedItemId)
+  }, [selectedItemId])
+  useEffect(() => {
+    console.log("draggingItem changed", draggingItem)
+  }, [draggingItem])
   // 폴리곤 색은 wallColor, 아이템들(items)
   const { myGym, setMyGym } = useMyGymStore();
 
@@ -46,7 +52,7 @@ const MyGymRoomEdit = () => {
     const rect = roomRef.current.getBoundingClientRect();
     const offsetX = e.clientX - rect.left - item.x;
     const offsetY = e.clientY - rect.top - item.y;
-    setDraggingItem({ id: item.id, offsetX, offsetY });
+    setDraggingItem({ id: item.itemId, offsetX, offsetY });
   };
 
   // pointerMove
@@ -89,7 +95,7 @@ const MyGymRoomEdit = () => {
 
     // 좌표 업데이트
     const newArr = myGym.places.map((it) =>
-      it.id === id ? { ...it, x: newX, y: newY } : it
+      it.itemId === id ? { ...it, x: newX, y: newY } : it
     );
     const obj = { ...myGym, places: newArr }
     setMyGym(obj);
@@ -107,7 +113,7 @@ const MyGymRoomEdit = () => {
   // 삭제 -> 'deleted=true'로 세팅(소프트 삭제)
   const removeItem = (id) => {
     const newArr = myGym.places.map((it) => {
-      if (it.id === id) {
+      if (it.itemId === id) {
         return { ...it, deleted: true };
       }
       return it;
@@ -118,7 +124,8 @@ const MyGymRoomEdit = () => {
   // 좌우 반전
   const toggleFlip = (id) => {
     const newArr = myGym.places.map((it) => {
-      if (it.id === id) {
+      if (it.itemId === id) {
+        console.log("it.itemId", it.itemId)
         return { ...it, flipped: !it.flipped };
       }
       return it;
@@ -196,13 +203,13 @@ const MyGymRoomEdit = () => {
                   alt="Remove"
                   onClick={(e) => {
                     e.stopPropagation();
-                    removeItem(item.id);
+                    removeItem(item.itemId);
                   }}
                   className={`
                     absolute w-6 h-6 cursor-pointer
                     -top-2 -right-2
                     transition-all duration-300
-                    ${selectedItemId === item.id ? "opacity-100 scale-100" : "opacity-0 scale-0"}
+                    ${selectedItemId === item.itemId ? "opacity-100 scale-100" : "opacity-0 scale-0"}
                   `}
                 />
 
@@ -212,13 +219,13 @@ const MyGymRoomEdit = () => {
                   alt="Flip"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toggleFlip(item.id);
+                    toggleFlip(item.itemId);
                   }}
                   className={`
                     absolute w-6 h-6 cursor-pointer
                     -top-2 left-0
                     transition-all duration-300
-                    ${selectedItemId === item.id ? "opacity-100 scale-100" : "opacity-0 scale-0"}
+                    ${selectedItemId === item.itemId ? "opacity-100 scale-100" : "opacity-0 scale-0"}
                   `}
                   style={{ transform: "translateX(-10%)" }}
                 />
