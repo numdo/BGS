@@ -2,6 +2,7 @@ package com.ssafy.bgs.user.controller;
 
 import com.ssafy.bgs.auth.dto.request.SocialSignupRequestDto;
 import com.ssafy.bgs.user.dto.request.*;
+import com.ssafy.bgs.user.dto.response.InfoResponseDto;
 import com.ssafy.bgs.user.dto.response.LoginResponseDto;
 import com.ssafy.bgs.user.dto.response.PasswordResetResponseDto;
 import com.ssafy.bgs.user.dto.response.UserResponseDto;
@@ -88,6 +89,12 @@ public class UserController {
     public ResponseEntity<?> getUserInfo(Authentication authentication) {
         Integer userId = (Integer) authentication.getPrincipal();
         UserResponseDto response = userService.getUserInfo(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getInfo(@PathVariable Integer userId) {
+        InfoResponseDto response = userService.getInfo(userId);
         return ResponseEntity.ok(response);
     }
 

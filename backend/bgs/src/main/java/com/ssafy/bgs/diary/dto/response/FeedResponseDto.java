@@ -9,6 +9,8 @@ public class FeedResponseDto {
     private Integer diaryId;
     private String allowedScope;
     private String imageUrl;
+    private Long likedCount;
+    private Long commentCount;
 
     FeedResponseDto(Integer diaryId, String allowedScope) {
         this.diaryId = diaryId;

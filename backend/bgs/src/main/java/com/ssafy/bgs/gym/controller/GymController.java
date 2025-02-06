@@ -1,12 +1,15 @@
 package com.ssafy.bgs.gym.controller;
 
 import com.ssafy.bgs.gym.dto.request.GymRequestDto;
+import com.ssafy.bgs.gym.dto.response.GymLocationResponseDto;
 import com.ssafy.bgs.gym.dto.response.GymResponseDto;
 import com.ssafy.bgs.gym.dto.response.MachineResponseDto;
 import com.ssafy.bgs.gym.service.GymService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
