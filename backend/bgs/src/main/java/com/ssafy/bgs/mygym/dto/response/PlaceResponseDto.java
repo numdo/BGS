@@ -4,8 +4,6 @@ import com.ssafy.bgs.image.dto.response.ImageResponseDto;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Timestamp;
-
 @Getter
 @Setter
 public class PlaceResponseDto {
@@ -14,6 +12,5 @@ public class PlaceResponseDto {
     private Integer x;
     private Integer y;
     private Boolean rotated;
-    private Timestamp createdAt;
     private ImageResponseDto image;
 }

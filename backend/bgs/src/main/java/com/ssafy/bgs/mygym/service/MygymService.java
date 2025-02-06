@@ -8,6 +8,7 @@ import com.ssafy.bgs.mygym.dto.response.GuestbookResponseDto;
 import com.ssafy.bgs.mygym.dto.response.MygymResponseDto;
 import com.ssafy.bgs.mygym.dto.response.PlaceResponseDto;
 import com.ssafy.bgs.mygym.entity.Guestbook;
+import com.ssafy.bgs.mygym.entity.Item;
 import com.ssafy.bgs.mygym.entity.MygymColor;
 import com.ssafy.bgs.mygym.entity.Place;
 import com.ssafy.bgs.mygym.exception.GuestbookNotFoundException;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -68,7 +70,6 @@ public class MygymService {
             placeResponseDto.setX(place.getX());
             placeResponseDto.setY(place.getY());
             placeResponseDto.setRotated(place.getRotated());
-            placeResponseDto.setCreatedAt(place.getCreatedAt());
             placeResponseDto.setImage(imageService.getImage("item", place.getItemId()));
 
             mygymResponseDto.getPlaces().add(placeResponseDto);
@@ -154,5 +155,18 @@ public class MygymService {
         // 방명록 soft delete
         guestbook.setDeleted(true);
         guestbookRepository.save(guestbook);
+    }
+
+    public void addItem(Item item, MultipartFile file) {
+        Item savedItem = itemRepository.save(item);
+        imageService.uploadImage(file, "item", Long.valueOf(savedItem.getItemId()));
+    }
+
+    public void updateItem(Item item, MultipartFile file) {
+        Item savedItem = itemRepository.save(item);
+        if (file != null) {
+            imageService.deleteImage(imageService.getImage("item", savedItem.getItemId()).getImageId());
+            imageService.uploadImage(file, "item", Long.valueOf(savedItem.getItemId()));
+        }
     }
 }
