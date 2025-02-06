@@ -50,6 +50,7 @@ public class SecurityConfig {
 
         // 3. URL별 권한 설정
         http.authorizeHttpRequests(auth -> auth
+                .requestMatchers("/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/users/signup").permitAll()
                 .requestMatchers("/api/users/email-verification/**").permitAll()
