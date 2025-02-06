@@ -22,6 +22,12 @@ public class Attendance {
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
+    @Column(name = "gym_id", nullable = false)
+    private Integer gymId;
+
+    @Column(name = "gym_name", nullable = false)
+    private String gymName;
+
     @Column(name = "attendance_date")
     private LocalDate attendanceDate;
 
