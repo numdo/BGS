@@ -35,7 +35,7 @@ const MyGymRoomEdit = () => {
   const [isDraggingMode, setIsDraggingMode] = useState(false);
 
   // 폴리곤 색은 wallColor, 아이템들(items)
-  const { items, setItems, wallColor } = useMyGymStore();
+  const { myGym, setMyGym } = useMyGymStore();
 
   // pointerDown
   const handlePointerDown = (e, item) => {
@@ -88,10 +88,11 @@ const MyGymRoomEdit = () => {
     }
 
     // 좌표 업데이트
-    const newArr = items.map((it) =>
+    const newArr = myGym.places.map((it) =>
       it.id === id ? { ...it, x: newX, y: newY } : it
     );
-    setItems(newArr);
+    const obj = { ...myGym, places: newArr }
+    setMyGym(obj);
   };
 
   // pointerUp
@@ -105,7 +106,7 @@ const MyGymRoomEdit = () => {
 
   // 삭제 -> 'deleted=true'로 세팅(소프트 삭제)
   const removeItem = (id) => {
-    const newArr = items.map((it) => {
+    const newArr = myGym.places.map((it) => {
       if (it.id === id) {
         return { ...it, deleted: true };
       }
@@ -116,7 +117,7 @@ const MyGymRoomEdit = () => {
 
   // 좌우 반전
   const toggleFlip = (id) => {
-    const newArr = items.map((it) => {
+    const newArr = myGym.places.map((it) => {
       if (it.id === id) {
         return { ...it, flipped: !it.flipped };
       }
@@ -126,7 +127,7 @@ const MyGymRoomEdit = () => {
   };
 
   // 렌더링 시 deleted==true인 아이템은 표시 안 함
-  const visibleItems = items.filter((it) => !it.deleted);
+  const visibleItems = myGym.places.filter((it) => !it.deleted);
 
   return (
     <div className="relative flex flex-col items-center">
@@ -146,7 +147,7 @@ const MyGymRoomEdit = () => {
             height: "100%",
             clipPath:
               "polygon(50% 7%, 100% 25%, 100% 60%, 50% 40%, 0% 60%, 0% 25%)",
-            backgroundColor: wallColor,
+            backgroundColor: myGym.wallColor,
             zIndex: 1,
           }}
         />
@@ -169,7 +170,7 @@ const MyGymRoomEdit = () => {
           const isFlipped = item.flipped || false;
           return (
             <div
-              key={item.id}
+              key={item.itemId}
               className="absolute"
               style={{ top: item.y, left: item.x, zIndex: 2 }}
               onPointerDown={(e) => handlePointerDown(e, item)}

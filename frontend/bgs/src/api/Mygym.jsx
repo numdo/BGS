@@ -2,17 +2,17 @@ import axios from "axios";
 const BASE_URL = "https://i12c209.p.ssafy.io/";
 
 export async function getMygym(userId) {
-    try {
-        const token = localStorage.getItem("accessToken")
-        const response = await axios.get(BASE_URL + `api/mygyms/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-        return response.data
-      } catch (error) {
-        throw error;
-    }
+  try {
+    const token = localStorage.getItem("accessToken")
+    const response = await axios.get(BASE_URL + `api/mygyms/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    return response.data
+  } catch (error) {
+    throw error;
+  }
 }
 
 // fetchMyGym: async (userId) => {
@@ -71,29 +71,31 @@ export async function getMygym(userId) {
 //     ]
 // }  
 export async function updateMygym(userId, object) {
-    try {
-        const response = await axios.post(BASE_URL + `api/mygyms/${userId}`,object, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-        return response.data
-      } catch (error) {
-        throw error;
-    }
+  try {
+    const token = localStorage.getItem("accessToken")
+    const response = await axios.put(BASE_URL + `api/mygyms/${userId}`, object, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    console.log("mygym update")
+    return response.data
+  } catch (error) {
+    throw error;
+  }
 }
 
 export async function getGuestBooks(userId) {
-    try {
-        const response = await axios.get(BASE_URL + `api/mygyms/${userId}/guestbooks`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-        return response.data
-      } catch (error) {
-        throw error;
-    }
+  try {
+    const response = await axios.get(BASE_URL + `api/mygyms/${userId}/guestbooks`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    return response.data
+  } catch (error) {
+    throw error;
+  }
 }
 
 // object =
@@ -101,14 +103,14 @@ export async function getGuestBooks(userId) {
 //     "content": "안녕하세요! 방문을 환영합니다!!!!!!!!!!!!"
 // }
 export async function createGuestBooks(userId, object) {
-    try {
-        const response = await axios.post(BASE_URL + `api/mygyms/${userId}/guestbooks`,object, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-        return response.data
-      } catch (error) {
-        throw error;
-    }
+  try {
+    const response = await axios.post(BASE_URL + `api/mygyms/${userId}/guestbooks`, object, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    return response.data
+  } catch (error) {
+    throw error;
+  }
 }

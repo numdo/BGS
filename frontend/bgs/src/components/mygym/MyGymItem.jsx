@@ -12,12 +12,9 @@ import dumbbell from "../../assets/items/dumbbell.png";
 import men from "../../assets/items/men.png";
 import women from "../../assets/items/women.png";
 
-const MyGymItem = ({ setItems }) => {
-  // Zustand store에서 items를 가져와도 되지만, props로 setItems 받는 식도 가능
-  // const { items, setItems } = useMyGymStore();
-
+const MyGymItem = () => {
+  const { myGym, setMyGym } = useMyGymStore();
   const [isOpen, setIsOpen] = useState(false);
-
   const addItem = (item) => {
     console.log(`${item.name} 추가`);
 
@@ -27,28 +24,25 @@ const MyGymItem = ({ setItems }) => {
     // const { items, setItems } = useMyGymStore.getState();
 
     // (간단) Zustand에서 현재 items 가져옴
-    const { items } = useMyGymStore.getState();
 
     // 중복 체크(예: name)
-    if (items.some((prev) => prev.name === item.name && !prev.deleted)) {
+    if (myGym.places.some((prev) => prev.name === item.name && !prev.deleted)) {
       alert(`이미 '${item.name}'가(이) 배치되었습니다!`);
       return;
     }
 
     // 새 아이템
     const newItem = {
-      id: Date.now() % 1000000000,         // placeId=null → 새 record
       itemId: Math.floor(Math.random() * 1000), // 임시 itemId
-      name: item.name,
       image: item.image,
+      name: item.name,
       x: 160,
       y: 160,
       flipped: false,
       deleted: false,   // 새 아이템은 당연히 삭제X
     };
-
-    const newArr = [...items, newItem];
-    setItems(newArr);
+    const newArr = [...myGym.places, newItem];
+    setMyGym({ ...myGym, places: newArr });
     setIsOpen(false);
   };
 

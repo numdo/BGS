@@ -10,39 +10,48 @@ import MyGymRoomBgColor from "../../components/mygym/MyGymRoomBgColor"
 
 import useUserStore from "../../stores/useUserStore";
 import useMyGymStore from "../../stores/useMyGymStore";
-import { getMygym,updateMygym,getGuestBooks,createGuestBooks } from "../../api/Mygym";
+import { getMygym, updateMygym, getGuestBooks, createGuestBooks } from "../../api/Mygym";
 import { getUser } from "../../api/User";
 
 
 const MyGymPage = () => {
   // 유저 정보
   const { user, setUser } = useUserStore();
-  
-  const {myGym,setMyGym,pageBgColor, setPageBgColor,setWallColor,setItems, updateMyGym} = useMyGymStore();
-  useEffect(()=>{
-    console.log("mygym",myGym)
-  },[myGym])
+  const { myGym, setMyGym, pageBgColor, setPageBgColor, setWallColor, setItems, updateMyGym } = useMyGymStore();
   // Zustand store: 화면배경(pagqeBgColor), 폴리곤색(wallColor), items
 
   // 편집 모드
   const [isEditing, setIsEditing] = useState(false);
   const handleEditMode = () => setIsEditing(true);
   const handleFinishEdit = async () => {
-    const userId = localStorage.getItem("userId");
+    const { nickname, userId, ...obj } = myGym
     console.log("MyGymPage handleFinishEdit -> userId:", userId);
-    await updateMyGym(userId);
+    console.log("mygym:", myGym)
+    console.log("obj", obj)
+    const newPlaces = obj.places.map(item => { const { name, image, flipped, ...restitem } = item; return restitem })
+    const newObj = { ...obj, places: newPlaces }
+    console.log("newObj", newObj)
+    await updateMygym(userId, newObj);
     setIsEditing(false);
   };
 
-  useEffect(()=>{
-    const userId = localStorage.getItem("userId");
-    getMygym(userId).then(MyGym=>setMyGym(MyGym))
-  },[])
+  useEffect(() => {
+    async function enterMygymPage() {
+      const response = await getUser()
+      setUser(response)
+      const userId = user.userId
+      getMygym(userId).then(MyGym => { console.log("mygym res", MyGym); setMyGym(MyGym) })
+    }
+    enterMygymPage()
+  }, [])
 
+  useEffect(() => {
+    console.log("mygym", myGym)
+  }, [myGym])
 
   return (
     // 전체 페이지 배경 → pageBgColor
-    <div style={{ backgroundColor: pageBgColor, minHeight: "100vh" }}>
+    <div style={{ backgroundColor: myGym.backgroundColor, minHeight: "100vh" }}>
       <TopBar />
 
       <div className="flex justify-center items-center">

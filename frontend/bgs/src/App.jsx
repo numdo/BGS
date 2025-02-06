@@ -43,7 +43,6 @@ function App() {
           <Route path="/workoutdiary" element={<WorkoutDiaryPage />} />
           <Route path="/workoutcreate" element={<WorkoutCreatePage />} />
           <Route path="/workoutupdate" element={<WorkoutUpdatePage />} />
-
         </Routes>
       </BrowserRouter>
     </>

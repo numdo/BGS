@@ -3,7 +3,7 @@ import { create } from 'zustand'
 
 const useUserStore = create((set) => ({
     user: {
-        userId:3,
+        userId: 0,
         name: '',
         nickname: '',
         birthDate: '',

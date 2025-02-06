@@ -1,13 +1,26 @@
 // src/components/mygym/MyGymRoomView.jsx
 import React from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
-
+import { useEffect } from "react";
+import { getMygym } from "../../api/Mygym";
+import { getUser } from "../../api/User";
+import useUserStore from "../../stores/useUserStore";
 const MyGymRoomView = () => {
-  const { items, wallColor } = useMyGymStore();
+  const { myGym, setMyGym } = useMyGymStore();
+  const { user, setUser } = useUserStore()
+  useEffect(() => {
+    async function enterMyGymRoomView() {
+      const response = await getUser()
+      setUser(response)
+      const userId = user.userId
+      getMygym(userId).then(MyGym => { console.log("mygym res", MyGym); setMyGym(MyGym) })
+    }
+    enterMyGymRoomView()
+  }, [])
 
   // deleted=false인 아이템만 표시
-  const visibleItems = items.filter((it) => !it.deleted);
-
+  // const visibleItems = myGym.places.filter((it) => !it.deleted);
+  const visibleItems = myGym.places.filter((it) => !it.deleted);
   return (
     // (1) 상위 래퍼: 수직 정렬 & 가운데 정렬
     <div className="relative flex flex-col items-center">
@@ -20,7 +33,7 @@ const MyGymRoomView = () => {
             width: "100%",
             height: "100%",
             clipPath: "polygon(50% 7%, 100% 25%, 100% 60%, 50% 40%, 0% 60%, 0% 25%)",
-            backgroundColor: wallColor,
+            backgroundColor: myGym.wallColor,
             zIndex: 1,
           }}
         />

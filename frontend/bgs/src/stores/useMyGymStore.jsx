@@ -2,16 +2,9 @@
 import { create } from 'zustand'
 import axios from 'axios'
 
-const useMyGymStore = create((set,get) => ({
-  myGym:{},
-  setMyGym : (MyGym)=>set({myGym:MyGym}),
-  pageBgColor: "#FFFFFF",
-  wallColor: "#F5F1D9",
-  items: [],
-
-  setPageBgColor: (color) => set({ pageBgColor: color }),
-  setWallColor: (color) => set({ wallColor: color }),
-  setItems: (newItems) => set({ items: newItems }),
+const useMyGymStore = create((set, get) => ({
+  myGym: { places: [] },
+  setMyGym: (MyGym) => set({ myGym: MyGym }),
 
   // PUT /api/mygyms/{userId}
   updateMyGym: async (userId) => {
