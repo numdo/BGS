@@ -19,6 +19,7 @@ import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
 import SocialSignupPage from "./pages/auth/SocialSignupPage";
 import KakaoRedirectPage from "./pages/auth/KakaoRedirectPage";
 import AdminItemPage from "./pages/admin/AdminItemPage";
+import WorkoutRealtimePage from "./pages/workout/WorkoutRealtimePage"
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
           <Route path="/workoutdiary" element={<WorkoutDiaryPage />} />
           <Route path="/workoutcreate" element={<WorkoutCreatePage />} />
           <Route path="/workoutupdate" element={<WorkoutUpdatePage />} />
+          <Route path="/workoutrealtime" element={<WorkoutRealtimePage />} />
         </Routes>
       </BrowserRouter>
     </>
