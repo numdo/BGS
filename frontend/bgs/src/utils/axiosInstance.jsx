@@ -29,10 +29,8 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      console.log("🔄 AccessToken 만료, RefreshToken으로 재발급 시도");
       const refreshToken = localStorage.getItem("refreshToken");
       if (!refreshToken) {
-        console.error("❌ RefreshToken 없음. 로그인 페이지로 이동");
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         window.location.href = "/login";
@@ -60,7 +58,6 @@ axiosInstance.interceptors.response.use(
           throw new Error("새 AccessToken 헤더가 없습니다.");
         }
       } catch (err) {
-        console.error("🔴 RefreshToken 재발급 실패. 로그인 필요");
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         window.location.href = "/login";
