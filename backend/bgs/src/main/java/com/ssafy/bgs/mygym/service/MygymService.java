@@ -74,6 +74,7 @@ public class MygymService {
             placeResponseDto.setX(place.getX());
             placeResponseDto.setY(place.getY());
             placeResponseDto.setRotated(place.getRotated());
+            placeResponseDto.setDeleted(place.getDeleted());
 
             ImageResponseDto image = imageService.getImage("item", place.getItemId());
             if (image != null) {
