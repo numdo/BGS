@@ -5,7 +5,7 @@ import camera from "../../assets/images/camera.png";
 import { useNavigate } from "react-router-dom";
 import { handleLogout } from "../../utils/logout"; // ✅ handleLogout 함수 불러오기
 import useTokenManager from "../../utils/useTokenManager";
-
+import Shortcut from "../../components/home/Shortcut";
 export default function MainPage() {
   const navigate = useNavigate();
   useTokenManager(); // ✅ 토큰 자동 관리 (만료 체크 + 갱신)
@@ -20,18 +20,11 @@ export default function MainPage() {
             className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
           />
         </div>
-
         <div className="grid grid-cols-2 gap-4 mt-5">
-          <button
-            onClick={() => navigate("/signup")}
-            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
-          >
-            <div className="text-left">
-              <p className="text-xl font-semibold text-gray-800">회원가입</p>
-              <p className="text-lg text-gray-600">바로 하러가기</p>
-            </div>
-          </button>
-
+          <Shortcut onClick={() => navigate("/signup")}>
+            <p className="text-xl font-semibold text-gray-800">회원가입</p>
+            <p className="text-lg text-gray-600">바로 하러가기</p>
+          </Shortcut>
           <button
             onClick={() => navigate("/login")}
             className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
