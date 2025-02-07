@@ -8,7 +8,7 @@ const SocialLogin = () => {
 
   // 카카오 로그인
   const handleKakaoLogin = () => {
-    window.location.href = "http://localhost:8080/api/auth/kakao/login";
+    window.location.href = "https://i12c209.p.ssafy.io/api/auth/kakao/login";
   };
 
   return (
