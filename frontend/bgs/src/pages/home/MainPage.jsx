@@ -1,13 +1,38 @@
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import camera from "../../assets/images/camera.png";
+import AttendanceGrid from "../../components/attendance/AttendanceGrid";
 import { useNavigate } from "react-router-dom";
 import { handleLogout } from "../../api/Auth";
 import Shortcut from "../../components/home/Shortcut";
 
 export default function MainPage() {
   const navigate = useNavigate();
+  const attendanceGridRef = useRef(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // 로그인 상태 확인 (localStorage에 accessToken 존재 여부)
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    setIsLoggedIn(!!token);
+  }, []);
+
+  // 로그아웃 후 로그인 상태 갱신
+  const onLogout = async () => {
+    await handleLogout(navigate);
+    setIsLoggedIn(false);
+  };
+
+  const handleAttendanceCheck = () => {
+    if (
+      attendanceGridRef.current &&
+      attendanceGridRef.current.handleCheckAttendance
+    ) {
+      attendanceGridRef.current.handleCheckAttendance();
+    }
+  };
+
   return (
     <>
       <TopBar />
@@ -20,19 +45,25 @@ export default function MainPage() {
           />
         </div>
         <div className="grid grid-cols-2 gap-4 mt-5">
-          <Shortcut onClick={() => navigate("/signup")}>
-            <p className="text-xl font-semibold text-gray-800">회원가입</p>
-            <p className="text-lg text-gray-600">바로 하러가기</p>
-          </Shortcut>
-          <button
-            onClick={() => navigate("/login")}
+          <Shortcut
+            onClick={() => {
+              if (isLoggedIn) {
+                onLogout();
+              } else {
+                navigate("/login");
+              }
+            }}
             className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
           >
             <div className="text-left">
-              <p className="text-xl font-semibold text-gray-800">로그인</p>
-              <p className="text-lg text-gray-600">하러가기</p>
+              <p className="text-xl font-semibold text-gray-800">
+                {isLoggedIn ? "로그아웃" : "로그인"}
+              </p>
+              <p className="text-lg text-gray-600">
+                {isLoggedIn ? "하기" : "하러가기"}
+              </p>
             </div>
-          </button>
+          </Shortcut>
 
           <button
             onClick={() => navigate("/mygym")}
@@ -74,17 +105,21 @@ export default function MainPage() {
               <p className="text-lg text-gray-600">관리하기</p>
             </div>
           </button>
-        </div>
-      </div>
 
-      {/* ✅ 로그아웃 버튼 (하단에 배치) */}
-      <div className="flex justify-center mt-10 mb-20">
-        <button
-          onClick={() => handleLogout(navigate)} // ✅ handleLogout 함수 실행
-          className="w-1/2 px-4 py-3 bg-red-500 text-white font-semibold rounded-lg shadow hover:bg-red-600 transition-all"
-        >
-          로그아웃
-        </button>
+          <button
+            onClick={handleAttendanceCheck}
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+          >
+            <div className="text-left">
+              <p className="text-xl font-semibold text-gray-800">출석 체크</p>
+              <p className="text-lg text-gray-600">하기</p>
+            </div>
+          </button>
+        </div>
+
+        <div className="mt-6">
+          <AttendanceGrid ref={attendanceGridRef} />
+        </div>
       </div>
 
       <BottomBar />

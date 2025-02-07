@@ -46,13 +46,3 @@ export async function changePassword(passwordData) {
     throw error;
   }
 }
-
-// ✅ 비밀번호 재설정 (이메일로 재설정 요청)
-export async function resetPassword(email) {
-  try {
-    const response = await axiosInstance.post(PASSWORD_RESET_URL, { email });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-}

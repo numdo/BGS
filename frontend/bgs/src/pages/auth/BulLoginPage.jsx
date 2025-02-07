@@ -27,9 +27,9 @@ const BulLoginPage = () => {
 
     try {
       const response = await login({ email, password });
-
+      console.log("🔑 로그인 응답:", response);
       // ✅ 임시 비밀번호 여부 확인 후 비밀번호 변경 페이지로 이동
-      if (response.isTemporaryPassword) {
+      if (response) {
         alert("임시 비밀번호로 로그인했습니다. 비밀번호를 변경해주세요.");
         navigate("/change-password");
       } else {
@@ -54,17 +54,13 @@ const BulLoginPage = () => {
         className="absolute top-5 left-5 text-black font-medium p-2 rounded hover:bg-gray-100 flex items-center space-x-2"
       >
         <ArrowLeft size={20} />
-        <span>뒤로가기</span>
       </button>
 
       {/* 페이지 상단: 로고 및 앱 이름 */}
-      <div className="flex items-center justify-center space-x-8 mb-20">
+      <div className="flex flex-col items-center space-y-4 mb-10">
         <img src={logoImage} alt="Logo" className="h-32" />
-        <img src={nameImage} alt="App Name" className="h-15" />
+        <img src={nameImage} alt="Name" className="h-15" />
       </div>
-
-      {/* 제목 */}
-      <h2 className="text-3xl font-bold text-gray-800 mb-14">로그인</h2>
 
       {/* 로그인 입력 폼 */}
       <form className="space-y-3 w-full max-w-md" onSubmit={handleLogin}>
