@@ -6,9 +6,9 @@ import MainPage from "./pages/home/MainPage";
 import MyGymPage from "./pages/mygym/MyGymPage";
 import MyInfoPage from "./pages/myinfo/MyInfoPage";
 import WorkoutPage from "./pages/workout/WorkoutPage";
-import WorkoutDiaryPage from "./pages/workout/WorkoutDiaryPage"
+import WorkoutDiaryPage from "./pages/workout/WorkoutDiaryPage";
 import WorkoutCreatePage from "./pages/workout/WorkoutCreatePage";
-import WorkoutUpdatePage from "./pages/workout/WorkoutUpdatePage"
+import WorkoutUpdatePage from "./pages/workout/WorkoutUpdatePage";
 import FeedPage from "./pages/feed/FeedPage";
 import FeedDetailPage from "./pages/feed/FeedDetailPage"
 import BullLoginPage from "./pages/auth/BulLoginPage";
@@ -32,7 +32,11 @@ function App() {
           <Route path="/user-details" element={<UserDetailsPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
-          <Route path="/login/oauth2/success" element={<SocialRedirectPage />} />
+          <Route path="/login/oauth2/success" element={<KakaoRedirectPage />} />
+          <Route
+            path="/login/oauth2/code/google"
+            element={<GoogleRedirectPage />}
+          />
           <Route path="/social-signup" element={<SocialSignupPage />} />
           <Route path="/mygym" element={<MyGymPage />} />
           <Route path="/admin-item" element={<AdminItemPage />} />

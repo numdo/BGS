@@ -1,13 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 // ✅ 토큰 유효성 검사 및 자동 갱신 훅
 const useTokenManager = () => {
   const navigate = useNavigate();
+  const isTokenChecked = useRef(false); // ✅ 중복 실행 방지
 
-  // ✅ 토큰 유효성 검사 및 갱신 함수
   const checkAndRefreshToken = async () => {
+    if (isTokenChecked.current) return; // ✅ 이미 실행된 경우 다시 실행하지 않음
+    isTokenChecked.current = true; // ✅ 첫 실행 이후에는 실행 안 하도록 설정
+
     const accessToken = localStorage.getItem("accessToken");
     const refreshToken = localStorage.getItem("refreshToken");
 
@@ -18,7 +21,6 @@ const useTokenManager = () => {
     }
 
     try {
-      // ✅ AccessToken이 유효한지 확인 (API 요청)
       await axios.get("https://i12c209.p.ssafy.io/api/users/me", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -30,12 +32,9 @@ const useTokenManager = () => {
         try {
           const res = await axios.post(
             "https://i12c209.p.ssafy.io/api/users/refresh-token",
-            {
-              refreshToken,
-            }
+            { refreshToken }
           );
 
-          // ✅ 새 AccessToken 저장
           localStorage.setItem("accessToken", res.data.accessToken);
           console.log("✅ AccessToken 갱신 성공");
         } catch (err) {
@@ -48,7 +47,6 @@ const useTokenManager = () => {
     }
   };
 
-  // ✅ 로그아웃 함수
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
@@ -56,7 +54,6 @@ const useTokenManager = () => {
     navigate("/login");
   };
 
-  // ✅ 페이지 로드 시 토큰 체크 + 주기적인 체크 (10분마다)
   useEffect(() => {
     checkAndRefreshToken();
     const interval = setInterval(checkAndRefreshToken, 10 * 60 * 1000);

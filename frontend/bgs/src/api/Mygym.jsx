@@ -90,6 +90,7 @@ export async function updateMygym(userId, object) {
   }
 }
 
+// ✅ 방명록 조회
 export async function getGuestBooks(userId) {
   try {
     const response = await axios.get(BASE_URL + `api/mygyms/${userId}/guestbooks`, {
