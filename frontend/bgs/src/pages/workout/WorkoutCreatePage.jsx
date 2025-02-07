@@ -13,12 +13,17 @@ export default function WorkoutCreatePage() {
     workoutDate: new Date().toISOString().split('T')[0],
     content: '',
     allowedScope: 'A',
-    hashtags: ['운동일지', '헬스'],
+    hashtags: [],
     diaryWorkouts: [],
   });
 
-  // 📋 운동 목록 (DB에서 가져옴)
-  const [workoutList, setWorkoutList] = useState([]);
+  // 📋 운동 목록 (전체와 검색결과를 분리)
+  const [allWorkoutList, setAllWorkoutList] = useState([]); // 전체 목록 저장
+  const [workoutList, setWorkoutList] = useState([]); // 현재 보여줄 목록
+
+  // 이전 기록 및 최근 운동 상태 (API에서 받아옴, 각각 최대5개, 20개)
+  const [previousRecords, setPreviousRecords] = useState([]);
+  const [recentExercises, setRecentExercises] = useState([]);
 
   // 📸 이미지 업로드 관련
   const [file, setFile] = useState(null);
@@ -47,31 +52,47 @@ export default function WorkoutCreatePage() {
   const [gptResult, setGptResult] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // 해시태그 입력 상태
+  const [newHashtag, setNewHashtag] = useState('');
+
   //--------------------------------------------------
-  // 1) 운동 목록 불러오기
+  // 1) 운동 목록, 이전 기록, 최근 운동 불러오기
   //--------------------------------------------------
   useEffect(() => {
     axios
       .get('http://localhost:8080/api/diaries/workout')
-      .then((res) => setWorkoutList(res.data))
+      .then((res) => {
+        setAllWorkoutList(res.data);
+        setWorkoutList(res.data);
+      })
       .catch((err) => console.error('🚨 운동 목록 불러오기 실패:', err));
+
+    // 이전 기록 (최대 5개)
+    axios
+      .get('http://localhost:8080/api/diaries/workout/previous?limit=5')
+      .then((res) => setPreviousRecords(res.data))
+      .catch((err) => console.error('🚨 이전 기록 불러오기 실패:', err));
+
+    // 최근 운동 (최대 20개)
+    axios
+      .get('http://localhost:8080/api/diaries/workout/recent?limit=20')
+      .then((res) => setRecentExercises(res.data))
+      .catch((err) => console.error('🚨 최근 운동 불러오기 실패:', err));
   }, []);
 
   //--------------------------------------------------
-  // 2) 검색 API 호출
+  // 2) 검색 API 호출 (전체 목록에서 검색해서 workoutList만 업데이트)
   //--------------------------------------------------
   const handleSearch = (keyword) => {
     setSearchKeyword(keyword);
     if (keyword.trim() === '') {
-      axios
-        .get('http://localhost:8080/api/diaries/workout')
-        .then((res) => setWorkoutList(res.data))
-        .catch((err) => console.error('🚨 운동 목록 불러오기 실패:', err));
+      setWorkoutList(allWorkoutList);
     } else {
-      axios
-        .get(`http://localhost:8080/api/diaries/workout/search?keyword=${keyword}`)
-        .then((res) => setWorkoutList(res.data))
-        .catch((err) => console.error('🚨 운동 검색 실패:', err));
+      // 클라이언트 사이드 검색 (원하는 경우 API 호출로 변경 가능)
+      const filtered = allWorkoutList.filter((workout) =>
+        workout.workoutName.toLowerCase().includes(keyword.toLowerCase())
+      );
+      setWorkoutList(filtered);
     }
   };
 
@@ -184,26 +205,18 @@ export default function WorkoutCreatePage() {
         audioChunksRef.current = [];
         setRecordStartTime(Date.now());
 
-        recorder.onstart = () => {
-          console.log('녹음 시작');
-        };
         recorder.ondataavailable = (event) => {
-          console.log('ondataavailable, 크기:', event.data.size);
           audioChunksRef.current.push(event.data);
         };
 
-        // onstop 이벤트 핸들러 등록
         recorder.onstop = async () => {
           const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-          console.log('🔍 녹음된 오디오 크기:', audioBlob.size, 'bytes');
-
           const duration = Date.now() - recordStartTime;
           if (duration < 2000 || audioBlob.size < 5000) {
-            console.log('녹음된 오디오가 너무 짧아서 STT 요청을 취소합니다.');
+            console.error('녹음이 너무 짧습니다.');
             return;
           }
 
-          // STT & GPT 요청
           setIsLoading(true);
           try {
             const formData = new FormData();
@@ -216,18 +229,16 @@ export default function WorkoutCreatePage() {
               { headers: { 'Content-Type': 'multipart/form-data' } }
             );
 
-            console.log('🎙 STT 결과:', response.data.sttResult);
-            console.log('🤖 GPT 분석 결과:', response.data.gptResult);
-
-            setSttResult(response.data.sttResult);
-            setGptResult(response.data.gptResult);
+            // 기존 운동 유지 + 음성으로 추가된 운동 병합
             setDiary((prevDiary) => ({
               ...prevDiary,
-              diaryWorkouts: response.data.diaryWorkouts || [],
+              diaryWorkouts: [
+                ...prevDiary.diaryWorkouts,
+                ...(response.data.diaryWorkouts || []),
+              ],
             }));
           } catch (err) {
-            console.error('🚨 STT 처리 오류:', err);
-            alert('음성 변환 중 오류 발생!');
+            console.error('음성 처리 실패:', err);
           }
           setIsLoading(false);
         };
@@ -235,11 +246,9 @@ export default function WorkoutCreatePage() {
         recorder.start();
         setIsRecording(true);
       } catch (error) {
-        console.error('🚨 마이크 접근 오류:', error);
-        alert('마이크 권한을 허용해주세요!');
+        console.error('마이크 접근 오류:', error);
       }
     } else {
-      // 녹음 중지
       mediaRecorder.stop();
       setIsRecording(false);
     }
@@ -284,50 +293,55 @@ export default function WorkoutCreatePage() {
   };
 
   // 9) 운동일지 저장
-const handleDiarySubmit = async (e) => {
-  e.preventDefault();
-  // ✅ token 변수를 try 바깥에서 선언
-  const token = localStorage.getItem("accessToken");
+  const handleDiarySubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('accessToken');
 
-  if (!token) {
-    alert("로그인이 필요합니다.");
-    navigate("/login");
-    return;
-  }
-  // FormData 객체 생성
-  const formData = new FormData();
-  
-  // diary 객체를 JSON 문자열로 변환 후 Blob으로 추가 (백엔드에서 @RequestPart("diary")로 받음)
-  formData.append('diary', new Blob([JSON.stringify(diary)], { type: 'application/json' }));
-  
-  // 파일이 존재한다면 추가 (files 부분은 백엔드에서 Optional로 처리)
-  if (file) {
-    formData.append('files', file);
-  }
-  
-  try {
-    const response = await axios.post("http://localhost:8080/api/diaries", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        "Authorization": `Bearer ${token}`, // ✅ JWT 토큰 추가
-      },
-      withCredentials: true,
-    });
-    alert('✅ 운동 데이터 저장 완료!');
-    navigate('/workout');
-  } catch (error) {
-    console.error("❌ 저장 오류:", error);
-    if (error.response && error.response.status === 401) {
-      alert("로그인이 필요합니다.");
-      navigate("/login");
-    } else {
-      alert("🚨 저장 실패!");
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      navigate('/login');
+      return;
     }
-  }
-};
+    const formData = new FormData();
+    formData.append('diary', new Blob([JSON.stringify(diary)], { type: 'application/json' }));
+    if (file) {
+      formData.append('files', file);
+    }
+    try {
+      const response = await axios.post('http://localhost:8080/api/diaries', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+        withCredentials: true,
+      });
+      alert('✅ 운동 데이터 저장 완료!');
+      navigate('/workout');
+    } catch (error) {
+      console.error('❌ 저장 오류:', error);
+      if (error.response && error.response.status === 401) {
+        alert('로그인이 필요합니다.');
+        navigate('/login');
+      } else {
+        alert('🚨 저장 실패!');
+      }
+    }
+  };
 
+  //--------------------------------------------------
+  // 10) 해시태그 추가
+  //--------------------------------------------------
+  const handleAddHashtag = () => {
+    if (newHashtag.trim() && !diary.hashtags.includes(newHashtag)) {
+      setDiary((prevDiary) => ({
+        ...prevDiary,
+        hashtags: [...prevDiary.hashtags, newHashtag.trim()],
+      }));
+      setNewHashtag('');
+    }
+  };
 
-  // 모달에서 필터링된 운동 목록
+  // 모달에서 필터링된 운동 목록 (검색된 workoutList에 추가로 필터 적용)
   const filteredWorkoutList = workoutList.filter((workout) => {
     return (
       (selectedPartFilter === '' || workout.part === selectedPartFilter) &&
@@ -335,13 +349,13 @@ const handleDiarySubmit = async (e) => {
     );
   });
 
-  // 운동 목록에서 고유의 부위와 기구 추출 (필터 버튼용)
-  const uniqueParts = [...new Set(workoutList.map((w) => w.part))];
-  const uniqueTools = [...new Set(workoutList.map((w) => w.tool))];
+  // 필터 버튼용: 고유의 부위와 기구 (전체 목록 기준)
+  const uniqueParts = [...new Set(allWorkoutList.map((w) => w.part))];
+  const uniqueTools = [...new Set(allWorkoutList.map((w) => w.tool))];
 
   // Helper: workoutId에 해당하는 운동 이름 반환
   const getWorkoutName = (workoutId) => {
-    const workoutObj = workoutList.find((w) => w.workoutId === workoutId);
+    const workoutObj = allWorkoutList.find((w) => w.workoutId === workoutId);
     return workoutObj ? workoutObj.workoutName : workoutId;
   };
 
@@ -360,12 +374,12 @@ const handleDiarySubmit = async (e) => {
           />
         </div>
 
-        {/* 운동 추가와 음성 운동 추가 버튼 (같은 줄) */}
+        {/* 운동 추가와 음성 운동 추가 버튼 (한 줄에서 각각 1/2씩 차지) */}
         <div className="flex items-center space-x-4 mt-4">
-          <button onClick={openModal} className="p-2 bg-gray-500 text-white rounded">
-            운동 추가
+          <button onClick={openModal} className="w-1/2 p-2 bg-gray-500 text-white rounded">
+            🏋️‍♂️ 운동 추가
           </button>
-          <button onClick={handleRecordButton} className="p-2 bg-blue-500 text-white rounded">
+          <button onClick={handleRecordButton} className="w-1/2 p-2 bg-blue-500 text-white rounded">
             {isRecording ? '⏹ 녹음 중... (클릭 시 종료)' : '🎤 음성 운동 추가'}
           </button>
         </div>
@@ -381,9 +395,7 @@ const handleDiarySubmit = async (e) => {
                 <span className="mr-2 font-semibold">부위: </span>
                 <button
                   onClick={() => setSelectedPartFilter('')}
-                  className={`mr-2 px-2 py-1 border rounded ${
-                    selectedPartFilter === '' ? 'bg-blue-500 text-white' : ''
-                  }`}
+                  className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === '' ? 'bg-blue-500 text-white' : ''}`}
                 >
                   전체
                 </button>
@@ -391,9 +403,7 @@ const handleDiarySubmit = async (e) => {
                   <button
                     key={part}
                     onClick={() => setSelectedPartFilter(part)}
-                    className={`mr-2 px-2 py-1 border rounded ${
-                      selectedPartFilter === part ? 'bg-blue-500 text-white' : ''
-                    }`}
+                    className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === part ? 'bg-blue-500 text-white' : ''}`}
                   >
                     {part}
                   </button>
@@ -405,9 +415,7 @@ const handleDiarySubmit = async (e) => {
                 <span className="mr-2 font-semibold">기구: </span>
                 <button
                   onClick={() => setSelectedToolFilter('')}
-                  className={`mr-2 px-2 py-1 border rounded ${
-                    selectedToolFilter === '' ? 'bg-blue-500 text-white' : ''
-                  }`}
+                  className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === '' ? 'bg-blue-500 text-white' : ''}`}
                 >
                   전체
                 </button>
@@ -415,9 +423,7 @@ const handleDiarySubmit = async (e) => {
                   <button
                     key={tool}
                     onClick={() => setSelectedToolFilter(tool)}
-                    className={`mr-2 px-2 py-1 border rounded ${
-                      selectedToolFilter === tool ? 'bg-blue-500 text-white' : ''
-                    }`}
+                    className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === tool ? 'bg-blue-500 text-white' : ''}`}
                   >
                     {tool}
                   </button>
@@ -433,8 +439,34 @@ const handleDiarySubmit = async (e) => {
                 onChange={(e) => handleSearch(e.target.value)}
               />
 
+              {/* 이전 기록 (최대 5개) */}
+              <div className="mt-4">
+                <h3 className="text-lg font-bold">이전 기록</h3>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                  {previousRecords.map((record) => (
+                    <div key={record.id} className="p-2 border-b">
+                      <p className="text-sm">
+                        {record.workoutDate} - {record.workoutName} ({record.part})
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 최근 운동 (최대 20개) */}
+              <div className="mt-4">
+                <h3 className="text-lg font-bold">최근 운동</h3>
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {recentExercises.map((exercise) => (
+                    <div key={exercise.id} className="p-2 border-b">
+                      <p className="text-sm">{exercise.workoutName}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* 운동 리스트 (필터링 적용) */}
-              <div className="space-y-2 max-h-60 overflow-y-auto">
+              <div className="space-y-2 max-h-60 overflow-y-auto mt-4">
                 {filteredWorkoutList.map((workout) => (
                   <div
                     key={workout.workoutId}
@@ -458,16 +490,10 @@ const handleDiarySubmit = async (e) => {
 
               {/* 하단 버튼 */}
               <div className="mt-4 flex justify-end space-x-2">
-                <button
-                  onClick={closeModal}
-                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                >
+                <button onClick={closeModal} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
                   취소
                 </button>
-                <button
-                  onClick={handleWorkoutSelection}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
+                <button onClick={handleWorkoutSelection} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                   추가 완료
                 </button>
               </div>
@@ -483,7 +509,7 @@ const handleDiarySubmit = async (e) => {
         <h3 className="mt-2">🤖 GPT 분석 결과</h3>
         <p>{gptResult || '-'}</p>
 
-        {/* 추가된 운동 목록 - 각 운동 세트의 무게, 횟수, 운동시간 수정 및 세트 추가/세트 삭제 */}
+        {/* 추가된 운동 목록 - 각 운동 세트 정보 수정, 세트 추가/삭제 */}
         <div className="mt-4">
           {diary.diaryWorkouts.map((workout, index) => (
             <div key={index} className="border p-2 rounded mb-2">
@@ -491,10 +517,10 @@ const handleDiarySubmit = async (e) => {
                 <h2>{getWorkoutName(workout.workoutId)}</h2>
                 <div className="flex space-x-2">
                   <button onClick={() => handleAddSet(index)} className="px-2 py-1 bg-green-500 text-white rounded">
-                    세트 추가
+                    +
                   </button>
                   <button onClick={() => handleDeleteWorkout(index)} className="px-2 py-1 bg-red-500 text-white rounded">
-                    운동 삭제
+                    🗑️
                   </button>
                 </div>
               </div>
@@ -534,7 +560,7 @@ const handleDiarySubmit = async (e) => {
                     />
                   </div>
                   <button onClick={() => handleDeleteSet(index, setIndex)} className="px-2 py-1 bg-red-300 text-white rounded">
-                    세트 삭제
+                    🗑️
                   </button>
                 </div>
               ))}
@@ -566,6 +592,27 @@ const handleDiarySubmit = async (e) => {
           onChange={(e) => setDiary({ ...diary, content: e.target.value })}
           placeholder="운동일지 내용을 입력하세요."
         />
+
+        {/* 해시태그 추가 */}
+        <div className="mt-4">
+          <input
+            type="text"
+            className="p-2 border rounded"
+            value={newHashtag}
+            onChange={(e) => setNewHashtag(e.target.value)}
+            placeholder="해시태그 입력"
+          />
+          <button onClick={handleAddHashtag} className="p-2 bg-blue-500 text-white rounded ml-2">
+            추가
+          </button>
+        </div>
+        <div className="mt-2">
+          {diary.hashtags.map((tag, index) => (
+            <span key={index} className="p-1 bg-gray-200 rounded-full text-sm mr-2">
+              #{tag}
+            </span>
+          ))}
+        </div>
 
         {/* 공개 범위 설정 */}
         <div className="mt-2">
