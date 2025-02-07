@@ -21,9 +21,18 @@ const useTokenManager = () => {
     }
 
     try {
-      await axios.get("https://i12c209.p.ssafy.io/api/users/me", {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
+      const response = await axios.get(
+        "https://i12c209.p.ssafy.io/api/users/me",
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          validateStatus: (status) => status < 500, // ✅ 302 오류 감지 방지
+        }
+      );
+
+      if (response.status === 302) {
+        console.error("❌ 302 Redirect 감지됨. OAuth 로그인으로 이동 방지.");
+        return;
+      }
 
       console.log("✅ 토큰 유효");
     } catch (error) {
@@ -31,7 +40,7 @@ const useTokenManager = () => {
         console.warn("🔄 AccessToken 만료. RefreshToken으로 재발급 시도");
         try {
           const res = await axios.post(
-            "https://i12c209.p.ssafy.io/api/users/refresh-token",
+            "https://i12c209.p.ssafy.io/api/auth/refresh-token",
             { refreshToken }
           );
 
@@ -48,15 +57,18 @@ const useTokenManager = () => {
   };
 
   const handleLogout = () => {
+    console.warn("🚀 로그아웃 처리 중...");
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+
+    // ✅ 구글 OAuth가 아닌 기본 로그인 페이지로 이동
     alert("로그아웃 되었습니다.");
     navigate("/login");
   };
 
   useEffect(() => {
     checkAndRefreshToken();
-    const interval = setInterval(checkAndRefreshToken, 10 * 60 * 1000);
+    const interval = setInterval(checkAndRefreshToken, 5 * 1000);
     return () => clearInterval(interval);
   }, []);
 
