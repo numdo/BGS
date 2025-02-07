@@ -30,7 +30,7 @@ export default function BottomBar() {
             <span className="text-sm">마이짐</span>
           </button>
           <button
-            onClick={() => navigate('/feed')}
+            onClick={() => navigate('/feeds')}
             className="flex flex-col items-center text-gray-600 hover:text-blue-500">
             <img src={FeedLogo} alt="Feed" className="w-5 h-5" />
             <span className="text-sm">피드</span>

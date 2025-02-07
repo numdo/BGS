@@ -10,7 +10,8 @@ import WorkoutDiaryPage from "./pages/workout/WorkoutDiaryPage";
 import WorkoutCreatePage from "./pages/workout/WorkoutCreatePage";
 import WorkoutUpdatePage from "./pages/workout/WorkoutUpdatePage";
 import FeedPage from "./pages/feed/FeedPage";
-import FeedDetailPage from "./pages/feed/FeedDetailPage";
+import DiaryDetailPage from "./pages/feed/DiaryDetailPage";
+import EvaluationDetailPage from "./pages/feed/EvaluationDetailPage"
 import BullLoginPage from "./pages/auth/BulLoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import UserDetailsPage from "./pages/auth/UserDetailsPage";
@@ -36,8 +37,9 @@ function App() {
           <Route path="/social-signup" element={<SocialSignupPage />} />
           <Route path="/mygym" element={<MyGymPage />} />
           <Route path="/admin-item" element={<AdminItemPage />} />
-          <Route path="/feed" element={<FeedPage />} />
-          <Route path="/feed/:diaryId" element={<FeedDetailPage />} />
+          <Route path="/feeds" element={<FeedPage />} />
+          <Route path="/feeds/diary/:diaryId" element={<DiaryDetailPage />} />
+          <Route path="/feeds/evaluation/:evaluationId" element={<EvaluationDetailPage />} />
           <Route path="/myinfo" element={<MyInfoPage />} />
           <Route path="/workout" element={<WorkoutPage />} />
           <Route path="/workoutdiary" element={<WorkoutDiaryPage />} />

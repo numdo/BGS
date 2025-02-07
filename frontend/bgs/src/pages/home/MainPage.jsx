@@ -62,7 +62,7 @@ export default function MainPage() {
           </button>
 
           <button
-            onClick={() => navigate("/feed")}
+            onClick={() => navigate("/feeds")}
             className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
           >
             <div className="text-left">
