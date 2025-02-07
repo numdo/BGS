@@ -76,7 +76,7 @@ public class AuthController {
 
         // **추가**: JWT 토큰을 Response Header에 담아서 내려주기
         // 프론트엔드로 전달할 URL (예시: 프론트엔드의 특정 라우터 주소)
-        String frontRedirectUrl = "http://localhost:5173/auth/kakao/callback";
+        String frontRedirectUrl = "https://i12c209.p.ssafy.io/auth/kakao/callback";
 
         // 토큰을 URL 파라미터(혹은 fragment)로 붙여서 전달 (여기서는 fragment 예시)
         String redirectUrl = frontRedirectUrl
