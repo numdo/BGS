@@ -3,12 +3,10 @@ import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import camera from "../../assets/images/camera.png";
 import { useNavigate } from "react-router-dom";
-import { handleLogout } from "../../utils/logout"; // ✅ handleLogout 함수 불러오기
-import useTokenManager from "../../utils/useTokenManager";
+import { handleLogout } from "../../api/Auth";
 
 export default function MainPage() {
   const navigate = useNavigate();
-  useTokenManager(); // ✅ 토큰 자동 관리 (만료 체크 + 갱신)
   return (
     <>
       <TopBar />
@@ -70,6 +68,16 @@ export default function MainPage() {
             <div className="text-left">
               <p className="text-xl font-semibold text-gray-800">피드</p>
               <p className="text-lg text-gray-600">보러가기</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => navigate("/admin-item")}
+            className="flex items-center p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+          >
+            <div className="text-left">
+              <p className="text-xl font-semibold text-gray-800">아이템</p>
+              <p className="text-lg text-gray-600">관리하기</p>
             </div>
           </button>
         </div>

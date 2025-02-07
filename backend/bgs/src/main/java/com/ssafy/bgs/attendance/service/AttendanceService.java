@@ -1,6 +1,7 @@
 package com.ssafy.bgs.attendance.service;
 
 import com.ssafy.bgs.attendance.dto.request.AttendanceCheckRequestDto;
+import com.ssafy.bgs.attendance.dto.response.AttendanceCheckResponseDto;
 import com.ssafy.bgs.attendance.entity.Attendance;
 import com.ssafy.bgs.attendance.repository.AttendanceRepository;
 import com.ssafy.bgs.gym.entity.Gym;
@@ -11,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -70,5 +72,20 @@ public class AttendanceService {
                 * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
+    }
+
+    public List<AttendanceCheckResponseDto> getCurrentMonthAttendance(Integer userId) {
+        // 현재 날짜를 기준으로 현재 달의 시작일과 종료일 계산
+        LocalDate now = LocalDate.now();
+        LocalDate startDate = now.withDayOfMonth(1);
+        LocalDate endDate = now.withDayOfMonth(now.lengthOfMonth());
+
+        return attendanceRepository.findAttendancesBetweenDatesAndUser(userId, startDate, endDate);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AttendanceCheckResponseDto> getAttendanceByDate(Integer userId, LocalDate date) {
+        // 시작일과 종료일을 동일하게 전달하여 특정 날짜의 출석 정보 조회
+        return attendanceRepository.findAttendancesBetweenDatesAndUser(userId, date, date);
     }
 }

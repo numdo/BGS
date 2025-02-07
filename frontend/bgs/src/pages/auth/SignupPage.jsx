@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { sendEmailVerify, receiveEmailVerify } from "../../api/Auth"; // ✅ API 함수 불러오기
+import { ArrowLeft } from "lucide-react";
 import logo_image from "../../assets/images/logo_image.png";
 import name_image from "../../assets/images/name.png";
-import axios from "axios";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -22,99 +23,36 @@ const SignupPage = () => {
   };
 
   const isPasswordValid = () => {
-    const { password } = formData;
     return (
-      /[a-z]/.test(password) &&
-      /[A-Z]/.test(password) &&
-      /\d/.test(password) &&
-      /[!@#$%^&*]/.test(password) &&
-      password.length >= 10
+      /[a-z]/.test(formData.password) &&
+      /[A-Z]/.test(formData.password) &&
+      /\d/.test(formData.password) &&
+      /[!@#$%^&*(),.?":{}|<>]/.test(formData.password) &&
+      formData.password.length >= 10
     );
   };
 
-  // 이메일 인증 코드 발송
-  const handleSendEmail = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      const response = await axios.post(
-        "https://i12c209.p.ssafy.io/api/users/email-verification",
-        null,
-        {
-          params: { email: formData.email },
-        }
-      );
-      if (response.status === 200) {
-        setIsEmailSent(true);
-        alert("인증번호가 발송되었습니다.");
-      }
-    } catch (err) {
-      if (err.response?.status === 400) {
-        setError("인증 코드 전송 중 오류가 발생했습니다.");
-      } else {
-        setError("CORS 오류 또는 네트워크 문제로 인해 요청이 실패했습니다.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 인증 코드 확인
-  const handleVerifyCode = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      const response = await axios.post(
-        "https://i12c209.p.ssafy.io/api/users/verify-code",
-        null,
-        {
-          params: {
-            email: formData.email,
-            code: formData.verificationCode,
-          },
-        }
-      );
-      if (response.status === 200) {
-        setIsVerified(true);
-        alert("인증이 완료되었습니다.");
-      }
-    } catch (err) {
-      if (err.response?.status === 400) {
-        setError("인증번호가 잘못되었습니다. 다시 확인해주세요.");
-      } else {
-        setError("인증 과정에서 문제가 발생했습니다.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 회원가입 1단계 완료 → 다음 페이지로 이동
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // 이메일 인증 완료 & 비밀번호 유효성 검증
-    if (isVerified && isPasswordValid()) {
-      // 입력한 이메일, 비밀번호를 가지고 user-details 페이지로 이동
-      navigate("/user-details", {
-        state: { email: formData.email, password: formData.password },
-      });
-    } else {
-      alert("모든 조건을 만족시켜주세요.");
-    }
-  };
-
   return (
-    <div className="flex flex-col items-center justify-evenly h-screen bg-white p-6">
+    <div className="flex flex-col items-center justify-center h-screen bg-white px-10 py-16">
+      {/* 뒤로가기 버튼 */}
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute top-5 left-5 text-black font-medium p-2 rounded hover:bg-gray-100 flex items-center space-x-2"
+      >
+        <ArrowLeft size={20} />
+        <span>뒤로가기</span>
+      </button>
+
       {/* 로고 영역 */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-4 mb-10">
         <img src={logo_image} alt="Logo" className="h-32" />
         <img src={name_image} alt="Name" className="h-15" />
       </div>
 
-      <h2 className="text-4xl font-bold mb-4">회원가입</h2>
+      <h2 className="text-3xl font-bold text-gray-800 mb-6">회원가입</h2>
 
-      <form className="space-y-4 w-full max-w-md" onSubmit={handleSubmit}>
-        {/* 이메일 입력 */}
+      {/* 이메일 입력 및 인증 */}
+      <form className="space-y-3 w-full max-w-md">
         <div className="flex items-center space-x-2">
           <input
             name="email"
@@ -122,42 +60,19 @@ const SignupPage = () => {
             placeholder="이메일"
             value={formData.email}
             onChange={handleChange}
-            className="w-full p-2 border rounded border-black drop-shadow-lg focus:ring focus:ring-blue-300"
+            className="w-full p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-blue-300 text-base"
           />
-          <button
-            type="button"
-            onClick={handleSendEmail}
-            className={`w-24 p-2 rounded ${formData.email
-              ? "bg-blue-500 text-white hover:bg-blue-600"
-              : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
-              }`}
-            disabled={loading || !formData.email}
-          >
-            {loading ? "발송 중..." : "발송"}
-          </button>
         </div>
 
-        {/* 인증번호 입력 */}
         <div className="flex items-center space-x-2">
           <input
             name="verificationCode"
             placeholder="인증번호"
             value={formData.verificationCode}
             onChange={handleChange}
-            className="w-full p-2 border rounded border-black drop-shadow-lg focus:ring focus:ring-blue-300"
+            className="w-full p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-blue-300 text-base"
             disabled={!isEmailSent}
           />
-          <button
-            type="button"
-            onClick={handleVerifyCode}
-            className={`w-24 p-2 rounded ${formData.verificationCode
-              ? "bg-green-500 text-white hover:bg-green-600"
-              : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
-              }`}
-            disabled={!formData.verificationCode || isVerified}
-          >
-            인증
-          </button>
         </div>
 
         {/* 비밀번호 입력 */}
@@ -167,26 +82,30 @@ const SignupPage = () => {
           placeholder="비밀번호"
           value={formData.password}
           onChange={handleChange}
-          className="w-full p-2 border rounded border-black drop-shadow-lg focus:ring focus:ring-blue-300"
+          className="w-full p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-blue-300 text-base"
         />
-        <p className="text-gray-500 text-sm">
-          - 대소문자, 숫자, 특수문자를 포함하고 10자리 이상으로 설정해주세요.
+        <p className="text-gray-500 text-sm mb-6 text-center">
+          새로운 비밀번호는 10자 이상이어야 하며, 대문자, 소문자, 숫자,
+          특수문자를 포함해야 합니다.
         </p>
 
-        {/* 에러 메시지 표시 */}
-        {error && <p className="text-red-500">{error}</p>}
+        {/* 오류 메시지 */}
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
-        {/* 계속하기 버튼 */}
-        <button
-          type="submit"
-          className={`w-full p-3 rounded ${isVerified && isPasswordValid()
-            ? "bg-blue-500 text-white hover:bg-blue-600"
-            : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
+        {/* 회원가입 버튼 */}
+        <div className="mt-16 w-full max-w-md">
+          <button
+            type="submit"
+            className={`w-full p-3 rounded-lg text-base font-semibold transition ${
+              isVerified && isPasswordValid()
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
             }`}
-          disabled={!isVerified || !isPasswordValid()}
-        >
-          계속하기
-        </button>
+            disabled={!isVerified || !isPasswordValid()}
+          >
+            회원가입
+          </button>
+        </div>
       </form>
     </div>
   );

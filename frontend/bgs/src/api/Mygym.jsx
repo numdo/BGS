@@ -1,6 +1,7 @@
+// src/api/Mygym.jsx
 import axios from "axios";
 const BASE_URL = "https://i12c209.p.ssafy.io/";
-
+// 사용자ID 받아 해당 사용자의 마이짐의 정보 GET요청
 export async function getMygym(userId) {
   try {
     const token = localStorage.getItem("accessToken")
@@ -9,6 +10,7 @@ export async function getMygym(userId) {
         Authorization: `Bearer ${token}`
       }
     })
+    console.log(response)
     return response.data
   } catch (error) {
     throw error;
@@ -70,6 +72,8 @@ export async function getMygym(userId) {
 //       }
 //     ]
 // }  
+// 마이짐정보 아이템,배경색,polygon색, PUT요청 서버에 업데이트,
+// 업데이트 전, handleFinishEdit에서 불필요한 필드를 제거한 후 객체 전송
 export async function updateMygym(userId, object) {
   try {
     const token = localStorage.getItem("accessToken")
@@ -79,13 +83,14 @@ export async function updateMygym(userId, object) {
         Authorization: `Bearer ${token}`
       }
     })
-    console.log("mygym update")
+    console.log("mygym update",response)
     return response.data
   } catch (error) {
     throw error;
   }
 }
 
+// ✅ 방명록 조회
 export async function getGuestBooks(userId) {
   try {
     const response = await axios.get(BASE_URL + `api/mygyms/${userId}/guestbooks`, {

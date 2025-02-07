@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { resetPassword } from "../../api/User"; // ✅ API 함수 불러오기
+import { ArrowLeft } from "lucide-react";
 import logoImage from "../../assets/images/logo_image.png";
 import nameImage from "../../assets/images/name.png";
 
@@ -18,24 +19,18 @@ const ForgotPasswordPage = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "https://i12c209.p.ssafy.io/api/users/reset-password",
-        { email },
-        { headers: { "Content-Type": "application/json" } }
-      );
-
+      const response = await resetPassword(email); // ✅ API 함수 사용
       setMessage(
-        response.data.message ||
-        "비밀번호 재설정 링크가 이메일로 전송되었습니다."
+        response.message || "비밀번호 재설정 링크가 이메일로 전송되었습니다."
       );
-      setTimeout(() => navigate("/login"), 10000); // 10초 후 로그인 페이지로 이동
+      setTimeout(() => navigate("/bullogin"), 5000); // 5초 후 로그인 페이지로 이동
     } catch (err) {
       if (err.response?.status === 400) {
         setError("등록되지 않은 이메일입니다.");
       } else {
         setError(
           err.response?.data?.message ||
-          "비밀번호 재설정 요청 실패. 다시 시도해주세요."
+            "비밀번호 재설정 요청 실패. 다시 시도해주세요."
         );
       }
     } finally {
@@ -45,6 +40,15 @@ const ForgotPasswordPage = () => {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-white px-10 py-24">
+      {/* 뒤로가기 버튼 */}
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute top-5 left-5 text-black font-medium p-2 rounded hover:bg-gray-100 flex items-center space-x-2"
+      >
+        <ArrowLeft size={20} />
+        <span>뒤로가기</span>
+      </button>
+
       {/* ✅ 페이지 상단: 로고 & 앱 이름 (가로 배치) */}
       <div className="flex flex-row items-center space-x-6 mb-16">
         <img src={logoImage} alt="Logo" className="w-28 h-28" />
@@ -80,10 +84,11 @@ const ForgotPasswordPage = () => {
         <button
           type="submit"
           onClick={handleSubmit}
-          className={`w-full p-4 rounded-lg text-lg font-semibold transition ${email && !loading
-            ? "bg-blue-500 text-white hover:bg-blue-600"
-            : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
-            }`}
+          className={`w-full p-4 rounded-lg text-lg font-semibold transition ${
+            email && !loading
+              ? "bg-blue-500 text-white hover:bg-blue-600"
+              : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
+          }`}
           disabled={!email || loading}
         >
           {loading ? "처리 중..." : "임시 비밀번호 발급"}

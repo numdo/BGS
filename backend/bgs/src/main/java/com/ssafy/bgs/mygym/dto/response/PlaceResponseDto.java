@@ -12,5 +12,6 @@ public class PlaceResponseDto {
     private Integer x;
     private Integer y;
     private Boolean rotated;
+    private Boolean deleted;
     private ImageResponseDto image;
 }

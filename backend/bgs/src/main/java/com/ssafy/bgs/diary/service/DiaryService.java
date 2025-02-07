@@ -15,14 +15,15 @@ import com.ssafy.bgs.diary.repository.*;
 import com.ssafy.bgs.image.dto.response.ImageResponseDto;
 import com.ssafy.bgs.image.entity.Image;
 import com.ssafy.bgs.image.service.ImageService;
+import com.ssafy.bgs.user.entity.User;
+import com.ssafy.bgs.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import com.ssafy.bgs.diary.dto.response.PreviousWorkoutResponseDto;
-import com.ssafy.bgs.diary.dto.response.RecentWorkoutResponseDto;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,10 +37,11 @@ public class DiaryService {
     private final HashtagRepository hashtagRepository;
     private final CommentRepository commentRepository;
     private final ImageService imageService;
+    private final UserRepository userRepository;
     private final WorkoutRepository workoutRepository;
 
 
-    public DiaryService(DiaryRepository diaryRepository, DiaryWorkoutRepository diaryWorkoutRepository, WorkoutSetRepository workoutSetRepository, DiaryLikedRepository diaryLikedRepository, HashtagRepository hashtagRepository, CommentRepository commentRepository, ImageService imageService, WorkoutRepository workoutRepository) {
+    public DiaryService(DiaryRepository diaryRepository, DiaryWorkoutRepository diaryWorkoutRepository, WorkoutSetRepository workoutSetRepository, DiaryLikedRepository diaryLikedRepository, HashtagRepository hashtagRepository, CommentRepository commentRepository, ImageService imageService, UserRepository userRepository, WorkoutRepository workoutRepository) {
         this.diaryRepository = diaryRepository;
         this.diaryWorkoutRepository = diaryWorkoutRepository;
         this.workoutSetRepository = workoutSetRepository;
@@ -47,6 +49,7 @@ public class DiaryService {
         this.hashtagRepository = hashtagRepository;
         this.commentRepository = commentRepository;
         this.imageService = imageService;
+        this.userRepository = userRepository;
         this.workoutRepository = workoutRepository;
     }
 
@@ -65,10 +68,17 @@ public class DiaryService {
         }
 
         feedList.forEach(diary -> {
+            // 이미지 목록 조회
             ImageResponseDto image = imageService.getImage("diary", diary.getDiaryId());
             if (image != null) {
                 diary.setImageUrl(imageService.getS3Url(image.getUrl()));
             }
+
+            // 좋아요 수 조회
+            diary.setLikedCount(diaryLikedRepository.countDiaryLikedByIdDiaryId(diary.getDiaryId()));
+
+            // 댓글 수 조회
+            diary.setCommentCount(commentRepository.countCommentByDiaryId(diary.getDiaryId()));
         });
 
         return feedList;
@@ -91,7 +101,7 @@ public class DiaryService {
         diary.setContent(diaryRequestDto.getContent());
         diary.setWorkoutDate(diaryRequestDto.getWorkoutDate());
         diary.setAllowedScope(diaryRequestDto.getAllowedScope());
-
+        
         // 운동 다이어리 저장
         Diary savedDiary = diaryRepository.save(diary);
 
@@ -160,7 +170,7 @@ public class DiaryService {
     }
 
     /** Diary 단건 조회 **/
-    public DiaryResponseDto getDiary(Integer diaryId) {
+    public DiaryResponseDto getDiary(Integer viewerId, Integer diaryId) {
         DiaryResponseDto diaryResponseDto = new DiaryResponseDto();
 
         // 미존재
@@ -177,10 +187,24 @@ public class DiaryService {
         diaryResponseDto.setAllowedScope(diary.getAllowedScope());
         diaryResponseDto.setCreatedAt(diary.getCreatedAt());
         diaryResponseDto.setModifiedAt(diary.getModifiedAt());
+
+        // 작성자 조회
+        User writer = userRepository.findById(diaryResponseDto.getUserId()).orElse(null);
+        if (writer != null) {
+            diaryResponseDto.setWriter(writer.getNickname());
+            ImageResponseDto image = imageService.getImage("profile", writer.getId());
+            if (image != null) {
+                diaryResponseDto.setProfileImageUrl(imageService.getS3Url(image.getUrl()));
+            }
+        }
+
+        // 좋아요 누른 여부 & 좋아요 수 조회
+        DiaryLiked diaryLiked = diaryLikedRepository.findById(new DiaryLikedId(diaryId, viewerId)).orElse(null);
+        diaryResponseDto.setIsLiked(diaryLiked == null ? false : true);
         diaryResponseDto.setLikedCount(diaryLikedRepository.countDiaryLikedByIdDiaryId(diaryId));
-        List<Hashtag> hashtags = hashtagRepository.findByIdDiaryId(diaryId);
 
         // Hashtag 조회
+        List<Hashtag> hashtags = hashtagRepository.findByIdDiaryId(diaryId);
         for (Hashtag hashtag : hashtags) {
             diaryResponseDto.getHashtags().add(hashtag.getId().getTag());
         }
@@ -410,7 +434,7 @@ public class DiaryService {
         if (comment == null || comment.getDeleted()) {
             throw new CommentNotFoundException(commentId);
         }
-
+        
         // 댓글 삭제 권한 없음
         if (!comment.getUserId().equals(userId))
             throw new UnauthorizedAccessException("댓글 삭제 권한 없음") {};
@@ -418,7 +442,6 @@ public class DiaryService {
         comment.setDeleted(true);
         commentRepository.save(comment);
     }
-
     // 모든 운동 데이터 가져오기
     public List<Workout> getAllWorkouts() {
         return workoutRepository.findAll();
@@ -486,6 +509,4 @@ public class DiaryService {
         }
         return result;
     }
-
-
 }

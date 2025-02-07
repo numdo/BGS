@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { changePassword } from "../../api/User"; // ✅ API 함수 불러오기
+import { ArrowLeft } from "lucide-react";
 import logoImage from "../../assets/images/logo_image.png";
 import nameImage from "../../assets/images/name.png";
 
@@ -48,26 +49,15 @@ const ChangePasswordPage = () => {
       setLoading(true);
       setError("");
 
-      const accessToken = localStorage.getItem("accessToken"); // 저장된 토큰 가져오기
-
-      await axios.post(
-        "https://i12c209.p.ssafy.io/api/users/change-password",
-        {
-          currentPassword: formData.currentPassword,
-          newPassword: formData.newPassword,
-          confirmNewPassword: formData.confirmNewPassword,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`, // 인증된 요청
-          },
-        }
-      );
+      await changePassword({
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+        confirmNewPassword: formData.confirmNewPassword,
+      });
 
       alert("비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.");
-      localStorage.removeItem("accessToken"); // 기존 토큰 삭제
-      navigate("/login"); // 로그인 페이지로 이동
+      localStorage.removeItem("accessToken"); // ✅ 기존 토큰 삭제
+      navigate("/login"); // ✅ 로그인 페이지로 이동
     } catch (err) {
       setError(err.response?.data || "비밀번호 변경 실패. 다시 시도해주세요.");
     } finally {
@@ -77,6 +67,15 @@ const ChangePasswordPage = () => {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-white px-10 py-16">
+      {/* 뒤로가기 버튼 */}
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute top-5 left-5 text-black font-medium p-2 rounded hover:bg-gray-100 flex items-center space-x-2"
+      >
+        <ArrowLeft size={20} />
+        <span>뒤로가기</span>
+      </button>
+
       {/* 페이지 상단: 로고 및 앱 이름 */}
       <div className="flex items-center justify-center space-x-8 mb-20">
         <img src={logoImage} alt="Logo" className="h-32" />
@@ -84,11 +83,10 @@ const ChangePasswordPage = () => {
       </div>
 
       {/* 제목 */}
-      <h2 className="text-3xl font-bold text-gray-800 mb-14">비밀번호 변경</h2>
+      <h2 className="text-3xl font-bold text-gray-800 mb-6">비밀번호 변경</h2>
 
       {/* 비밀번호 변경 입력 폼 */}
       <form className="space-y-3 w-full max-w-md" onSubmit={handleSubmit}>
-        {/* 현재 비밀번호 입력 */}
         <input
           type="password"
           name="currentPassword"
@@ -99,7 +97,6 @@ const ChangePasswordPage = () => {
           required
         />
 
-        {/* 새 비밀번호 입력 */}
         <input
           type="password"
           name="newPassword"
@@ -110,7 +107,6 @@ const ChangePasswordPage = () => {
           required
         />
 
-        {/* 새 비밀번호 확인 입력 */}
         <input
           type="password"
           name="confirmNewPassword"
@@ -121,28 +117,30 @@ const ChangePasswordPage = () => {
           required
         />
 
-        <p className="text-gray-500 text-sm">
-          - 대소문자, 숫자, 특수문자를 포함하고 10자리 이상으로 설정해주세요.
+        {/* 안내 문구 */}
+        <p className="text-gray-500 text-sm mb-6 text-center">
+          새로운 비밀번호는 10자 이상이어야 하며, 대문자, 소문자, 숫자,
+          특수문자를 포함해야 합니다.
         </p>
 
         {/* 오류 메시지 */}
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-      </form>
 
-      {/* 비밀번호 변경 버튼 */}
-      <div className="mt-16 w-full max-w-md">
-        <button
-          type="submit"
-          onClick={handleSubmit}
-          className={`w-full p-3 rounded-lg text-base font-semibold transition ${isPasswordValid()
-            ? "bg-blue-500 text-white hover:bg-blue-600"
-            : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
+        {/* 비밀번호 변경 버튼 */}
+        <div className="mt-16 w-full max-w-md">
+          <button
+            type="submit"
+            className={`w-full p-3 rounded-lg text-base font-semibold transition ${
+              isPasswordValid()
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
             }`}
-          disabled={!isPasswordValid() || loading}
-        >
-          {loading ? "변경 중..." : "비밀번호 변경"}
-        </button>
-      </div>
+            disabled={!isPasswordValid() || loading}
+          >
+            {loading ? "변경 중..." : "비밀번호 변경"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

@@ -6,6 +6,7 @@ import com.ssafy.bgs.mygym.dto.request.GuestbookRequestDto;
 import com.ssafy.bgs.mygym.dto.request.MygymRequestDto;
 import com.ssafy.bgs.mygym.dto.request.PlaceRequestDto;
 import com.ssafy.bgs.mygym.dto.response.GuestbookResponseDto;
+import com.ssafy.bgs.mygym.dto.response.ItemResponseDto;
 import com.ssafy.bgs.mygym.dto.response.MygymResponseDto;
 import com.ssafy.bgs.mygym.dto.response.PlaceResponseDto;
 import com.ssafy.bgs.mygym.entity.Guestbook;
@@ -13,6 +14,7 @@ import com.ssafy.bgs.mygym.entity.Item;
 import com.ssafy.bgs.mygym.entity.MygymColor;
 import com.ssafy.bgs.mygym.entity.Place;
 import com.ssafy.bgs.mygym.exception.GuestbookNotFoundException;
+import com.ssafy.bgs.mygym.exception.ItemNotFoundException;
 import com.ssafy.bgs.mygym.exception.PlaceNotFoundException;
 import com.ssafy.bgs.mygym.repository.*;
 import com.ssafy.bgs.user.entity.User;
@@ -25,6 +27,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -71,6 +74,7 @@ public class MygymService {
             placeResponseDto.setX(place.getX());
             placeResponseDto.setY(place.getY());
             placeResponseDto.setRotated(place.getRotated());
+            placeResponseDto.setDeleted(place.getDeleted());
 
             ImageResponseDto image = imageService.getImage("item", place.getItemId());
             if (image != null) {
@@ -164,6 +168,27 @@ public class MygymService {
         guestbookRepository.save(guestbook);
     }
 
+    public List<ItemResponseDto> getItemList() {
+        List<ItemResponseDto> itemList = new ArrayList<>();
+
+        itemRepository.findAll().forEach(item -> {
+            ItemResponseDto itemResponseDto = new ItemResponseDto();
+            itemResponseDto.setItemId(item.getItemId());
+            itemResponseDto.setItemName(item.getItemName());
+            itemResponseDto.setWidth(item.getWidth());
+            itemResponseDto.setHeight(item.getHeight());
+            itemResponseDto.setPrice(item.getPrice());
+            itemResponseDto.setUsable(item.getUsable());
+
+            ImageResponseDto image = imageService.getImage("item", item.getItemId());
+            itemResponseDto.setImageUrl(imageService.getS3Url(image.getUrl()));
+
+            itemList.add(itemResponseDto);
+        });
+
+        return itemList;
+    }
+
     public void addItem(Item item, MultipartFile file) {
         Item savedItem = itemRepository.save(item);
         imageService.uploadImage(file, "item", Long.valueOf(savedItem.getItemId()));
@@ -175,5 +200,17 @@ public class MygymService {
             imageService.deleteImage(imageService.getImage("item", savedItem.getItemId()).getImageId());
             imageService.uploadImage(file, "item", Long.valueOf(savedItem.getItemId()));
         }
+    }
+
+    public void enableItem(Integer itemId) {
+        Item savedItem = itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException(itemId));
+        savedItem.setUsable(true);
+        itemRepository.save(savedItem);
+    }
+
+    public void disableItem(Integer itemId) {
+        Item savedItem = itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException(itemId));
+        savedItem.setUsable(false);
+        itemRepository.save(savedItem);
     }
 }
