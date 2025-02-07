@@ -4,7 +4,7 @@ import com.ssafy.bgs.diary.dto.request.CommentRequestDto;
 import com.ssafy.bgs.diary.dto.request.DiaryRequestDto;
 import com.ssafy.bgs.diary.dto.response.CommentResponseDto;
 import com.ssafy.bgs.diary.dto.response.DiaryResponseDto;
-import com.ssafy.bgs.diary.dto.response.FeedResponseDto;
+import com.ssafy.bgs.diary.dto.response.DiaryFeedResponseDto;
 import com.ssafy.bgs.diary.entity.Diary;
 import com.ssafy.bgs.diary.service.DiaryService;
 import org.springframework.data.domain.Page;
@@ -34,7 +34,7 @@ public class DiaryController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "9") int pageSize
     ) {
-        List<FeedResponseDto> feedList = diaryService.getFeedList(readerId, userId, page, pageSize);
+        List<DiaryFeedResponseDto> feedList = diaryService.getFeedList(readerId, userId, page, pageSize);
         return new ResponseEntity<>(feedList, HttpStatus.OK);
     }
 
