@@ -75,7 +75,7 @@ public class UserController {
         LoginResponseDto loginResponseDto = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
         response.setHeader("Authorization", "Bearer " + loginResponseDto.getAccessToken());
         response.setHeader("Refresh-Token", "Bearer " + loginResponseDto.getRefreshToken());
-        return ResponseEntity.ok(loginResponseDto);
+        return ResponseEntity.ok("로그인 성공");
     }
 
     @PostMapping("/logout")
