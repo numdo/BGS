@@ -115,6 +115,8 @@ public class EvaluationService {
 
         EvaluationResponseDto responseDto = convertToDto(evaluation);
         responseDto.setWriter(writer.getNickname());
+        responseDto.setVoteCount(voteRepository.countByEvaluationId(evaluationId));
+        responseDto.setApprovalCount(voteRepository.countByEvaluationIdAndApprovalTrue(evaluationId));
         responseDto.setImageUrls(imageUrls);
         ImageResponseDto image = imageService.getImage("profile", writer.getId());
         if (image != null) {

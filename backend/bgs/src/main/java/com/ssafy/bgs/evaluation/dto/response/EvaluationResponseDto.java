@@ -24,6 +24,8 @@ public class EvaluationResponseDto {
     private Timestamp createdAt;  // 생성 일자
     private Timestamp modifiedAt; // 수정 일자
     private Boolean deleted;      // 삭제 여부
+    private Long voteCount;
+    private Long approvalCount;
     // 이미지 URL 목록 추가
     @Builder.Default
     private List<String> imageUrls = List.of(); // 기본값: 빈 리스트
