@@ -14,6 +14,8 @@ public class EvaluationResponseDto {
 
     private Integer evaluationId; // 평가 ID
     private Integer userId;       // 작성자 ID
+    private String profileImageUrl;
+    private String writer;
     private String content;       // 게시물 내용
     private Double weight;        // 인증받을 무게
     private String workoutType;   // SQUAT, BENCH, DEAD
