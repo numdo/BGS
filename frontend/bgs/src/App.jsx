@@ -45,7 +45,6 @@ function App() {
           <Route path="/user-details" element={<UserDetailsPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
-          <Route path="/login/oauth2/success" element={<KakaoRedirectPage />} />
           <Route path="/social-signup" element={<SocialSignupPage />} />
           <Route path="/mygym" element={<MyGymPage />} />
           <Route path="/admin-item" element={<AdminItemPage />} />
