@@ -28,10 +28,6 @@ const BulLoginPage = () => {
     try {
       const response = await login({ email, password });
 
-      // ✅ 로그인 정보 저장 (accessToken & refreshToken)
-      localStorage.setItem("accessToken", response.accessToken);
-      localStorage.setItem("refreshToken", response.refreshToken);
-
       // ✅ 임시 비밀번호 여부 확인 후 비밀번호 변경 페이지로 이동
       if (response.isTemporaryPassword) {
         alert("임시 비밀번호로 로그인했습니다. 비밀번호를 변경해주세요.");

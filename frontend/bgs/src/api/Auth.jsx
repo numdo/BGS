@@ -12,10 +12,32 @@ export async function signup(userData) {
   }
 }
 
-// ✅ 로그인
 export async function login(credentials) {
   try {
     const response = await axiosInstance.post(`${BASE_URL}/login`, credentials);
+    
+    // 응답 헤더에서 토큰 추출 (키를 소문자로 사용)
+    const accessTokenHeader = response.headers["authorization"];
+    const refreshTokenHeader = response.headers["refresh-token"];
+    console.log(accessTokenHeader, refreshTokenHeader);
+    
+    if (accessTokenHeader) {
+      // "Bearer " 접두사가 있을 경우 제거하고 저장
+      const token = accessTokenHeader.startsWith("Bearer ")
+        ? accessTokenHeader.slice(7)
+        : accessTokenHeader;
+      console.log(token);
+      localStorage.setItem("accessToken", token);
+    }
+    
+    if (refreshTokenHeader) {
+      const token = refreshTokenHeader.startsWith("Bearer ")
+        ? refreshTokenHeader.slice(7)
+        : refreshTokenHeader;
+      console.log(token);
+      localStorage.setItem("refreshToken", token);
+    }
+    
     return response.data;
   } catch (error) {
     throw error;
