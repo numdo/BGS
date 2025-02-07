@@ -34,14 +34,14 @@ function App() {
           <Route path="/auth/kakao/callback" element={<KakaoRedirectPage />} />
           <Route path="/social-signup" element={<SocialSignupPage />} />
           {/* 보호된 메인 페이지: 프로필 완성 여부를 확인 */}
-          <Route
+          {/* <Route
             path="/"
             element={
               <ProfileCompletionGuard>
                 <MainPage />
               </ProfileCompletionGuard>
             }
-          />
+          /> */}
           <Route path="/user-details" element={<UserDetailsPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
