@@ -1,4 +1,4 @@
-package com.ssafy.bgs.user.dto.response;
+package com.ssafy.bgs.auth.dto.response;
 
 import lombok.*;
 
@@ -9,5 +9,5 @@ import lombok.*;
 @Builder
 public class LoginResponseDto {
     private String accessToken;
-    private String refreshToken;
+    private boolean isTemporaryPassword;
 }

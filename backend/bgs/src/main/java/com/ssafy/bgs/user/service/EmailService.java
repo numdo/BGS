@@ -27,10 +27,16 @@ public class EmailService {
         String verificationCode = generateVerificationCode();
 
         // 이메일 제목과 내용 설정
-        String subject = "회원가입 인증 이메일입니다.";
-        String content = "<p>안녕하세요, 회원가입 인증을 위해 아래 코드를 입력해주세요.</p>\n\n" +
-                "<h3>인증 코드: <b>" + verificationCode + "</b></h3>\n\n" +
-                "<p>감사합니다.</p>";
+        String subject = "🎉 불끈성 회원가입 인증 코드 안내";
+        String content = "<div style='font-family: Arial, sans-serif; text-align: center;'>" +
+                "<h2 style='color: #FF5733;'>안녕하세요! 💪</h2>" +
+                "<p>불끈성에 오신 것을 환영합니다! 회원가입을 완료하시려면 아래의 인증 코드를 입력해주세요:</p>" +
+                "<h1 style='background-color: #F0F0F0; display: inline-block; padding: 10px; border-radius: 5px;'>" +
+                verificationCode + "</h1>" +
+                "<p>이 코드는 10분 동안 유효합니다. 🕒</p>" +
+                "<p>불끈성과 함께 나만의 헬스장을 꾸미고, 운동 기록을 자랑해보세요! 🏋️‍♂️🏆</p>" +
+                "<p>감사합니다. 좋은 하루 되세요! 🌟</p>" +
+                "</div>";
 
         // 이메일 전송
         sendEmail(toEmail, subject, content);
@@ -40,6 +46,7 @@ public class EmailService {
 
         return verificationCode; // 인증 코드 반환
     }
+
 
     /**
      * 이메일 전송 메서드
@@ -99,12 +106,18 @@ public class EmailService {
      * 임시 비밀번호 전송
      */
     public void sendTemporaryPasswordEmail(String toEmail, String tempPassword) {
-        String subject = "비밀번호 재설정 임시 비밀번호 안내";
-        String content = "<p>안녕하세요,</p>" +
-                "<p>비밀번호 재설정을 요청하셨습니다. 아래 임시 비밀번호를 사용하여 로그인 후, 반드시 비밀번호를 변경해 주세요.</p>" +
-                "<h3>임시 비밀번호: <b>" + tempPassword + "</b></h3>" +
-                "<p>감사합니다.</p>";
+        String subject = "🔑 불끈성 비밀번호 재설정 안내";
+        String content = "<div style='font-family: Arial, sans-serif; text-align: center;'>" +
+                "<h2 style='color: #FF5733;'>안녕하세요, 불끈성 회원님! 💪</h2>" +
+                "<p>비밀번호 재설정 요청을 받았습니다. 아래의 임시 비밀번호를 사용하여 로그인하신 후, 반드시 새로운 비밀번호로 변경해 주세요. 🔒</p>" +
+                "<h3 style='background-color: #F0F0F0; display: inline-block; padding: 10px; border-radius: 5px;'>" +
+                "임시 비밀번호: <b>" + tempPassword + "</b></h3>" +
+                "<p>계정 보안을 위해 비밀번호 변경은 필수입니다. 🛡️</p>" +
+                "<p>불끈성과 함께 나만의 헬스장을 꾸미고, 운동 기록을 자랑해보세요! 🏋️‍♂️🏆</p>" +
+                "<p>감사합니다. 건강한 하루 되세요! 🌟</p>" +
+                "</div>";
 
         sendEmail(toEmail, subject, content);
     }
+
 }
