@@ -6,6 +6,7 @@ import ShareLogo from '../../assets/icons/Share.png'
 import Favicon from '../../assets/images/Favicon.png'
 import MoreIcon from '../../assets/icons/More.svg'
 import SignoutIcon from '../../assets/icons/Signout.svg'
+import { handleLogout } from '../../api/Auth';
 export default function TopBar() {
   const [isOpen, setIsOpen] = useState(false)
   const toggleDropdown = () => {
