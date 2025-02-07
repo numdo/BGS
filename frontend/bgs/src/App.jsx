@@ -20,6 +20,7 @@ import SocialSignupPage from "./pages/auth/SocialSignupPage";
 import KakaoRedirectPage from "./pages/auth/KakaoRedirectPage";
 import AdminItemPage from "./pages/admin/AdminItemPage";
 import WorkoutRealtimePage from "./pages/workout/WorkoutRealtimePage"
+import ProfileCompletionGuard from "./components/auth/ProfileCompletionGuard";
 
 function App() {
   return (
@@ -30,6 +31,17 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/bullogin" element={<BullLoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/auth/kakao/callback" element={<KakaoRedirectPage />} />
+          <Route path="/social-signup" element={<SocialSignupPage />} />
+          {/* 보호된 메인 페이지: 프로필 완성 여부를 확인 */}
+          <Route
+            path="/"
+            element={
+              <ProfileCompletionGuard>
+                <MainPage />
+              </ProfileCompletionGuard>
+            }
+          />
           <Route path="/user-details" element={<UserDetailsPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
