@@ -1,16 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const KakaoRedirectPage = () => {
   const navigate = useNavigate();
-  const isHandled = useRef(false); // ✅ 중복 실행 방지
 
   useEffect(() => {
-    if (isHandled.current) return; // ✅ 이미 실행된 경우 다시 실행하지 않음
-    isHandled.current = true; // ✅ 첫 실행 이후에는 실행 안 하도록 설정
-
-    const handleKakaoLogin = () => {
+    const handleKakaoLogin = async () => {
       try {
+        // ✅ URL에서 해시 값 가져오기
         const hash = window.location.hash.substring(1);
         const params = new URLSearchParams(hash);
 
@@ -21,12 +18,13 @@ const KakaoRedirectPage = () => {
         console.log("🔹 [Kakao] 토큰 저장 처리 중...");
 
         if (accessToken && refreshToken) {
+          // ✅ 토큰을 로컬 스토리지에 저장
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
 
           setTimeout(() => {
             if (newUser) {
-              navigate(`/social-signup`); // ✅ 신규 유저일 경우 회원가입 페이지 이동
+              navigate("/social-signup"); // ✅ 신규 유저일 경우 회원가입 페이지 이동
             } else {
               navigate("/"); // ✅ 기존 유저는 메인 페이지 이동
             }
