@@ -33,6 +33,7 @@ const MyGymItem = () => {
     console.log("item", item)
     // 새 아이템
     const newItem = {
+      placeId : null,
       itemId: item.id, // 임시 itemId
       image: item.image,
       name: item.name,
