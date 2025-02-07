@@ -1,38 +1,23 @@
 // src/components/mygym/MyGymRoomView.jsx
 import React from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
-import { useEffect } from "react";
-import { getMygym } from "../../api/Mygym";
-import { getUser } from "../../api/User";
-import useUserStore from "../../stores/useUserStore";
-const MyGymRoomView = () => {
-  const { myGym, setMyGym } = useMyGymStore();
-  const { user, setUser } = useUserStore()
-  useEffect(() => {
-    async function enterMyGymRoomView() {
-      const response = await getUser()
-      setUser(response)
-      const userId = user.userId
-      getMygym(userId).then(MyGym => { console.log("mygym res", MyGym); setMyGym(MyGym) })
-    }
-    enterMyGymRoomView()
-  }, [])
 
-  // deleted=false인 아이템만 표시
-  // const visibleItems = myGym.places.filter((it) => !it.deleted);
+const MyGymRoomView = () => {
+  const { myGym } = useMyGymStore();
+  // deleted가 false인 아이템만 표시
   const visibleItems = myGym.places.filter((it) => !it.deleted);
   return (
-    // (1) 상위 래퍼: 수직 정렬 & 가운데 정렬
     <div className="relative flex flex-col items-center">
-      {/* (2) 실제 방 컨테이너 */}
+      {/* 실제 방 컨테이너 */}
       <div className="relative w-96 h-96">
-        {/* 윗부분: 마이짐 벽색 */}
+        {/* 윗부분: 마이짐 벽 색 */}
         <div
           style={{
             position: "absolute",
             width: "100%",
             height: "100%",
-            clipPath: "polygon(50% 7%, 100% 25%, 100% 60%, 50% 40%, 0% 60%, 0% 25%)",
+            clipPath:
+              "polygon(50% 7%, 100% 25%, 100% 60%, 50% 40%, 0% 60%, 0% 25%)",
             backgroundColor: myGym.wallColor,
             zIndex: 1,
           }}
@@ -43,17 +28,19 @@ const MyGymRoomView = () => {
             position: "absolute",
             width: "100%",
             height: "100%",
-            clipPath: "polygon(0% 60%, 50% 40%, 100% 60%, 50% 80%, 100% 100%)",
+            clipPath:
+              "polygon(0% 60%, 50% 40%, 100% 60%, 50% 80%, 100% 100%)",
             backgroundColor: "#999999",
             zIndex: 0,
           }}
         />
         {/* 아이템 렌더링 */}
         {visibleItems.map((item) => {
-          const isFlipped = item.flipped || false;
+          // 백엔드의 rotated 필드를 사용하여 좌우 반전 적용
+          const isRotated = item.rotated || false;
           return (
             <div
-              key={item.id}
+              key={item.itemId}
               className="absolute"
               style={{ top: item.y, left: item.x, zIndex: 2 }}
             >
@@ -61,11 +48,11 @@ const MyGymRoomView = () => {
                 <div
                   className="absolute inset-0"
                   style={{
-                    transform: isFlipped ? "scaleX(-1)" : "scaleX(1)",
+                    transform: isRotated ? "scaleX(-1)" : "scaleX(1)",
                   }}
                 >
                   <img
-                    src={item.image}
+                    src={item.image.url}
                     alt={item.name}
                     className="w-full h-full"
                   />

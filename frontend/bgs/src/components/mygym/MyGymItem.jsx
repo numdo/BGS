@@ -33,6 +33,7 @@ const MyGymItem = () => {
     console.log("item", item)
     // 새 아이템
     const newItem = {
+      placeId : null,
       itemId: item.id, // 임시 itemId
       image: item.image,
       name: item.name,
@@ -51,15 +52,15 @@ const MyGymItem = () => {
   };
 
   const gymItems = [
-    { id: 1, name: "여자", image: women },
-    { id: 2, name: "남자", image: men },
-    { id: 3, name: "벤치프레스", image: BenchPress },
-    { id: 4, name: "랫풀다운", image: LatPulldown },
-    { id: 5, name: "데드리프트", image: Deadlift },
-    { id: 6, name: "사이클", image: cycle },
-    { id: 7, name: "런닝머신", image: runningmachine },
-    { id: 8, name: "덤벨", image: dumbbell },
-    { id: 9, name: "풀업", image: pullup },
+    { id: 1, name: "여자", image: {url:women} },
+    { id: 2, name: "남자", image: {url:men}  },
+    { id: 3, name: "벤치프레스", image: {url:BenchPress}  },
+    { id: 4, name: "랫풀다운", image: {url:LatPulldown}  },
+    { id: 5, name: "데드리프트", image: {url:Deadlift}  },
+    { id: 6, name: "사이클", image: {url:cycle}  },
+    { id: 7, name: "런닝머신", image: {url:runningmachine}  },
+    { id: 8, name: "덤벨", image: {url:dumbbell}  },
+    { id: 9, name: "풀업", image: {url:pullup}  },
   ];
 
   return (
@@ -94,7 +95,7 @@ const MyGymItem = () => {
                   className="flex flex-col items-center cursor-pointer"
                 >
                   <img
-                    src={it.image}
+                    src={it.image.url}
                     alt={it.name}
                     className="w-16 h-16 object-contain mb-2"
                   />

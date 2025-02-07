@@ -1,14 +1,14 @@
 package com.ssafy.bgs.attendance.controller;
 
 import com.ssafy.bgs.attendance.dto.request.AttendanceCheckRequestDto;
+import com.ssafy.bgs.attendance.dto.response.AttendanceCheckResponseDto;
 import com.ssafy.bgs.attendance.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/attendance")
@@ -27,5 +27,12 @@ public class AttendanceController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("서버 오류가 발생했습니다.");
         }
+    }
+
+    @GetMapping("/current-month")
+    public List<AttendanceCheckResponseDto> getCurrentMonthAttendance(Authentication authentication) {
+        // authentication.getPrincipal()가 Integer 타입인 userId로 변환되는 것을 가정
+        Integer userId = (Integer) authentication.getPrincipal();
+        return attendanceService.getCurrentMonthAttendance(userId);
     }
 }

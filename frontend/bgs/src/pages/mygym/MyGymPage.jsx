@@ -38,9 +38,8 @@ const MyGymPage = () => {
   useEffect(() => {
     async function enterMygymPage() {
       const response = await getUser()
+      getMygym(response.userId).then(MyGym => { console.log("mygym res", MyGym); setMyGym(MyGym) })
       setUser(response)
-      const userId = user.userId
-      getMygym(userId).then(MyGym => { console.log("mygym res", MyGym); setMyGym(MyGym) })
     }
     enterMygymPage()
   }, [])
@@ -48,7 +47,9 @@ const MyGymPage = () => {
   useEffect(() => {
     console.log("mygym", myGym)
   }, [myGym])
-
+  useEffect(() => {
+    console.log("user", user)
+  }, [user])
   return (
     // 전체 페이지 배경 → pageBgColor
     <div style={{ backgroundColor: myGym.backgroundColor, minHeight: "100vh" }}>
