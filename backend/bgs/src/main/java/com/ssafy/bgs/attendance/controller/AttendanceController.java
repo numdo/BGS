@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RestController
@@ -34,5 +36,21 @@ public class AttendanceController {
         // authentication.getPrincipal()가 Integer 타입인 userId로 변환되는 것을 가정
         Integer userId = (Integer) authentication.getPrincipal();
         return attendanceService.getCurrentMonthAttendance(userId);
+    }
+
+    @GetMapping("/date")
+    public ResponseEntity<?> getAttendanceByDate(Authentication authentication,
+                                                 @RequestParam("date") String dateString) {
+        try {
+            // 날짜 형식 검증 및 변환
+            LocalDate date = LocalDate.parse(dateString);
+            Integer userId = (Integer) authentication.getPrincipal();
+            List<AttendanceCheckResponseDto> attendanceList = attendanceService.getAttendanceByDate(userId, date);
+            return ResponseEntity.ok(attendanceList);
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.badRequest().body("잘못된 날짜 형식입니다. (YYYY-MM-DD 형식이어야 합니다.)");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("서버 오류가 발생했습니다.");
+        }
     }
 }

@@ -82,4 +82,10 @@ public class AttendanceService {
 
         return attendanceRepository.findAttendancesBetweenDatesAndUser(userId, startDate, endDate);
     }
+
+    @Transactional(readOnly = true)
+    public List<AttendanceCheckResponseDto> getAttendanceByDate(Integer userId, LocalDate date) {
+        // 시작일과 종료일을 동일하게 전달하여 특정 날짜의 출석 정보 조회
+        return attendanceRepository.findAttendancesBetweenDatesAndUser(userId, date, date);
+    }
 }
