@@ -5,14 +5,14 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class FeedResponseDto {
+public class DiaryFeedResponseDto {
     private Integer diaryId;
     private String allowedScope;
     private String imageUrl;
     private Long likedCount;
     private Long commentCount;
 
-    FeedResponseDto(Integer diaryId, String allowedScope) {
+    DiaryFeedResponseDto(Integer diaryId, String allowedScope) {
         this.diaryId = diaryId;
         this.allowedScope = allowedScope;
     }

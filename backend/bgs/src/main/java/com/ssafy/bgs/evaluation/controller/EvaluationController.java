@@ -2,9 +2,9 @@ package com.ssafy.bgs.evaluation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.bgs.evaluation.dto.request.EvaluationRequestDto;
+import com.ssafy.bgs.evaluation.dto.response.EvaluationFeedResponseDto;
 import com.ssafy.bgs.evaluation.dto.response.EvaluationResponseDto;
 import com.ssafy.bgs.evaluation.service.EvaluationService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +26,16 @@ import java.util.Map;
 public class EvaluationController {
 
     private final EvaluationService evaluationService;
+
+    @GetMapping("/feeds")
+    public ResponseEntity<?> getFeedList(
+            @RequestParam(required = false) Boolean closed,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "9") int pageSize
+    ) {
+        List<EvaluationFeedResponseDto> feedList = evaluationService.getFeedList(closed, page, pageSize);
+        return new ResponseEntity<>(feedList, HttpStatus.OK);
+    }
 
     /**
      * 평가 게시물 전체 조회 (페이징)

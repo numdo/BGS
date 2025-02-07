@@ -4,10 +4,13 @@ import com.ssafy.bgs.auth.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
@@ -45,24 +48,31 @@ public class SecurityConfig {
 
         // 3. URL별 권한 설정
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/users/signup").permitAll()
-                .requestMatchers("/api/users/email-verification/**").permitAll()
-                .requestMatchers("/api/users/verify-code/**").permitAll()
-                .requestMatchers("/api/users/reset-password/**").permitAll()
-                .requestMatchers("/api/users/login").permitAll()
-                .requestMatchers("/login/oauth2/**").permitAll()
-                .requestMatchers("/images/**").permitAll()
-                .requestMatchers("/profile/**").permitAll()
+                .requestMatchers(
+                        "/api/auth/**",
+                        "/api/users/signup",
+                        "/api/users/email-verification/**",
+                        "/api/users/verify-code/**",
+                        "/api/users/reset-password/**",
+                        "/api/users/login",
+                        "/login/oauth2/**",
+                        "/images/**",
+                        "/profile/**"
+                ).permitAll()
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
         );
 
-        // 4. 폼 로그인 비활성화 및 기본 HTTP Basic 인증 설정
-        http.formLogin(form -> form.disable());
-        http.httpBasic(httpBasic -> httpBasic.disable());
 
-        // 5. JWT 필터 추가 (보호 API에 대해 JWT 인증 진행)
+        // 4. 폼 로그인 비활성화 및 기본 HTTP Basic 인증 설정
+        http.formLogin(AbstractHttpConfigurer::disable);
+        http.httpBasic(AbstractHttpConfigurer::disable);
+
+//         5. 인증 실패 시 401 Unauthorized 응답을 반환하도록 커스텀 엔트리 포인트 설정
+        http.exceptionHandling(exception -> exception
+                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+        );
+
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

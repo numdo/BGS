@@ -12,10 +12,29 @@ export async function signup(userData) {
   }
 }
 
-// ✅ 로그인
 export async function login(credentials) {
   try {
     const response = await axiosInstance.post(`${BASE_URL}/login`, credentials);
+    
+    // 응답 헤더에서 토큰 추출 (키를 소문자로 사용)
+    const accessTokenHeader = response.headers["authorization"];
+    const refreshTokenHeader = response.headers["refresh-token"];
+    
+    if (accessTokenHeader) {
+      // "Bearer " 접두사가 있을 경우 제거하고 저장
+      const token = accessTokenHeader.startsWith("Bearer ")
+        ? accessTokenHeader.slice(7)
+        : accessTokenHeader;
+      localStorage.setItem("accessToken", token);
+    }
+    
+    if (refreshTokenHeader) {
+      const token = refreshTokenHeader.startsWith("Bearer ")
+        ? refreshTokenHeader.slice(7)
+        : refreshTokenHeader;
+      localStorage.setItem("refreshToken", token);
+    }
+    
     return response.data;
   } catch (error) {
     throw error;
@@ -27,7 +46,6 @@ export const handleLogout = async (navigate) => {
   try {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
-      console.warn("이미 로그아웃됨");
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       navigate("/login");
@@ -41,7 +59,6 @@ export const handleLogout = async (navigate) => {
     });
     alert("로그아웃 되었습니다.");
   } catch (error) {
-    console.error("로그아웃 실패:", error);
     alert("로그아웃 중 오류가 발생했습니다. 다시 시도해주세요.");
   } finally {
     localStorage.removeItem("accessToken");
