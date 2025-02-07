@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo+name.png";
 import kakaoLogo from "../../assets/images/kakao-logo.png";
 
-const SocialLogin = () => {
+const LoginPage = () => {
   const navigate = useNavigate();
 
   // 카카오 로그인
@@ -56,4 +56,4 @@ const SocialLogin = () => {
   );
 };
 
-export default SocialLogin;
+export default LoginPage;
