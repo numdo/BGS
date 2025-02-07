@@ -55,7 +55,7 @@ public class SecurityConfig {
                         "/profile/**"
                 ).permitAll()
                 .requestMatchers("/api/**").authenticated()
-//                .anyRequest().permitAll()
+                .anyRequest().permitAll()
         );
 
 
