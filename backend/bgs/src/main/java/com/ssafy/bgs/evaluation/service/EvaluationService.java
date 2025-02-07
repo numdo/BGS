@@ -16,6 +16,9 @@ import com.ssafy.bgs.evaluation.repository.WorkoutRecordRepository;
 import com.ssafy.bgs.image.dto.response.ImageResponseDto;
 import com.ssafy.bgs.image.entity.Image;
 import com.ssafy.bgs.image.service.ImageService;
+import com.ssafy.bgs.user.entity.User;
+import com.ssafy.bgs.user.exception.UserNotFoundException;
+import com.ssafy.bgs.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,6 +40,7 @@ public class EvaluationService {
     private final EvaluationRepository evaluationRepository;
     private final VoteRepository voteRepository;
     private final WorkoutRecordRepository workoutRecordRepository;
+    private final UserRepository userRepository;
     private final ImageService imageService;
 
     public List<EvaluationFeedResponseDto> getFeedList(Boolean closed, int page, int pageSize) {
@@ -101,6 +105,8 @@ public class EvaluationService {
             throw new EvaluationNotFoundException(evaluationId);
         }
 
+        User writer = userRepository.findById(evaluation.getUserId()).orElseThrow(() -> new UserNotFoundException(evaluation.getUserId()));
+
         List<String> imageUrls = imageService.getImages("evaluation", evaluationId)
                 .stream()
                 .map(Image::getUrl)
@@ -108,7 +114,14 @@ public class EvaluationService {
                 .collect(Collectors.toList());
 
         EvaluationResponseDto responseDto = convertToDto(evaluation);
+        responseDto.setWriter(writer.getNickname());
+        responseDto.setVoteCount(voteRepository.countByEvaluationId(evaluationId));
+        responseDto.setApprovalCount(voteRepository.countByEvaluationIdAndApprovalTrue(evaluationId));
         responseDto.setImageUrls(imageUrls);
+        ImageResponseDto image = imageService.getImage("profile", writer.getId());
+        if (image != null) {
+            responseDto.setProfileImageUrl(imageService.getS3Url(image.getUrl()));
+        }
         return responseDto;
     }
 
