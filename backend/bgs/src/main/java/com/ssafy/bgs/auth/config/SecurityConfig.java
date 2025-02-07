@@ -1,6 +1,7 @@
 package com.ssafy.bgs.auth.config;
 
 import com.ssafy.bgs.auth.jwt.JwtAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -50,17 +51,11 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                         "/api/auth/**",
-                        "/api/users/signup",
-                        "/api/users/email-verification/**",
-                        "/api/users/verify-code/**",
-                        "/api/users/reset-password/**",
-                        "/api/users/login",
-                        "/login/oauth2/**",
                         "/images/**",
                         "/profile/**"
                 ).permitAll()
                 .requestMatchers("/api/**").authenticated()
-                .anyRequest().permitAll()
+//                .anyRequest().permitAll()
         );
 
 
@@ -68,9 +63,16 @@ public class SecurityConfig {
         http.formLogin(AbstractHttpConfigurer::disable);
         http.httpBasic(AbstractHttpConfigurer::disable);
 
-//         5. 인증 실패 시 401 Unauthorized 응답을 반환하도록 커스텀 엔트리 포인트 설정
+        // (5) 인증/인가 예외 처리
         http.exceptionHandling(exception -> exception
-                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+            // 5-1) 인증 실패 시 401 반환
+            .authenticationEntryPoint((request, response, authException) -> {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+            })
+            // 5-2) 권한 부족 시 403 반환
+            .accessDeniedHandler((request, response, accessDeniedException) -> {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden");
+            })
         );
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
