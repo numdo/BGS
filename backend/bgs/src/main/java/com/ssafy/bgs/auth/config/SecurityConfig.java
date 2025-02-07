@@ -60,7 +60,7 @@ public class SecurityConfig {
 
         // 4. 폼 로그인 비활성화 및 기본 HTTP Basic 인증 설정
         http.formLogin(form -> form.disable());
-        http.httpBasic(Customizer.withDefaults());
+        http.httpBasic(httpBasic -> httpBasic.disable());
 
         // 5. JWT 필터 추가 (보호 API에 대해 JWT 인증 진행)
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
