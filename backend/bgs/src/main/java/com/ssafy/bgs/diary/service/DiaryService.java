@@ -21,7 +21,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import com.ssafy.bgs.diary.dto.response.PreviousWorkoutResponseDto;
+import com.ssafy.bgs.diary.dto.response.RecentWorkoutResponseDto;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -427,5 +428,64 @@ public class DiaryService {
     public List<Workout> searchWorkouts(String keyword) {
         return workoutRepository.findByWorkoutNameContainingIgnoreCase(keyword);
     }
+
+    /**
+     * 이전 운동 기록 조회 (최신순, 최대 limit 건)
+     * DTO: PreviousWorkoutResponseDto (diaryWorkoutId, workoutId, workoutDate, workoutName, part)
+     */
+    public List<PreviousWorkoutResponseDto> getPreviousWorkoutRecords(Integer userId, int limit) {
+        List<Diary> diaries = diaryRepository.findByUserIdAndDeletedFalse(userId);
+        diaries.sort((d1, d2) -> d2.getWorkoutDate().compareTo(d1.getWorkoutDate()));
+
+        List<PreviousWorkoutResponseDto> result = new ArrayList<>();
+        for (Diary diary : diaries) {
+            List<DiaryWorkout> diaryWorkouts = diaryWorkoutRepository.findByDiaryIdAndDeletedFalse(diary.getDiaryId());
+            for (DiaryWorkout dw : diaryWorkouts) {
+                Workout workout = workoutRepository.findById(dw.getWorkoutId()).orElse(null);
+                if (workout != null) {
+                    PreviousWorkoutResponseDto dto = new PreviousWorkoutResponseDto();
+                    dto.setDiaryWorkoutId(dw.getDiaryWorkoutId());
+                    dto.setWorkoutId(workout.getWorkoutId()); // 추가: workoutId 설정
+                    dto.setWorkoutDate(diary.getWorkoutDate());
+                    dto.setWorkoutName(workout.getWorkoutName());
+                    dto.setPart(workout.getPart());
+                    result.add(dto);
+                    if (result.size() >= limit) {
+                        return result;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 최근 운동 조회 (최신순, 최대 limit 건)
+     * DTO: RecentWorkoutResponseDto (diaryWorkoutId, workoutId, workoutName)
+     */
+    public List<RecentWorkoutResponseDto> getRecentWorkouts(Integer userId, int limit) {
+        List<Diary> diaries = diaryRepository.findByUserIdAndDeletedFalse(userId);
+        diaries.sort((d1, d2) -> d2.getWorkoutDate().compareTo(d1.getWorkoutDate()));
+
+        List<RecentWorkoutResponseDto> result = new ArrayList<>();
+        for (Diary diary : diaries) {
+            List<DiaryWorkout> diaryWorkouts = diaryWorkoutRepository.findByDiaryIdAndDeletedFalse(diary.getDiaryId());
+            for (DiaryWorkout dw : diaryWorkouts) {
+                Workout workout = workoutRepository.findById(dw.getWorkoutId()).orElse(null);
+                if (workout != null) {
+                    RecentWorkoutResponseDto dto = new RecentWorkoutResponseDto();
+                    dto.setDiaryWorkoutId(dw.getDiaryWorkoutId());
+                    dto.setWorkoutId(workout.getWorkoutId()); // 추가: workoutId 설정
+                    dto.setWorkoutName(workout.getWorkoutName());
+                    result.add(dto);
+                    if (result.size() >= limit) {
+                        return result;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
 
 }

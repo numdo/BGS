@@ -88,7 +88,6 @@ export default function WorkoutCreatePage() {
     if (keyword.trim() === '') {
       setWorkoutList(allWorkoutList);
     } else {
-      // 클라이언트 사이드 검색 (원하는 경우 API 호출로 변경 가능)
       const filtered = allWorkoutList.filter((workout) =>
         workout.workoutName.toLowerCase().includes(keyword.toLowerCase())
       );
@@ -102,7 +101,7 @@ export default function WorkoutCreatePage() {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  // 모달 내에서 운동 선택(체크박스 클릭 시) 처리: 선택된 운동 배열에 추가/제거
+  // 모달 내에서 운동 선택(체크박스 클릭 시) 처리
   const toggleSelectedWorkout = (workoutId) => {
     setSelectedWorkouts((prevSelected) => {
       if (prevSelected.includes(workoutId)) {
@@ -124,7 +123,6 @@ export default function WorkoutCreatePage() {
     setDiary((prevDiary) => {
       const updatedDiaryWorkouts = [...prevDiary.diaryWorkouts];
       selectedWorkouts.forEach((workoutId) => {
-        // 이미 추가된 운동이면 해당 항목에 새 세트를 추가
         const existingIndex = updatedDiaryWorkouts.findIndex(
           (dw) => dw.workoutId === workoutId
         );
@@ -141,18 +139,35 @@ export default function WorkoutCreatePage() {
           });
         }
       });
-      return {
-        ...prevDiary,
-        diaryWorkouts: updatedDiaryWorkouts,
-      };
+      return { ...prevDiary, diaryWorkouts: updatedDiaryWorkouts };
     });
-    // 추가 후 선택 초기화
     setSelectedWorkouts([]);
     closeModal();
   };
 
+  // 추가: 이전 기록/최근 운동 항목 클릭 시 default 세트 포함하여 추가
+  const handleAddRecord = (record) => {
+    // record.workoutId가 백엔드 응답 DTO에 포함되어 있어야 함
+    if (!record.workoutId) {
+      alert('운동 정보를 불러오지 못했습니다.');
+      return;
+    }
+    setDiary((prevDiary) => ({
+      ...prevDiary,
+      diaryWorkouts: [
+        ...prevDiary.diaryWorkouts,
+        {
+          workoutId: record.workoutId,
+          sets: [{ weight: 10, repetition: 10, workoutTime: 10 }],
+        },
+      ],
+    }));
+    alert(`${record.workoutName} 운동이 추가되었습니다.`);
+    closeModal();
+  };
+
   //--------------------------------------------------
-  // 추가: 운동 세트 추가 (같은 운동에 새로운 세트 추가)
+  // 5) 운동 세트 추가 (같은 운동에 새로운 세트 추가)
   //--------------------------------------------------
   const handleAddSet = (workoutIndex) => {
     setDiary((prevDiary) => {
@@ -169,7 +184,7 @@ export default function WorkoutCreatePage() {
   };
 
   //--------------------------------------------------
-  // 추가: 특정 세트 삭제 (세트별 삭제)
+  // 6) 특정 세트 삭제 (세트별 삭제)
   //--------------------------------------------------
   const handleDeleteSet = (workoutIndex, setIndex) => {
     setDiary((prevDiary) => {
@@ -185,11 +200,10 @@ export default function WorkoutCreatePage() {
   };
 
   //--------------------------------------------------
-  // 5) 음성 녹음 버튼 (한 번 누르면 시작, 다시 누르면 종료)
+  // 7) 음성 녹음 버튼 (시작/종료)
   //--------------------------------------------------
   const handleRecordButton = async () => {
     if (!isRecording) {
-      // 녹음 시작
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: {
@@ -201,7 +215,6 @@ export default function WorkoutCreatePage() {
         });
         const recorder = new MediaRecorder(stream);
         setMediaRecorder(recorder);
-        // 이전 녹음 데이터 초기화
         audioChunksRef.current = [];
         setRecordStartTime(Date.now());
 
@@ -216,20 +229,16 @@ export default function WorkoutCreatePage() {
             console.error('녹음이 너무 짧습니다.');
             return;
           }
-
           setIsLoading(true);
           try {
             const formData = new FormData();
             formData.append('userId', 1);
             formData.append('audioFile', audioBlob);
-
             const response = await axios.post(
               'http://localhost:8080/api/ai-diary/auto',
               formData,
               { headers: { 'Content-Type': 'multipart/form-data' } }
             );
-
-            // 기존 운동 유지 + 음성으로 추가된 운동 병합
             setDiary((prevDiary) => ({
               ...prevDiary,
               diaryWorkouts: [
@@ -255,7 +264,7 @@ export default function WorkoutCreatePage() {
   };
 
   //--------------------------------------------------
-  // 6) 운동 전체 삭제 (운동 삭제 버튼)
+  // 8) 운동 전체 삭제 (운동 삭제 버튼)
   //--------------------------------------------------
   const handleDeleteWorkout = (indexOfWorkout) => {
     setDiary((prevDiary) => ({
@@ -265,7 +274,7 @@ export default function WorkoutCreatePage() {
   };
 
   //--------------------------------------------------
-  // 7) 운동 세트 정보 수정 (무게, 횟수, 운동시간)
+  // 9) 운동 세트 정보 수정 (무게, 횟수, 시간)
   //--------------------------------------------------
   const handleWorkoutSetChange = (workoutIndex, setIndex, field, value) => {
     setDiary((prevDiary) => {
@@ -284,7 +293,7 @@ export default function WorkoutCreatePage() {
   };
 
   //--------------------------------------------------
-  // 8) 이미지 업로드
+  // 10) 이미지 업로드
   //--------------------------------------------------
   const handleImageChange = (e) => {
     setFile(e.target.files[0]);
@@ -292,11 +301,10 @@ export default function WorkoutCreatePage() {
     setPreviewUrl(preview);
   };
 
-  // 9) 운동일지 저장
+  // 11) 운동일지 저장
   const handleDiarySubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('accessToken');
-
     if (!token) {
       alert('로그인이 필요합니다.');
       navigate('/login');
@@ -308,7 +316,7 @@ export default function WorkoutCreatePage() {
       formData.append('files', file);
     }
     try {
-      const response = await axios.post('http://localhost:8080/api/diaries', formData, {
+      await axios.post('http://localhost:8080/api/diaries', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`,
@@ -326,10 +334,12 @@ export default function WorkoutCreatePage() {
         alert('🚨 저장 실패!');
       }
     }
+    console.log(JSON.stringify(diary, null, 2));
+
   };
 
   //--------------------------------------------------
-  // 10) 해시태그 추가
+  // 12) 해시태그 추가
   //--------------------------------------------------
   const handleAddHashtag = () => {
     if (newHashtag.trim() && !diary.hashtags.includes(newHashtag)) {
@@ -341,7 +351,7 @@ export default function WorkoutCreatePage() {
     }
   };
 
-  // 모달에서 필터링된 운동 목록 (검색된 workoutList에 추가로 필터 적용)
+  // 모달에서 필터링된 운동 목록 (검색된 workoutList 적용)
   const filteredWorkoutList = workoutList.filter((workout) => {
     return (
       (selectedPartFilter === '' || workout.part === selectedPartFilter) &&
@@ -349,7 +359,7 @@ export default function WorkoutCreatePage() {
     );
   });
 
-  // 필터 버튼용: 고유의 부위와 기구 (전체 목록 기준)
+  // 필터 버튼용: 고유 부위 및 기구
   const uniqueParts = [...new Set(allWorkoutList.map((w) => w.part))];
   const uniqueTools = [...new Set(allWorkoutList.map((w) => w.tool))];
 
@@ -374,7 +384,7 @@ export default function WorkoutCreatePage() {
           />
         </div>
 
-        {/* 운동 추가와 음성 운동 추가 버튼 (한 줄에서 각각 1/2씩 차지) */}
+        {/* 운동 추가 & 음성 운동 추가 버튼 */}
         <div className="flex items-center space-x-4 mt-4">
           <button onClick={openModal} className="w-1/2 p-2 bg-gray-500 text-white rounded">
             🏋️‍♂️ 운동 추가
@@ -390,7 +400,7 @@ export default function WorkoutCreatePage() {
             <div className="bg-white rounded-lg p-6 shadow-lg max-w-2xl w-full">
               <h2 className="text-xl font-bold mb-4">운동 추가하기</h2>
 
-              {/* 필터 버튼: 부위 */}
+              {/* 필터: 부위 */}
               <div className="mb-2">
                 <span className="mr-2 font-semibold">부위: </span>
                 <button
@@ -410,7 +420,7 @@ export default function WorkoutCreatePage() {
                 ))}
               </div>
 
-              {/* 필터 버튼: 기구 */}
+              {/* 필터: 기구 */}
               <div className="mb-2">
                 <span className="mr-2 font-semibold">기구: </span>
                 <button
@@ -439,12 +449,16 @@ export default function WorkoutCreatePage() {
                 onChange={(e) => handleSearch(e.target.value)}
               />
 
-              {/* 이전 기록 (최대 5개) */}
+              {/* 이전 기록 */}
               <div className="mt-4">
                 <h3 className="text-lg font-bold">이전 기록</h3>
                 <div className="space-y-1 max-h-32 overflow-y-auto">
                   {previousRecords.map((record) => (
-                    <div key={record.id} className="p-2 border-b">
+                    <div
+                      key={record.diaryWorkoutId}
+                      className="p-2 border-b cursor-pointer"
+                      onClick={() => handleAddRecord(record)}
+                    >
                       <p className="text-sm">
                         {record.workoutDate} - {record.workoutName} ({record.part})
                       </p>
@@ -453,12 +467,16 @@ export default function WorkoutCreatePage() {
                 </div>
               </div>
 
-              {/* 최근 운동 (최대 20개) */}
+              {/* 최근 운동 */}
               <div className="mt-4">
                 <h3 className="text-lg font-bold">최근 운동</h3>
                 <div className="space-y-1 max-h-48 overflow-y-auto">
                   {recentExercises.map((exercise) => (
-                    <div key={exercise.id} className="p-2 border-b">
+                    <div
+                      key={exercise.diaryWorkoutId}
+                      className="p-2 border-b cursor-pointer"
+                      onClick={() => handleAddRecord(exercise)}
+                    >
                       <p className="text-sm">{exercise.workoutName}</p>
                     </div>
                   ))}
@@ -503,13 +521,7 @@ export default function WorkoutCreatePage() {
 
         {isLoading && <p>🔄 변환 중...</p>}
 
-        {/* STT 결과 / GPT 결과 */}
-        <h3 className="mt-4">📜 STT 변환 결과</h3>
-        <p>{sttResult || '-'}</p>
-        <h3 className="mt-2">🤖 GPT 분석 결과</h3>
-        <p>{gptResult || '-'}</p>
-
-        {/* 추가된 운동 목록 - 각 운동 세트 정보 수정, 세트 추가/삭제 */}
+        {/* 추가된 운동 목록 */}
         <div className="mt-4">
           {diary.diaryWorkouts.map((workout, index) => (
             <div key={index} className="border p-2 rounded mb-2">
@@ -531,9 +543,7 @@ export default function WorkoutCreatePage() {
                     <input
                       type="number"
                       value={set.weight}
-                      onChange={(e) =>
-                        handleWorkoutSetChange(index, setIndex, 'weight', e.target.value)
-                      }
+                      onChange={(e) => handleWorkoutSetChange(index, setIndex, 'weight', e.target.value)}
                       className="w-20 p-1 border rounded"
                     />
                   </div>
@@ -542,9 +552,7 @@ export default function WorkoutCreatePage() {
                     <input
                       type="number"
                       value={set.repetition}
-                      onChange={(e) =>
-                        handleWorkoutSetChange(index, setIndex, 'repetition', e.target.value)
-                      }
+                      onChange={(e) => handleWorkoutSetChange(index, setIndex, 'repetition', e.target.value)}
                       className="w-20 p-1 border rounded"
                     />
                   </div>
@@ -553,9 +561,7 @@ export default function WorkoutCreatePage() {
                     <input
                       type="number"
                       value={set.workoutTime}
-                      onChange={(e) =>
-                        handleWorkoutSetChange(index, setIndex, 'workoutTime', e.target.value)
-                      }
+                      onChange={(e) => handleWorkoutSetChange(index, setIndex, 'workoutTime', e.target.value)}
                       className="w-20 p-1 border rounded"
                     />
                   </div>

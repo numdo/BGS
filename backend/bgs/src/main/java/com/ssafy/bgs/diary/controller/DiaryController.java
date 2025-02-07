@@ -2,9 +2,7 @@ package com.ssafy.bgs.diary.controller;
 
 import com.ssafy.bgs.diary.dto.request.CommentRequestDto;
 import com.ssafy.bgs.diary.dto.request.DiaryRequestDto;
-import com.ssafy.bgs.diary.dto.response.CommentResponseDto;
-import com.ssafy.bgs.diary.dto.response.DiaryResponseDto;
-import com.ssafy.bgs.diary.dto.response.FeedResponseDto;
+import com.ssafy.bgs.diary.dto.response.*;
 import com.ssafy.bgs.diary.entity.Diary;
 import com.ssafy.bgs.diary.entity.Workout;
 import com.ssafy.bgs.diary.service.DiaryService;
@@ -166,6 +164,30 @@ public class DiaryController {
     public ResponseEntity<List<Workout>> searchWorkouts(@RequestParam String keyword) {
         List<Workout> workouts = diaryService.searchWorkouts(keyword);
         return new ResponseEntity<>(workouts, HttpStatus.OK);
+    }
+
+    /**
+     * 이전 운동 기록 조회 API
+     * GET /api/diaries/workout/previous?limit=5
+     */
+    @GetMapping("/workout/previous")
+    public ResponseEntity<List<PreviousWorkoutResponseDto>> getPreviousWorkouts(
+            @AuthenticationPrincipal Integer userId,
+            @RequestParam(defaultValue = "5") int limit) {
+        List<PreviousWorkoutResponseDto> records = diaryService.getPreviousWorkoutRecords(userId, limit);
+        return new ResponseEntity<>(records, HttpStatus.OK);
+    }
+
+    /**
+     * 최근 운동 조회 API
+     * GET /api/diaries/workout/recent?limit=20
+     */
+    @GetMapping("/workout/recent")
+    public ResponseEntity<List<RecentWorkoutResponseDto>> getRecentWorkouts(
+            @AuthenticationPrincipal Integer userId,
+            @RequestParam(defaultValue = "20") int limit) {
+        List<RecentWorkoutResponseDto> records = diaryService.getRecentWorkouts(userId, limit);
+        return new ResponseEntity<>(records, HttpStatus.OK);
     }
 
 }
