@@ -25,8 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class DiaryService {
@@ -101,7 +100,7 @@ public class DiaryService {
         diary.setContent(diaryRequestDto.getContent());
         diary.setWorkoutDate(diaryRequestDto.getWorkoutDate());
         diary.setAllowedScope(diaryRequestDto.getAllowedScope());
-        
+
         // 운동 다이어리 저장
         Diary savedDiary = diaryRepository.save(diary);
 
@@ -434,7 +433,7 @@ public class DiaryService {
         if (comment == null || comment.getDeleted()) {
             throw new CommentNotFoundException(commentId);
         }
-        
+
         // 댓글 삭제 권한 없음
         if (!comment.getUserId().equals(userId))
             throw new UnauthorizedAccessException("댓글 삭제 권한 없음") {};
@@ -454,59 +453,109 @@ public class DiaryService {
 
     /**
      * 이전 운동 기록 조회 (최신순, 최대 limit 건)
-     * DTO: PreviousWorkoutResponseDto (diaryWorkoutId, workoutId, workoutDate, workoutName, part)
+     * - 하나의 diary(일지)에 여러 운동이 있을 경우,
+     *   workoutIds(배열)로 모아서 한 레코드로 반환
+     * - 예: [ { diaryId:10, workoutDate:2025-02-07, workoutIds:[1,3], workoutNames:"벤치프레스, 디클라인 벤치 프레스" }, ... ]
      */
     public List<PreviousWorkoutResponseDto> getPreviousWorkoutRecords(Integer userId, int limit) {
+        // 1) userId로 해당 유저의 diary(일지)들 가져오기, 날짜 내림차순 정렬
         List<Diary> diaries = diaryRepository.findByUserIdAndDeletedFalse(userId);
-        diaries.sort((d1, d2) -> d2.getWorkoutDate().compareTo(d1.getWorkoutDate()));
+        diaries.sort((d1, d2) -> {
+            if (d1.getWorkoutDate() == null && d2.getWorkoutDate() == null) return 0;
+            if (d1.getWorkoutDate() == null) return 1;
+            if (d2.getWorkoutDate() == null) return -1;
+            return d2.getWorkoutDate().compareTo(d1.getWorkoutDate());
+        });
 
         List<PreviousWorkoutResponseDto> result = new ArrayList<>();
+
+        // 2) 각 diary에 속한 여러 DiaryWorkout을 합쳐서 "workoutIds" + "workoutNames"를 만든다
         for (Diary diary : diaries) {
             List<DiaryWorkout> diaryWorkouts = diaryWorkoutRepository.findByDiaryIdAndDeletedFalse(diary.getDiaryId());
+            if (diaryWorkouts.isEmpty()) continue;
+
+            // (a) 여러 운동의 ID와 이름을 합칠 자료구조
+            Set<Integer> uniqueWorkoutIds = new LinkedHashSet<>();  // 순서 보장 위해 LinkedHashSet
+            StringBuilder namesBuilder = new StringBuilder();
+
+            // (b) loop을 돌면서 workoutId, workoutName을 합친다
             for (DiaryWorkout dw : diaryWorkouts) {
-                Workout workout = workoutRepository.findById(dw.getWorkoutId()).orElse(null);
-                if (workout != null) {
-                    PreviousWorkoutResponseDto dto = new PreviousWorkoutResponseDto();
-                    dto.setDiaryWorkoutId(dw.getDiaryWorkoutId());
-                    dto.setWorkoutId(workout.getWorkoutId()); // 추가: workoutId 설정
-                    dto.setWorkoutDate(diary.getWorkoutDate());
-                    dto.setWorkoutName(workout.getWorkoutName());
-                    dto.setPart(workout.getPart());
-                    result.add(dto);
-                    if (result.size() >= limit) {
-                        return result;
+                Workout w = workoutRepository.findById(dw.getWorkoutId()).orElse(null);
+                if (w == null) continue;
+
+                // 중복 방지
+                if (!uniqueWorkoutIds.contains(w.getWorkoutId())) {
+                    if (namesBuilder.length() > 0) {
+                        namesBuilder.append(", ");
                     }
+                    namesBuilder.append(w.getWorkoutName());
+                    uniqueWorkoutIds.add(w.getWorkoutId());
                 }
             }
+
+            if (uniqueWorkoutIds.isEmpty()) {
+                // 해당 일지에 유효한 workout이 없으면 스킵
+                continue;
+            }
+
+            // (c) DTO 생성 후 result에 추가
+            PreviousWorkoutResponseDto dto = new PreviousWorkoutResponseDto();
+            dto.setDiaryId(diary.getDiaryId());
+            dto.setWorkoutDate(diary.getWorkoutDate());
+            dto.setWorkoutIds(new ArrayList<>(uniqueWorkoutIds)); // Set -> List 변환
+            dto.setWorkoutNames(namesBuilder.toString());
+
+            // 필요하다면 너무 긴 names를 잘라서 ... 처리
+            if (dto.getWorkoutNames().length() > 40) {
+                dto.setWorkoutNames(dto.getWorkoutNames().substring(0, 40) + "...");
+            }
+
+            result.add(dto);
+
+            // limit 처리
+            if (result.size() >= limit) {
+                break;
+            }
         }
+
         return result;
     }
 
-    /**
-     * 최근 운동 조회 (최신순, 최대 limit 건)
-     * DTO: RecentWorkoutResponseDto (diaryWorkoutId, workoutId, workoutName)
-     */
+
+
+
     public List<RecentWorkoutResponseDto> getRecentWorkouts(Integer userId, int limit) {
         List<Diary> diaries = diaryRepository.findByUserIdAndDeletedFalse(userId);
-        diaries.sort((d1, d2) -> d2.getWorkoutDate().compareTo(d1.getWorkoutDate()));
+        diaries.sort((d1, d2) -> {
+            if (d1.getWorkoutDate() == null && d2.getWorkoutDate() == null) return 0;
+            if (d1.getWorkoutDate() == null) return 1;
+            if (d2.getWorkoutDate() == null) return -1;
+            return d2.getWorkoutDate().compareTo(d1.getWorkoutDate());
+        });
 
         List<RecentWorkoutResponseDto> result = new ArrayList<>();
+        Set<Integer> uniqueWorkoutIds = new HashSet<>();
         for (Diary diary : diaries) {
             List<DiaryWorkout> diaryWorkouts = diaryWorkoutRepository.findByDiaryIdAndDeletedFalse(diary.getDiaryId());
             for (DiaryWorkout dw : diaryWorkouts) {
+                if (dw.getWorkoutId() == null) continue;
+                if (uniqueWorkoutIds.contains(dw.getWorkoutId())) continue;
                 Workout workout = workoutRepository.findById(dw.getWorkoutId()).orElse(null);
                 if (workout != null) {
                     RecentWorkoutResponseDto dto = new RecentWorkoutResponseDto();
                     dto.setDiaryWorkoutId(dw.getDiaryWorkoutId());
-                    dto.setWorkoutId(workout.getWorkoutId()); // 추가: workoutId 설정
+                    dto.setWorkoutId(workout.getWorkoutId());
                     dto.setWorkoutName(workout.getWorkoutName());
+                    dto.setTool(workout.getTool());
                     result.add(dto);
-                    if (result.size() >= limit) {
-                        return result;
-                    }
+                    uniqueWorkoutIds.add(workout.getWorkoutId());
+                    if (result.size() >= limit) return result;
                 }
             }
         }
         return result;
     }
+
+
+
 }

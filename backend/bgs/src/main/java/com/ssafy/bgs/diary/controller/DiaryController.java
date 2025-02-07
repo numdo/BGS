@@ -176,22 +176,28 @@ public class DiaryController {
      */
     @GetMapping("/workout/previous")
     public ResponseEntity<List<PreviousWorkoutResponseDto>> getPreviousWorkouts(
-            @AuthenticationPrincipal Integer userId,
+            Authentication authentication,
             @RequestParam(defaultValue = "5") int limit) {
+        if (authentication == null || authentication.getName() == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Integer userId = Integer.parseInt(authentication.getName());
         List<PreviousWorkoutResponseDto> records = diaryService.getPreviousWorkoutRecords(userId, limit);
         return new ResponseEntity<>(records, HttpStatus.OK);
     }
 
-    /**
-     * 최근 운동 조회 API
-     * GET /api/diaries/workout/recent?limit=20
-     */
     @GetMapping("/workout/recent")
     public ResponseEntity<List<RecentWorkoutResponseDto>> getRecentWorkouts(
-            @AuthenticationPrincipal Integer userId,
+            Authentication authentication,
             @RequestParam(defaultValue = "20") int limit) {
+        if (authentication == null || authentication.getName() == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Integer userId = Integer.parseInt(authentication.getName());
         List<RecentWorkoutResponseDto> records = diaryService.getRecentWorkouts(userId, limit);
         return new ResponseEntity<>(records, HttpStatus.OK);
     }
+
+
 
 }

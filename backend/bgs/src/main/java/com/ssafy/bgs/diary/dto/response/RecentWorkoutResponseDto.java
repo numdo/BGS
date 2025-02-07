@@ -12,4 +12,5 @@ public class RecentWorkoutResponseDto {
     private Integer workoutId;
     // 운동 이름
     private String workoutName;
+    private String tool;
 }
