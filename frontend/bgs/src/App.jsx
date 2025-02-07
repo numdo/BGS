@@ -10,14 +10,14 @@ import WorkoutDiaryPage from "./pages/workout/WorkoutDiaryPage";
 import WorkoutCreatePage from "./pages/workout/WorkoutCreatePage";
 import WorkoutUpdatePage from "./pages/workout/WorkoutUpdatePage";
 import FeedPage from "./pages/feed/FeedPage";
-import FeedDetailPage from "./pages/feed/FeedDetailPage"
+import FeedDetailPage from "./pages/feed/FeedDetailPage";
 import BullLoginPage from "./pages/auth/BulLoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import UserDetailsPage from "./pages/auth/UserDetailsPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
 import SocialSignupPage from "./pages/auth/SocialSignupPage";
-import SocialRedirectPage from "./pages/auth/SocialRedirectPage"; // ✅ 통합된 페이지
+import KakaoRedirectPage from "./pages/auth/KakaoRedirectPage";
 import AdminItemPage from "./pages/admin/AdminItemPage";
 
 function App() {
@@ -33,10 +33,6 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
           <Route path="/login/oauth2/success" element={<KakaoRedirectPage />} />
-          <Route
-            path="/login/oauth2/code/google"
-            element={<GoogleRedirectPage />}
-          />
           <Route path="/social-signup" element={<SocialSignupPage />} />
           <Route path="/mygym" element={<MyGymPage />} />
           <Route path="/admin-item" element={<AdminItemPage />} />
