@@ -1,4 +1,4 @@
-package com.ssafy.bgs.user.dto.request;
+package com.ssafy.bgs.auth.dto.request;
 
 import lombok.*;
 
@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserSignupRequestDto {
+public class SignupRequestDto {
     private String email;
     private String password;
     private String nickname;

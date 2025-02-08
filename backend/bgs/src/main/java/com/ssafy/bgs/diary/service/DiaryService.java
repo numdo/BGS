@@ -53,9 +53,9 @@ public class DiaryService {
     }
 
     /** Feed select **/
-    public List<FeedResponseDto> getFeedList(Integer readerId, Integer userId, int page, int pageSize) {
+    public List<DiaryFeedResponseDto> getFeedList(Integer readerId, Integer userId, int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
-        List<FeedResponseDto> feedList;
+        List<DiaryFeedResponseDto> feedList;
         if (userId == null) {
             feedList = diaryRepository.findByAllowedScopeAndDeletedFalse("A", pageable);
         }
@@ -67,7 +67,7 @@ public class DiaryService {
         }
 
         feedList.forEach(diary -> {
-            // 이미지 목록 조회
+            // 이미지 조회
             ImageResponseDto image = imageService.getImage("diary", diary.getDiaryId());
             if (image != null) {
                 diary.setImageUrl(imageService.getS3Url(image.getUrl()));

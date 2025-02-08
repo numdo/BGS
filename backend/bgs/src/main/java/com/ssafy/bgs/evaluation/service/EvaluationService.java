@@ -2,6 +2,7 @@ package com.ssafy.bgs.evaluation.service;
 
 import com.ssafy.bgs.common.UnauthorizedAccessException;
 import com.ssafy.bgs.evaluation.dto.request.EvaluationRequestDto;
+import com.ssafy.bgs.evaluation.dto.response.EvaluationFeedResponseDto;
 import com.ssafy.bgs.evaluation.dto.response.EvaluationResponseDto;
 import com.ssafy.bgs.evaluation.entity.Evaluation;
 import com.ssafy.bgs.evaluation.entity.Vote;
@@ -12,16 +13,22 @@ import com.ssafy.bgs.evaluation.exception.VoteNotFoundException;
 import com.ssafy.bgs.evaluation.repository.EvaluationRepository;
 import com.ssafy.bgs.evaluation.repository.VoteRepository;
 import com.ssafy.bgs.evaluation.repository.WorkoutRecordRepository;
+import com.ssafy.bgs.image.dto.response.ImageResponseDto;
 import com.ssafy.bgs.image.entity.Image;
 import com.ssafy.bgs.image.service.ImageService;
+import com.ssafy.bgs.user.entity.User;
+import com.ssafy.bgs.user.exception.UserNotFoundException;
+import com.ssafy.bgs.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,7 +40,40 @@ public class EvaluationService {
     private final EvaluationRepository evaluationRepository;
     private final VoteRepository voteRepository;
     private final WorkoutRecordRepository workoutRecordRepository;
+    private final UserRepository userRepository;
     private final ImageService imageService;
+
+    public List<EvaluationFeedResponseDto> getFeedList(Boolean closed, int page, int pageSize) {
+        List<EvaluationFeedResponseDto> feedList = new ArrayList<>();
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+
+        Page<Evaluation> evaluations;
+        if (closed == null) {
+            evaluations = evaluationRepository.findByDeletedFalse(pageable);
+        }
+        else {
+            evaluations = evaluationRepository.findByDeletedFalseAndClosed(pageable, closed);
+        }
+        evaluations.forEach(evaluation -> {
+            EvaluationFeedResponseDto responseDto = new EvaluationFeedResponseDto();
+            responseDto.setEvaluationId(evaluation.getEvaluationId());
+            feedList.add(responseDto);
+        });
+
+        feedList.forEach(feed -> {
+            // 이미지 조회
+            ImageResponseDto image = imageService.getImage("evaluation", feed.getEvaluationId());
+            if (image != null) {
+                feed.setImageUrl(imageService.getS3Url(image.getUrl()));
+            }
+
+            // 투표 수 조회
+            feed.setVoteCount(voteRepository.countByEvaluationId(feed.getEvaluationId()));
+            feed.setApprovalCount(voteRepository.countByEvaluationIdAndApprovalTrue(feed.getEvaluationId()));
+        });
+
+        return feedList;
+    }
 
     /**
      * 평가 게시물 전체 조회 (페이징 지원)
@@ -65,6 +105,8 @@ public class EvaluationService {
             throw new EvaluationNotFoundException(evaluationId);
         }
 
+        User writer = userRepository.findById(evaluation.getUserId()).orElseThrow(() -> new UserNotFoundException(evaluation.getUserId()));
+
         List<String> imageUrls = imageService.getImages("evaluation", evaluationId)
                 .stream()
                 .map(Image::getUrl)
@@ -72,7 +114,14 @@ public class EvaluationService {
                 .collect(Collectors.toList());
 
         EvaluationResponseDto responseDto = convertToDto(evaluation);
+        responseDto.setWriter(writer.getNickname());
+        responseDto.setVoteCount(voteRepository.countByEvaluationId(evaluationId));
+        responseDto.setApprovalCount(voteRepository.countByEvaluationIdAndApprovalTrue(evaluationId));
         responseDto.setImageUrls(imageUrls);
+        ImageResponseDto image = imageService.getImage("profile", writer.getId());
+        if (image != null) {
+            responseDto.setProfileImageUrl(imageService.getS3Url(image.getUrl()));
+        }
         return responseDto;
     }
 
@@ -327,4 +376,5 @@ public class EvaluationService {
                 .deleted(evaluation.getDeleted())
                 .build();
     }
+
 }

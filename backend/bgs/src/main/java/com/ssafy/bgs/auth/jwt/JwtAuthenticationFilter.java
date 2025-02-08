@@ -1,5 +1,9 @@
 package com.ssafy.bgs.auth.jwt;
 
+import com.ssafy.bgs.redis.service.RedisService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,46 +21,61 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final RedisService redisService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        String token = resolveToken(request);
 
-        try {
-            // 1. Header에서 Token 추출
-            String token = resolveToken(request);
+        if (token != null) {
+            try {
+                // 1) 유효한 Access Token인 경우 -> 인증 처리
+                Jws<Claims> claims = jwtTokenProvider.parseToken(token, true);
+                // parseToken()에 성공 -> 만료X, 서명O
+                Integer userId = Integer.valueOf(claims.getBody().getSubject());
+                setAuthentication(userId);
 
-            // 2. 토큰이 존재하고, 유효하면 인증 객체 생성
-            if (token != null && jwtTokenProvider.validateToken(token,true)) {
-                // JWT에서 userId 추출
-                Integer userId = jwtTokenProvider.getUserId(token, true);
+            } catch (ExpiredJwtException ex) {
+                // 2) Access Token 만료된 경우 -> Refresh Token 확인 후 재발급
+                Integer userId = Integer.valueOf(ex.getClaims().getSubject());
+                String redisKey = "user:login:" + userId;
+                String storedRefreshToken = (String) redisService.getValue(redisKey);
 
-                // Principal = userId, Credentials = null, Authorities = null
-                UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(userId, null, null);
-
-                // SecurityContextHolder에 등록
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                if (storedRefreshToken != null && jwtTokenProvider.validateToken(storedRefreshToken, false)) {
+                    // ★ Refresh가 유효 -> 새 Access 발급, 응답 헤더에 넣고 200 OK
+                    String newAccessToken = jwtTokenProvider.createAccessToken(userId);
+                    response.setHeader("Authorization", "Bearer " + newAccessToken);
+                    setAuthentication(userId);
+                } else {
+                    // Refresh Token도 없거나 만료 -> 정말 로그인 불가 -> 401
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
+                }
+            } catch (Exception e) {
+                // 토큰 자체가 잘못됨 -> 401
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
             }
-
-            // 다음 필터로 진행
-            filterChain.doFilter(request, response);
-
-        } catch (Exception e) {
-            // 토큰이 유효하지 않거나, 검증 중 에러가 발생하면 401 반환
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
+        // 여기까지 왔으면 정상. 필터 체인 진행
+        filterChain.doFilter(request, response);
     }
 
     /**
-     * "Authorization: Bearer <TOKEN>" 헤더에서 토큰을 잘라내는 메서드
+     * "Authorization: Bearer <TOKEN>" 헤더에서 토큰 추출
      */
     private String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // "Bearer " 문자열 길이만큼 자르기
+            return bearerToken.substring(7);
         }
         return null;
+    }
+    private void setAuthentication(Integer userId) {
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(userId, null, null);
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
     }
 }

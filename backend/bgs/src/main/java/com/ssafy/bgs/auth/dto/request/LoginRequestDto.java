@@ -1,4 +1,4 @@
-package com.ssafy.bgs.user.dto.request;
+package com.ssafy.bgs.auth.dto.request;
 
 import lombok.*;
 

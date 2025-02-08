@@ -7,6 +7,7 @@ import MyGymRoomView from "../../components/mygym/MyGymRoomView";
 import MyGymItem from "../../components/mygym/MyGymItem";
 import SelectColor from "../../components/mygym/SelectColor";
 import MyGymRoomBgColor from "../../components/mygym/MyGymRoomBgColor"
+import VisitorMemo from "../../components/mygym/VisitorMemo";
 
 import useUserStore from "../../stores/useUserStore";
 import useMyGymStore from "../../stores/useMyGymStore";
@@ -97,6 +98,7 @@ const MyGymPage = () => {
           >
             편집
           </button>
+          <VisitorMemo />
         </>
       )}
 
