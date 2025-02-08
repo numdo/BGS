@@ -39,17 +39,16 @@ public class AiDiaryService {
             JsonNode workoutsNode = root.path("workouts");
 
             List<DiaryWorkoutRequestDto> diaryWorkouts = new ArrayList<>();
-            List<String> unrecognizedWorkouts = new ArrayList<>(); // ❌ DB에 없는 운동 저장
+            List<String> unrecognizedWorkouts = new ArrayList<>();
 
             if (workoutsNode.isEmpty()) {
                 log.warn("⚠️ GPT 분석 결과에서 운동 데이터 없음!");
-
                 return AiDiaryResponseDto.builder()
                         .sttResult(sttResult)
                         .gptResult(gptResult)
                         .diaryWorkouts(diaryWorkouts)
                         .unrecognizedWorkouts(unrecognizedWorkouts)
-                        .invalidInput(true) // 🚨 운동을 감지하지 못한 경우
+                        .invalidInput(true)
                         .build();
             }
 
@@ -66,7 +65,7 @@ public class AiDiaryService {
                 }
 
                 DiaryWorkoutRequestDto workoutReq = new DiaryWorkoutRequestDto();
-                workoutReq.setWorkoutId(matchedWorkoutId.get()); // ✅ Workout ID 추가
+                workoutReq.setWorkoutId(matchedWorkoutId.get());
                 workoutReq.setDeleted(false);
 
                 List<WorkoutSetRequestDto> setList = new ArrayList<>();
@@ -74,10 +73,9 @@ public class AiDiaryService {
                     WorkoutSetRequestDto ws = new WorkoutSetRequestDto();
                     ws.setWeight((float) setNode.path("weight").asDouble());
                     ws.setRepetition(setNode.path("reps").asInt());
-                    ws.setWorkoutTime(0); // 필요 시 시간 추가
+                    ws.setWorkoutTime(0);
                     setList.add(ws);
                 }
-
                 workoutReq.setSets(setList);
                 diaryWorkouts.add(workoutReq);
             }
@@ -87,7 +85,7 @@ public class AiDiaryService {
                     .gptResult(gptResult)
                     .diaryWorkouts(diaryWorkouts)
                     .unrecognizedWorkouts(unrecognizedWorkouts)
-                    .invalidInput(diaryWorkouts.isEmpty()) // 🚨 운동이 없으면 true
+                    .invalidInput(diaryWorkouts.isEmpty())
                     .build();
         } catch (Exception e) {
             throw new RuntimeException("❌ AI 일지 생성 실패: " + e.getMessage(), e);

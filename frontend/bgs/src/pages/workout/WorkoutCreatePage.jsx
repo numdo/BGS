@@ -228,11 +228,11 @@ export default function WorkoutCreatePage() {
         setMediaRecorder(recorder);
         audioChunksRef.current = [];
         setRecordStartTime(Date.now());
-
+  
         recorder.ondataavailable = (event) => {
           audioChunksRef.current.push(event.data);
         };
-
+  
         recorder.onstop = async () => {
           const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
           const duration = Date.now() - recordStartTime;
@@ -244,28 +244,24 @@ export default function WorkoutCreatePage() {
           try {
             const formData = new FormData();
             formData.append('audioFile', audioBlob);
-
+  
             const response = await axiosInstance.post('/ai-diary/auto', formData, {
               headers: { 'Content-Type': 'multipart/form-data' },
-              withCredentials: true, 
+              withCredentials: true,
             });
-
+  
             console.log('📦 STT 응답 데이터:', response.data);
-
-            // invalidInput 체크
+  
             if (response.data.invalidInput) {
               alert('운동을 인식하지 못했습니다. 다시 말씀해주세요.');
               return;
             }
-
-            // AI가 반환한 diaryWorkouts 병합
+  
             if (response.data.diaryWorkouts) {
               setDiary((prevDiary) => {
                 const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
                 for (const dw of response.data.diaryWorkouts) {
-                  // 중복 운동이면 추가 X
-                  const exists = newDiaryWorkouts.some((x) => x.workoutId === dw.workoutId);
-                  if (!exists) {
+                  if (!newDiaryWorkouts.some((x) => x.workoutId === dw.workoutId)) {
                     newDiaryWorkouts.push(dw);
                   }
                 }
@@ -273,12 +269,12 @@ export default function WorkoutCreatePage() {
               });
             }
           } catch (err) {
-            alert('🚨 오류 발생! 알아들을 수 없는 운동입니다.');
+            alert('🚨 오류 발생! 운동을 인식할 수 없습니다.');
             console.error('음성 처리 실패:', err);
           }
           setIsLoading(false);
         };
-
+  
         recorder.start();
         setIsRecording(true);
       } catch (error) {
