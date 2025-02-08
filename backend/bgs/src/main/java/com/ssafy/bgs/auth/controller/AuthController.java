@@ -132,17 +132,26 @@ public class AuthController {
         return verified ? ResponseEntity.ok("이메일 인증 성공")
                 : ResponseEntity.badRequest().body("인증 코드가 일치하지 않습니다.");
     }
+
     @GetMapping("/nickname-check/{nickname}")
     public ResponseEntity<?> checkNickname(@PathVariable String nickname) {
         boolean available = authService.checkNickname(nickname);
-        return ResponseEntity.ok().body(new AuthController.NicknameCheckResponse(available));
+        return ResponseEntity.ok().body(new AuthController.CheckResponse(available));
     }
+
     @PostMapping("/reset-password")
     public ResponseEntity<PasswordResetResponseDto> resetPassword(@Valid @RequestBody PasswordResetRequestDto requestDto) {
         PasswordResetResponseDto response = authService.resetPassword(requestDto);
         return ResponseEntity.ok(response);
     }
-    record NicknameCheckResponse(boolean available) {}
+
+    @GetMapping("/email-check/{email}")
+    public ResponseEntity<?> checkEmail(@PathVariable String email) {
+        boolean available = authService.checkEmail(email);
+        return ResponseEntity.ok().body(new AuthController.CheckResponse(available));
+    }
+
+    record CheckResponse(boolean available) {}
 
 
 }

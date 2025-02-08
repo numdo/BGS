@@ -289,23 +289,6 @@ public class AuthService {
                 .isTemporaryPassword(isTemporary)
                 .build();
     }
-    public String refreshAccessToken(String refreshToken) {
-        // 1. refresh 토큰 자체의 유효성 검사 (만료, 변조 여부)
-        if (!jwtTokenProvider.validateToken(refreshToken, false)) {
-            throw new UnauthorizedAccessException("유효하지 않은 refresh 토큰입니다.");
-        }
-        // 2. refresh 토큰에서 userId 추출 (isAccessToken=false)
-        Integer userId = jwtTokenProvider.getUserId(refreshToken, false);
-        // 3. Redis에서 해당 사용자의 저장된 refresh 토큰 조회
-        String redisKey = "user:login:" + userId;
-        String storedRefreshToken = (String) redisService.getValue(redisKey);
-        // 4. 클라이언트가 보낸 refresh 토큰과 Redis에 저장된 토큰 비교
-        if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
-            throw new UnauthorizedAccessException("refresh 토큰이 일치하지 않습니다.");
-        }
-        // 5. refresh 토큰이 유효하고 Redis에 저장된 토큰과 일치하면, 새 access 토큰 발급
-        return jwtTokenProvider.createAccessToken(userId);
-    }
 
     public void logout(Integer userId) {
         String redisKey = "user:login:" + userId;
@@ -373,6 +356,8 @@ public class AuthService {
         return !userRepository.existsByNickname(nickname);
     }
 
+    @Transactional(readOnly = true)
+    public boolean checkEmail(String email) { return userRepository.findByEmail(email).isEmpty(); }
     /**
      * 카카오 사용자 정보 DTO(내부 용도)
      */
