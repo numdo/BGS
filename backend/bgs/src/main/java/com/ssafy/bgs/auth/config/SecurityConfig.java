@@ -50,7 +50,6 @@ public class SecurityConfig {
         // 3. URL별 권한 설정
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                        "/**",
                         "/api/auth/**",
                         "/images/**",
                         "/profile/**"
