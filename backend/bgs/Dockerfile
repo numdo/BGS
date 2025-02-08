@@ -10,7 +10,9 @@ COPY target/bgs.jar app.jar
 # Copy properties files to a specific directory
 COPY config/application.properties /app/config/application.properties
 COPY config/application-private.properties /app/config/application-private.properties
-COPY config/google-credentials.json /app/config/google-credentials.json
+
+# Copy credentials files to a resources directory
+COPY config/google-credentials.json /app/src/main/resources/google-credentials.json
 
 # Expose the port the app runs on
 EXPOSE 8080
