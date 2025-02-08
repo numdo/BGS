@@ -243,11 +243,11 @@ export default function WorkoutCreatePage() {
           setIsLoading(true);
           try {
             const formData = new FormData();
-            formData.append('userId', 1);
             formData.append('audioFile', audioBlob);
 
             const response = await axiosInstance.post('/ai-diary/auto', formData, {
               headers: { 'Content-Type': 'multipart/form-data' },
+              withCredentials: true, 
             });
 
             console.log('📦 STT 응답 데이터:', response.data);
