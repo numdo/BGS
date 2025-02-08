@@ -34,3 +34,15 @@ export async function getAttendanceByDate(date) {
     throw error;
   }
 }
+
+// ✅ 지정 범위 내 출석 조회 (GET /api/attendance/range?start=YYYY-MM-DD&end=YYYY-MM-DD)
+export async function getAttendanceByRange(start, end) {
+  try {
+    const response = await axiosInstance.get(`${BASE_URL}/range`, {
+      params: { start, end },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
