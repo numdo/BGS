@@ -16,15 +16,23 @@ public class AiDiaryResponseDto {
     private String gptResult;   // GPT 분석 결과 (JSON 등)
     private List<DiaryWorkoutRequestDto> diaryWorkouts;
     private List<String> unrecognizedWorkouts; // ❗ DB에 없는 운동 목록 추가
+    private boolean invalidInput; // 🚀 운동 데이터가 없거나, 인식된 운동이 모두 DB 매칭 실패 시 true
 
     public static AiDiaryResponseDto of(String sttResult, String gptResult,
                                         List<DiaryWorkoutRequestDto> diaryWorkouts,
-                                        List<String> unrecognizedWorkouts) { // 🚀 수정
+                                        List<String> unrecognizedWorkouts) {
+        boolean invalidInput = (diaryWorkouts == null || diaryWorkouts.isEmpty());
+
         return AiDiaryResponseDto.builder()
                 .sttResult(sttResult)
                 .gptResult(gptResult)
                 .diaryWorkouts(diaryWorkouts)
-                .unrecognizedWorkouts(unrecognizedWorkouts) // ✅ 추가
+                .unrecognizedWorkouts(unrecognizedWorkouts)
+                .invalidInput(invalidInput) // 🚀 운동 데이터가 없으면 true
                 .build();
+    }
+
+    public boolean isInvalidInput() {
+        return invalidInput;
     }
 }

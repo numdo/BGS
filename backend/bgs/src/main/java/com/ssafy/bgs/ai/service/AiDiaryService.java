@@ -28,9 +28,11 @@ public class AiDiaryService {
         try {
             // 1️⃣ STT 변환
             String sttResult = sttService.transcribe(audioReq.getAudioFile());
+            log.info("✅ STT 변환 결과: {}", sttResult);
 
             // 2️⃣ GPT 분석 (STT 결과 보정 후 JSON 변환)
             String gptResult = gptService.analyzeWorkout(sttResult);
+            log.info("🔍 GPT 분석 결과: {}", gptResult);
 
             // 3️⃣ JSON 파싱
             JsonNode root = objectMapper.readTree(gptResult);
@@ -39,6 +41,18 @@ public class AiDiaryService {
             List<DiaryWorkoutRequestDto> diaryWorkouts = new ArrayList<>();
             List<String> unrecognizedWorkouts = new ArrayList<>(); // ❌ DB에 없는 운동 저장
 
+            if (workoutsNode.isEmpty()) {
+                log.warn("⚠️ GPT 분석 결과에서 운동 데이터 없음!");
+
+                return AiDiaryResponseDto.builder()
+                        .sttResult(sttResult)
+                        .gptResult(gptResult)
+                        .diaryWorkouts(diaryWorkouts)
+                        .unrecognizedWorkouts(unrecognizedWorkouts)
+                        .invalidInput(true) // 🚨 운동을 감지하지 못한 경우
+                        .build();
+            }
+
             for (JsonNode workoutNode : workoutsNode) {
                 String workoutName = workoutNode.path("workoutName").asText();
                 JsonNode setsNode = workoutNode.path("sets");
@@ -46,7 +60,8 @@ public class AiDiaryService {
                 // 4️⃣ Workout ID 매칭 (DB에서 찾기)
                 Optional<Integer> matchedWorkoutId = workoutMatchingService.findBestMatchingWorkoutId(workoutName);
                 if (matchedWorkoutId.isEmpty()) {
-                    unrecognizedWorkouts.add(workoutName); // ❌ DB에 없는 운동은 따로 저장
+                    log.warn("❌ DB에서 운동 '{}'을(를) 찾을 수 없음", workoutName);
+                    unrecognizedWorkouts.add(workoutName);
                     continue;
                 }
 
@@ -67,16 +82,15 @@ public class AiDiaryService {
                 diaryWorkouts.add(workoutReq);
             }
 
-            // ✅ workoutId까지 포함하여 응답
             return AiDiaryResponseDto.builder()
                     .sttResult(sttResult)
                     .gptResult(gptResult)
-                    .diaryWorkouts(diaryWorkouts) // 🚀 여러 운동 포함
-                    .unrecognizedWorkouts(unrecognizedWorkouts) // 🚨 DB에 없는 운동 추가
+                    .diaryWorkouts(diaryWorkouts)
+                    .unrecognizedWorkouts(unrecognizedWorkouts)
+                    .invalidInput(diaryWorkouts.isEmpty()) // 🚨 운동이 없으면 true
                     .build();
         } catch (Exception e) {
-            throw new RuntimeException("AI 일지 생성 실패: " + e.getMessage(), e);
+            throw new RuntimeException("❌ AI 일지 생성 실패: " + e.getMessage(), e);
         }
     }
-
 }
