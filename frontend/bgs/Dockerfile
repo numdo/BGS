@@ -11,7 +11,7 @@ FROM nginx:stable-alpine
 # 빌드된 파일을 Nginx의 기본 루트 디렉토리로 복사
 COPY --from=builder /app/dist /usr/share/nginx/html
 # 커스텀 Nginx 설정 복사: 예를 들어, SPA를 위한 fallback 설정을 적용
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY config/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
