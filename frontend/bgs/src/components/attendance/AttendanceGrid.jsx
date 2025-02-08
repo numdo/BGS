@@ -1,17 +1,22 @@
-import React, { useState, useEffect, useImperativeHandle, forwardRef } from "react";
-import { getAttendanceByDate, checkAttendance } from "../../api/Attendance";
+import React, { useState, useEffect, useImperativeHandle, forwardRef, useMemo } from "react";
+import { getAttendanceByRange, checkAttendance } from "../../api/Attendance";
 
 const AttendanceGrid = forwardRef((props, ref) => {
   const [attendanceMap, setAttendanceMap] = useState({});
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
+  // 컴포넌트 마운트 시점의 날짜를 한 번만 저장 (재렌더 시 바뀌지 않음)
+  const [currentDate] = useState(new Date());
+  const currentYear = useMemo(() => currentDate.getFullYear(), [currentDate]);
 
   const formatDate = (date) => date.toISOString().slice(0, 10);
 
-  // 1월 1일부터 12월 31일까지 한 주 단위로 계산
-  const startOfYear = new Date(currentYear, 0, 1);
-  const weeksInYear = Math.ceil(
-    (new Date(currentYear, 11, 31) - startOfYear) / (7 * 24 * 60 * 60 * 1000)
+  // 1월 1일 계산 (currentYear는 변하지 않음)
+  const startOfYear = useMemo(() => new Date(currentYear, 0, 1), [currentYear]);
+  const weeksInYear = useMemo(
+    () =>
+      Math.ceil(
+        (new Date(currentYear, 11, 31) - startOfYear) / (7 * 24 * 60 * 60 * 1000)
+      ),
+    [currentYear, startOfYear]
   );
 
   const generateWeeks = () => {
@@ -28,27 +33,28 @@ const AttendanceGrid = forwardRef((props, ref) => {
     return weeks;
   };
 
-  const weeks = generateWeeks();
+  const weeks = useMemo(() => generateWeeks(), [startOfYear, weeksInYear]);
 
   useEffect(() => {
     const fetchAttendanceData = async () => {
-      const newMap = {};
-      let d = new Date(currentYear, 0, 1);
-      while (d <= currentDate) {
-        const dateStr = formatDate(d);
-        try {
-          const data = await getAttendanceByDate(dateStr);
-          newMap[dateStr] =
-            data && data.length > 0 && data[0].attendanceId ? data[0] : null;
-        } catch (err) {
-          newMap[dateStr] = null;
-        }
-        d.setDate(d.getDate() + 1);
+      try {
+        // 시작일은 1월 1일, 종료일은 currentDate (마운트 시점)
+        const startDateStr = formatDate(startOfYear);
+        const currentDateStr = formatDate(currentDate);
+        const data = await getAttendanceByRange(startDateStr, currentDateStr);
+        // 반환받은 데이터를 날짜별로 매핑 (attendanceDate 속성이 "YYYY-MM-DD" 형식이라고 가정)
+        const newMap = {};
+        data.forEach((record) => {
+          newMap[record.attendanceDate] = record;
+        });
+        setAttendanceMap(newMap);
+      } catch (err) {
+        console.error("출석 데이터 조회 실패:", err);
       }
-      setAttendanceMap(newMap);
     };
     fetchAttendanceData();
-  }, [currentYear, currentDate]);
+    // currentDate와 startOfYear는 한 번만 설정되므로, 이후 불필요한 호출이 발생하지 않습니다.
+  }, [startOfYear, currentDate]);
 
   const handleCheckAttendance = () => {
     if (!navigator.geolocation) {
@@ -79,23 +85,23 @@ const AttendanceGrid = forwardRef((props, ref) => {
     handleCheckAttendance,
   }));
 
-  // 출석 데이터 색상 강도 설정
+  // 매 렌더마다 호출되는 getColorIntensity 함수는 예제용으로 랜덤 처리하고 있으나,
+  // 매번 다른 값을 반환하지 않도록 하려면 별도로 메모이제이션하거나 실제 데이터를 기준으로 처리할 수 있습니다.
   const getColorIntensity = (date) => {
     const dateStr = formatDate(date);
-    if (!attendanceMap[dateStr]) return "#ebedf0"; // 기본 회색
+    if (!attendanceMap[dateStr]) return "#ebedf0"; // 출석 기록 없음
     return [
       "#ebedf0", // 없음
       "#c6e48b", // 1~2회
       "#7bc96f", // 3~4회
       "#239a3b", // 5~6회
-      "#196127", // 7회 이상 (최대)
-    ][Math.min(4, Math.floor(Math.random() * 5))]; // (예제용 랜덤, 실제 데이터 적용 가능)
+      "#196127", // 7회 이상
+    ][Math.min(4, Math.floor(Math.random() * 5))];
   };
 
   return (
     <div className="overflow-x-auto w-full px-4" style={{ whiteSpace: "nowrap" }}>
       <div className="inline-block min-w-full">
-        
         {/* 월(Month) 레이블 */}
         <div className="flex justify-between text-gray-500 text-xs px-2 mb-1">
           {weeks.map((week, weekIndex) => {
@@ -124,8 +130,8 @@ const AttendanceGrid = forwardRef((props, ref) => {
           <div
             className="grid gap-1"
             style={{
-              gridTemplateColumns: `repeat(${weeks.length}, 14px)`, // 주 단위
-              gridTemplateRows: "repeat(7, 14px)", // 요일 (일~토)
+              gridTemplateColumns: `repeat(${weeks.length}, 14px)`,
+              gridTemplateRows: "repeat(7, 14px)",
             }}
           >
             {weeks.flat().map((day, index) => (
@@ -149,13 +155,16 @@ const AttendanceGrid = forwardRef((props, ref) => {
           <span>Less</span>
           <div className="flex ml-2">
             {["#ebedf0", "#c6e48b", "#7bc96f", "#239a3b", "#196127"].map((color, index) => (
-              <div key={index} style={{
-                width: "14px",
-                height: "14px",
-                backgroundColor: color,
-                marginLeft: "2px",
-                borderRadius: "2px",
-              }}></div>
+              <div
+                key={index}
+                style={{
+                  width: "14px",
+                  height: "14px",
+                  backgroundColor: color,
+                  marginLeft: "2px",
+                  borderRadius: "2px",
+                }}
+              ></div>
             ))}
           </div>
           <span className="ml-2">More</span>
