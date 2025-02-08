@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axiosInstance from '../../utils/axiosInstance'; // ← 여기만 변경
+import axiosInstance from '../../utils/axiosInstance';
 import BottomBar from '../../components/bar/BottomBar';
 import TopBar from '../../components/bar/TopBar';
 import selfie from '../../assets/images/selfie.png';
@@ -47,10 +47,8 @@ export default function WorkoutCreatePage() {
   // ---------------------------
   // 3) 이미지 업로드 관련 state
   // ---------------------------
-  // 여러 파일을 담을 배열
-  const [files, setFiles] = useState([]);
-  // 미리보기 URL을 담을 배열
-  const [previewUrls, setPreviewUrls] = useState([]);
+  const [files, setFiles] = useState([]);           // 여러 파일을 담을 배열
+  const [previewUrls, setPreviewUrls] = useState([]); // 미리보기 URL 배열
   const fileInputRef = useRef(null);
 
   // 음성 녹음 관련
@@ -67,6 +65,13 @@ export default function WorkoutCreatePage() {
   // 4) useEffect: 운동 목록, 이전 기록, 최근 운동 불러오기
   // ---------------------------
   useEffect(() => {
+    // 로그인 토큰이 필요한 경우 확인 (interceptors에서 자동으로 헤더 붙임)
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      // 로그인이 안 되어 있으면 필요 시 처리 (alert, navigate 등)
+      console.log('로그인되지 않은 상태입니다.');
+    }
+
     // (1) 운동 목록
     axiosInstance
       .get('/diaries/workout', { withCredentials: true })
@@ -93,7 +98,7 @@ export default function WorkoutCreatePage() {
   // 5) 운동 목록 필터링
   // ---------------------------
   const filteredWorkoutList = workoutList.filter((workout) => {
-    // 이미 diaryWorkouts에 있는 운동인지
+    // 이미 diaryWorkouts에 있는 운동은 제외
     const alreadyInDiary = diary.diaryWorkouts.some((dw) => dw.workoutId === workout.workoutId);
     if (alreadyInDiary) return false;
 
@@ -173,7 +178,7 @@ export default function WorkoutCreatePage() {
 
       // record.workoutIds에 들어있는 모든 운동을 순회
       record.workoutIds.forEach((wid) => {
-        // 이미 추가돼있는 운동이면 중복 방지
+        // 이미 추가돼 있는 운동이면 중복 방지
         const exists = newDiaryWorkouts.some((dw) => dw.workoutId === wid);
         if (!exists) {
           // 이 workoutId에 해당하는 세트만 필터
@@ -185,7 +190,7 @@ export default function WorkoutCreatePage() {
               workoutTime: s.workoutTime || 10,
             }));
 
-          // 혹시 세트가 0개라면 기본값 1세트
+          // 세트가 0개라면 기본값 1세트
           const finalSets =
             setsForThisWorkout.length > 0
               ? setsForThisWorkout
@@ -232,7 +237,7 @@ export default function WorkoutCreatePage() {
           const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
           const duration = Date.now() - recordStartTime;
           if (duration < 2000 || audioBlob.size < 5000) {
-            console.error('녹음이 너무 짧습니다.');
+            alert('녹음이 너무 짧습니다. 다시 시도해주세요.');
             return;
           }
           setIsLoading(true);
@@ -244,6 +249,15 @@ export default function WorkoutCreatePage() {
             const response = await axiosInstance.post('/ai-diary/auto', formData, {
               headers: { 'Content-Type': 'multipart/form-data' },
             });
+
+            console.log('📦 STT 응답 데이터:', response.data);
+
+            // invalidInput 체크
+            if (response.data.invalidInput) {
+              alert('운동을 인식하지 못했습니다. 다시 말씀해주세요.');
+              return;
+            }
+
             // AI가 반환한 diaryWorkouts 병합
             if (response.data.diaryWorkouts) {
               setDiary((prevDiary) => {
@@ -259,6 +273,7 @@ export default function WorkoutCreatePage() {
               });
             }
           } catch (err) {
+            alert('🚨 오류 발생! 알아들을 수 없는 운동입니다.');
             console.error('음성 처리 실패:', err);
           }
           setIsLoading(false);
@@ -267,6 +282,7 @@ export default function WorkoutCreatePage() {
         recorder.start();
         setIsRecording(true);
       } catch (error) {
+        alert('🚨 마이크 접근 오류! 마이크 사용 권한을 확인해주세요.');
         console.error('마이크 접근 오류:', error);
       }
     } else {
@@ -326,16 +342,15 @@ export default function WorkoutCreatePage() {
   // ---------------------------
   // 12) 이미지 업로드
   // ---------------------------
-  // 파일 선택 핸들러 (multiple)
   const handleImageChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-    const maxAllowedSize = 1 * 1024 * 1024; // 1MB (예시)
+    const maxAllowedSize = 1 * 1024 * 1024; // 예: 1MB 제한
 
     // 업로드할 새 파일들 중에서 제한 초과 파일이 있는지 확인
     for (let file of selectedFiles) {
       if (file.size > maxAllowedSize) {
         alert(`파일이 너무 큽니다: ${file.name}`);
-        return; // 여기서 중단
+        return;
       }
     }
 
@@ -346,8 +361,6 @@ export default function WorkoutCreatePage() {
     }
 
     setFiles((prev) => [...prev, ...selectedFiles]);
-
-    // 미리보기 URL 생성
     const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
     setPreviewUrls((prev) => [...prev, ...newPreviews]);
   };
@@ -364,7 +377,7 @@ export default function WorkoutCreatePage() {
   const handleDiarySubmit = async (e) => {
     e.preventDefault();
 
-    // 로그인 여부 확인 (필요 시)
+    // 로그인 여부 확인
     const token = localStorage.getItem('accessToken');
     if (!token) {
       alert('로그인이 필요합니다.');
@@ -374,8 +387,7 @@ export default function WorkoutCreatePage() {
 
     const formData = new FormData();
     formData.append('diary', new Blob([JSON.stringify(diary)], { type: 'application/json' }));
-    // 여러 파일을 모두 append
-    files.forEach((f) => formData.append('files', f));
+    files.forEach((f) => formData.append('files', f)); // 이미지 파일들 추가
 
     try {
       await axiosInstance.post('/diaries', formData, {
@@ -563,7 +575,10 @@ export default function WorkoutCreatePage() {
 
               {/* 하단 버튼 */}
               <div className="mt-4 flex justify-end space-x-2">
-                <button onClick={closeExerciseModal} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+                <button
+                  onClick={closeExerciseModal}
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
                   취소
                 </button>
                 <button
@@ -596,7 +611,10 @@ export default function WorkoutCreatePage() {
                 ))}
               </div>
               <div className="mt-4 flex justify-end">
-                <button onClick={closePreviousModal} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+                <button
+                  onClick={closePreviousModal}
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
                   닫기
                 </button>
               </div>
@@ -604,7 +622,7 @@ export default function WorkoutCreatePage() {
           </div>
         )}
 
-        {/* 이미 추가된 운동 목록 (화면 표시) */}
+        {/* 이미 추가된 운동 목록 */}
         <div className="mt-4">
           {diary.diaryWorkouts.map((workout, wIndex) => (
             <div key={`dw-${wIndex}`} className="border p-2 rounded mb-2">
@@ -625,6 +643,7 @@ export default function WorkoutCreatePage() {
                   </button>
                 </div>
               </div>
+
               {workout.sets.map((set, setIndex) => (
                 <div key={`set-${wIndex}-${setIndex}`} className="flex items-center space-x-4 mt-2">
                   <div>
@@ -668,7 +687,6 @@ export default function WorkoutCreatePage() {
 
         {/* 이미지 업로드 섹션 */}
         <div className="mt-4">
-          {/* file input (multiple) */}
           <input
             type="file"
             accept="image/*"
@@ -680,7 +698,6 @@ export default function WorkoutCreatePage() {
           <div className="flex flex-col">
             <label className="font-bold mb-2">이미지 업로드 (최대 6장)</label>
 
-            {/* 미리보기 영역 */}
             <div className="flex flex-wrap gap-2">
               {previewUrls.map((url, idx) => (
                 <div key={idx} className="relative w-40 h-40">
@@ -699,7 +716,7 @@ export default function WorkoutCreatePage() {
                 </div>
               ))}
 
-              {/* placeholder (이미지 자리) */}
+              {/* placeholder (빈 칸) */}
               {Array.from({ length: 6 - previewUrls.length }).map((_, i) => (
                 <div
                   key={`placeholder-${i}`}
@@ -711,7 +728,6 @@ export default function WorkoutCreatePage() {
               ))}
             </div>
 
-            {/* '이미지 선택' 버튼 */}
             <button
               className="mt-2 p-2 bg-blue-500 text-white rounded w-40"
               onClick={() => fileInputRef.current.click()}
