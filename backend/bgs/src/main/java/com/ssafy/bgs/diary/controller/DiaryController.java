@@ -34,9 +34,10 @@ public class DiaryController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "9") int pageSize
     ) {
-        List<FeedResponseDto> feedList = diaryService.getFeedList(readerId, userId, page, pageSize);
+        List<DiaryFeedResponseDto> feedList = diaryService.getFeedList(readerId, userId, page, pageSize);
         return new ResponseEntity<>(feedList, HttpStatus.OK);
     }
+
 
     @GetMapping
     public ResponseEntity<?> getDiaryList(

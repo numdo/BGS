@@ -6,25 +6,32 @@ import lombok.Setter;
 import java.sql.Date;
 import java.util.List;
 
-/**
- * 하나의 이전 기록(하나의 diary)에 여러 운동이 묶일 수 있으므로,
- * workoutIds 리스트 + workoutNames 문자열로 묶어서 반환
- */
 @Getter
 @Setter
 public class PreviousWorkoutResponseDto {
-    // (필요하다면 diaryId도 노출해서 해당 일지가 어떤 일지인지 구분할 수 있게)
     private Integer diaryId;
 
-    // 운동 날짜(일지 날짜)
+    // 하나의 다이어리에 있는 여러 DiaryWorkout 중 대표 ID(예: 첫 번째 항목)
+    private Integer diaryWorkoutId;
+
+    // 운동 날짜
     private Date workoutDate;
 
-    // 여러 운동 ID를 한 번에 담을 리스트
+    // 여러 운동 묶음
+    // 예: [10, 11]
     private List<Integer> workoutIds;
+    // 예: "벤치프레스, 데드리프트"
+    private String workoutName;
+    // 예: "가슴, 등"
+    private String part;
+    // 예: "바벨, 바벨" (기구 명)
+    private String tool;
 
-    // 여러 운동명을 합친 문자열 (ex: "벤치프레스, 디클라인 벤치 프레스")
-    private String workoutNames;
+    // 이 다이어리에 포함된 모든 운동세트(각 세트별로 workoutId를 붙여서 구분)
+    private List<WorkoutSetResponseDto> sets;
 
-    // (원하면 운동 부위나 기구도 여러 개 묶을 수 있지만,
-    //  보통 가장 중요한 건 ID와 이름이므로 일단 생략 가능)
+    // 필요시 쓸 수도 있는 통계 정보(평균 무게/횟수 등)
+    private Float weight;
+    private Integer repetition;
+    private Integer workoutTime;
 }
