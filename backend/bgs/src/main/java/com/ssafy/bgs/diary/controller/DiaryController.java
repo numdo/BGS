@@ -187,6 +187,10 @@ public class DiaryController {
         return new ResponseEntity<>(records, HttpStatus.OK);
     }
 
+    /**
+     * 최근 운동 종류 조회 API
+     * GET /api/diaries/workout/recent?limit=20
+     */
     @GetMapping("/workout/recent")
     public ResponseEntity<List<RecentWorkoutResponseDto>> getRecentWorkouts(
             Authentication authentication,

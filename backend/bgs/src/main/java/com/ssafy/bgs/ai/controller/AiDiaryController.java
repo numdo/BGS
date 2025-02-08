@@ -11,7 +11,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/ai-diary")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"null", "http://localhost:5500"})
 
 public class AiDiaryController {
 
