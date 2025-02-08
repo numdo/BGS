@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import axiosInstance from '../../utils/axiosInstance'; // ← 여기만 변경
 import BottomBar from '../../components/bar/BottomBar';
 import TopBar from '../../components/bar/TopBar';
 import selfie from '../../assets/images/selfie.png';
@@ -67,14 +67,9 @@ export default function WorkoutCreatePage() {
   // 4) useEffect: 운동 목록, 이전 기록, 최근 운동 불러오기
   // ---------------------------
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-
     // (1) 운동 목록
-    axios
-      .get('http://localhost:8080/api/diaries/workout', {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      })
+    axiosInstance
+      .get('/diaries/workout', { withCredentials: true })
       .then((res) => {
         setAllWorkoutList(res.data);
         setWorkoutList(res.data); // 초기 상태
@@ -82,20 +77,14 @@ export default function WorkoutCreatePage() {
       .catch((err) => console.error('🚨 운동 목록 불러오기 실패:', err));
 
     // (2) 이전 기록
-    axios
-      .get('http://localhost:8080/api/diaries/workout/previous?limit=5', {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      })
+    axiosInstance
+      .get('/diaries/workout/previous?limit=5', { withCredentials: true })
       .then((res) => setPreviousRecords(res.data))
       .catch((err) => console.error('🚨 이전 기록 불러오기 실패:', err));
 
     // (3) 최근 운동
-    axios
-      .get('http://localhost:8080/api/diaries/workout/recent?limit=20', {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      })
+    axiosInstance
+      .get('/diaries/workout/recent?limit=20', { withCredentials: true })
       .then((res) => setRecentExercises(res.data))
       .catch((err) => console.error('🚨 최근 운동 불러오기 실패:', err));
   }, []);
@@ -251,7 +240,8 @@ export default function WorkoutCreatePage() {
             const formData = new FormData();
             formData.append('userId', 1);
             formData.append('audioFile', audioBlob);
-            const response = await axios.post('http://localhost:8080/api/ai-diary/auto', formData, {
+
+            const response = await axiosInstance.post('/ai-diary/auto', formData, {
               headers: { 'Content-Type': 'multipart/form-data' },
             });
             // AI가 반환한 diaryWorkouts 병합
@@ -339,17 +329,17 @@ export default function WorkoutCreatePage() {
   // 파일 선택 핸들러 (multiple)
   const handleImageChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-    const maxAllowedSize = 1 * 1024 * 1024; // 10MB
+    const maxAllowedSize = 1 * 1024 * 1024; // 1MB (예시)
 
     // 업로드할 새 파일들 중에서 제한 초과 파일이 있는지 확인
-  for (let file of selectedFiles) {
-    if (file.size > maxAllowedSize) {
-      alert(`파일이 너무 큽니다: ${file.name}`);
-      return; // 여기서 중단 (또는 초과된 파일만 제외하는 로직도 가능)
+    for (let file of selectedFiles) {
+      if (file.size > maxAllowedSize) {
+        alert(`파일이 너무 큽니다: ${file.name}`);
+        return; // 여기서 중단
+      }
     }
-  }
 
-    // 기존에 업로드된 파일 + 새로 선택된 파일이 5장을 초과하면 제한
+    // 기존에 업로드된 파일 + 새로 선택된 파일이 6장을 초과하면 제한
     if (selectedFiles.length + files.length > 6) {
       alert('이미지는 최대 6장까지 업로드할 수 있습니다.');
       return;
@@ -373,6 +363,8 @@ export default function WorkoutCreatePage() {
   // ---------------------------
   const handleDiarySubmit = async (e) => {
     e.preventDefault();
+
+    // 로그인 여부 확인 (필요 시)
     const token = localStorage.getItem('accessToken');
     if (!token) {
       alert('로그인이 필요합니다.');
@@ -386,10 +378,9 @@ export default function WorkoutCreatePage() {
     files.forEach((f) => formData.append('files', f));
 
     try {
-      await axios.post('http://localhost:8080/api/diaries', formData, {
+      await axiosInstance.post('/diaries', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`,
         },
         withCredentials: true,
       });
@@ -708,7 +699,7 @@ export default function WorkoutCreatePage() {
                 </div>
               ))}
 
-              {/* 아직 5개 미만이라면, 남은 칸만큼 PlaceHolder */}
+              {/* placeholder (이미지 자리) */}
               {Array.from({ length: 6 - previewUrls.length }).map((_, i) => (
                 <div
                   key={`placeholder-${i}`}
