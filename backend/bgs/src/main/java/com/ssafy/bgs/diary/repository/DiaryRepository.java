@@ -29,4 +29,6 @@ public interface DiaryRepository extends JpaRepository<Diary, Integer> {
             "FROM Diary d WHERE d.userId = :userId AND d.allowedScope = :allowedScope AND d.deleted = false " +
             "ORDER BY d.createdAt DESC ")
     List<DiaryFeedResponseDto> findByUserIdAndAllowedScopeAndDeletedFalse(Integer userId, String allowedScope, Pageable pageable);
+
+    List<Diary> findByUserIdAndDeletedFalse(Integer userId);
 }
