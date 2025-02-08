@@ -45,12 +45,15 @@ export default function WorkoutCreatePage() {
   const [selectedToolFilter, setSelectedToolFilter] = useState('');
 
   // ---------------------------
-  // 3) 이미지 업로드, 녹음 등 기타
+  // 3) 이미지 업로드 관련 state
   // ---------------------------
-  const [file, setFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(selfie);
+  // 여러 파일을 담을 배열
+  const [files, setFiles] = useState([]);
+  // 미리보기 URL을 담을 배열
+  const [previewUrls, setPreviewUrls] = useState([]);
   const fileInputRef = useRef(null);
 
+  // 음성 녹음 관련
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const audioChunksRef = useRef([]);
@@ -100,9 +103,8 @@ export default function WorkoutCreatePage() {
   // ---------------------------
   // 5) 운동 목록 필터링
   // ---------------------------
-  // 이미 추가된 운동이면 리스트에서 숨김
   const filteredWorkoutList = workoutList.filter((workout) => {
-    // 이미 diaryWorkouts에 있는가?
+    // 이미 diaryWorkouts에 있는 운동인지
     const alreadyInDiary = diary.diaryWorkouts.some((dw) => dw.workoutId === workout.workoutId);
     if (alreadyInDiary) return false;
 
@@ -176,13 +178,10 @@ export default function WorkoutCreatePage() {
   // ---------------------------
   // 9) 이전 기록 / 최근 운동 클릭
   // ---------------------------
-  /**
-   * 이전 기록 하나를 클릭하면, 그 기록에 들어있던 세트를 그대로 일지에 추가
-   */
   const handleAddRecord = (record) => {
     setDiary((prevDiary) => {
       const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
-  
+
       // record.workoutIds에 들어있는 모든 운동을 순회
       record.workoutIds.forEach((wid) => {
         // 이미 추가돼있는 운동이면 중복 방지
@@ -196,27 +195,26 @@ export default function WorkoutCreatePage() {
               repetition: s.repetition || 10,
               workoutTime: s.workoutTime || 10,
             }));
-  
+
           // 혹시 세트가 0개라면 기본값 1세트
           const finalSets =
             setsForThisWorkout.length > 0
               ? setsForThisWorkout
               : [{ weight: 10, repetition: 10, workoutTime: 10 }];
-  
+
           newDiaryWorkouts.push({
             workoutId: wid,
             sets: finalSets,
           });
         }
       });
-  
+
       return { ...prevDiary, diaryWorkouts: newDiaryWorkouts };
     });
-  
+
     alert(`"${record.workoutName}" 운동들이 추가되었습니다.`);
     closePreviousModal(); // 모달 닫기
   };
-  
 
   // ---------------------------
   // 10) 음성 녹음
@@ -338,10 +336,36 @@ export default function WorkoutCreatePage() {
   // ---------------------------
   // 12) 이미지 업로드
   // ---------------------------
+  // 파일 선택 핸들러 (multiple)
   const handleImageChange = (e) => {
-    setFile(e.target.files[0]);
-    const preview = URL.createObjectURL(e.target.files[0]);
-    setPreviewUrl(preview);
+    const selectedFiles = Array.from(e.target.files);
+    const maxAllowedSize = 1 * 1024 * 1024; // 10MB
+
+    // 업로드할 새 파일들 중에서 제한 초과 파일이 있는지 확인
+  for (let file of selectedFiles) {
+    if (file.size > maxAllowedSize) {
+      alert(`파일이 너무 큽니다: ${file.name}`);
+      return; // 여기서 중단 (또는 초과된 파일만 제외하는 로직도 가능)
+    }
+  }
+
+    // 기존에 업로드된 파일 + 새로 선택된 파일이 5장을 초과하면 제한
+    if (selectedFiles.length + files.length > 6) {
+      alert('이미지는 최대 6장까지 업로드할 수 있습니다.');
+      return;
+    }
+
+    setFiles((prev) => [...prev, ...selectedFiles]);
+
+    // 미리보기 URL 생성
+    const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
+    setPreviewUrls((prev) => [...prev, ...newPreviews]);
+  };
+
+  // 개별 이미지 삭제
+  const handleRemoveImage = (index) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
   // ---------------------------
@@ -355,11 +379,12 @@ export default function WorkoutCreatePage() {
       navigate('/login');
       return;
     }
+
     const formData = new FormData();
     formData.append('diary', new Blob([JSON.stringify(diary)], { type: 'application/json' }));
-    if (file) {
-      formData.append('files', file);
-    }
+    // 여러 파일을 모두 append
+    files.forEach((f) => formData.append('files', f));
+
     try {
       await axios.post('http://localhost:8080/api/diaries', formData, {
         headers: {
@@ -650,21 +675,59 @@ export default function WorkoutCreatePage() {
           ))}
         </div>
 
-        {/* 이미지 업로드 */}
+        {/* 이미지 업로드 섹션 */}
         <div className="mt-4">
+          {/* file input (multiple) */}
           <input
             type="file"
             accept="image/*"
+            multiple
             onChange={handleImageChange}
             ref={fileInputRef}
             style={{ display: 'none' }}
           />
-          <img
-            src={previewUrl}
-            alt="미리보기"
-            className="w-40 h-40 object-cover rounded-md shadow-md cursor-pointer"
-            onClick={() => fileInputRef.current.click()}
-          />
+          <div className="flex flex-col">
+            <label className="font-bold mb-2">이미지 업로드 (최대 6장)</label>
+
+            {/* 미리보기 영역 */}
+            <div className="flex flex-wrap gap-2">
+              {previewUrls.map((url, idx) => (
+                <div key={idx} className="relative w-40 h-40">
+                  <img
+                    src={url}
+                    alt="preview"
+                    className="w-full h-full object-cover rounded-md shadow-md"
+                  />
+                  {/* 삭제 버튼 */}
+                  <button
+                    onClick={() => handleRemoveImage(idx)}
+                    className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded"
+                  >
+                    X
+                  </button>
+                </div>
+              ))}
+
+              {/* 아직 5개 미만이라면, 남은 칸만큼 PlaceHolder */}
+              {Array.from({ length: 6 - previewUrls.length }).map((_, i) => (
+                <div
+                  key={`placeholder-${i}`}
+                  className="w-40 h-40 bg-gray-200 rounded-md flex items-center justify-center cursor-pointer"
+                  onClick={() => fileInputRef.current.click()}
+                >
+                  <span className="text-gray-500">이미지 없음</span>
+                </div>
+              ))}
+            </div>
+
+            {/* '이미지 선택' 버튼 */}
+            <button
+              className="mt-2 p-2 bg-blue-500 text-white rounded w-40"
+              onClick={() => fileInputRef.current.click()}
+            >
+              이미지 선택
+            </button>
+          </div>
         </div>
 
         {/* 운동일지 내용 */}
