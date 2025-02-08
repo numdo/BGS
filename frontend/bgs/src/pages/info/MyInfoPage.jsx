@@ -1,18 +1,18 @@
-import BottomBar from '../../components/bar/BottomBar';
-import TopBar from '../../components/bar/TopBar';
-import { useState, useEffect } from 'react';
-import useUserStore from '../../stores/useUserStore';
-import { getUser } from '../../api/User';
-import MyGymRoomView from '../../components/mygym/MyGymRoomView';
+import BottomBar from "../../components/bar/BottomBar";
+import TopBar from "../../components/bar/TopBar";
+import { useState, useEffect } from "react";
+import useUserStore from "../../stores/useUserStore";
+import { getUser } from "../../api/User";
+import MyGymRoomView from "../../components/mygym/MyGymRoomView";
 export default function MyInfoPage() {
-  const { user, setUser } = useUserStore()
+  const { user, setUser } = useUserStore();
   useEffect(() => {
-    getUser().then(res => setUser(res))
-  }, [])
+    getUser().then((res) => setUser(res));
+  }, []);
   useEffect(() => {
-    console.log(user)
-  }, [user])
-  console.log(localStorage.getItem("accessToken"))
+    console.log(user);
+  }, [user]);
+  console.log(localStorage.getItem("accessToken"));
   const [activeTab, setActiveTab] = useState("posts"); // 현재 활성화된 탭
   const [showFollowers, setShowFollowers] = useState(false); // 팔로워 모달
   const [showFollowing, setShowFollowing] = useState(false); // 팔로잉 모달
@@ -31,10 +31,10 @@ export default function MyInfoPage() {
             className="rounded-full h-24 w-24"
           />
           <div className="ml-6 flex-1">
-            <h2 className="mt-4 text-2xl font-semibold text-gray-800">{user.nickname}</h2>
-            <p className="text-gray-600 mt-2">
-              {user.introduce}
-            </p>
+            <h2 className="mt-4 text-2xl font-semibold text-gray-800">
+              {user.nickname}
+            </h2>
+            <p className="text-gray-600 mt-2">{user.introduce}</p>
           </div>
           <div className="flex justify-between items-center">
             <button className="bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-200">
@@ -47,22 +47,31 @@ export default function MyInfoPage() {
         <div className="border-b mb-4">
           <div className="flex justify-around">
             <button
-              className={`py-2 px-4 ${activeTab === "posts" ? "border-b-2 border-gray-800 text-gray-800" : "text-gray-500"
-                }`}
+              className={`py-2 px-4 ${
+                activeTab === "posts"
+                  ? "border-b-2 border-gray-800 text-gray-800"
+                  : "text-gray-500"
+              }`}
               onClick={() => handleTabClick("posts")}
             >
               게시물 탭
             </button>
             <button
-              className={`py-2 px-4 ${activeTab === "stats" ? "border-b-2 border-gray-800 text-gray-800" : "text-gray-500"
-                }`}
+              className={`py-2 px-4 ${
+                activeTab === "stats"
+                  ? "border-b-2 border-gray-800 text-gray-800"
+                  : "text-gray-500"
+              }`}
               onClick={() => handleTabClick("stats")}
             >
               통계 탭
             </button>
             <button
-              className={`py-2 px-4 ${activeTab === "myGym" ? "border-b-2 border-gray-800 text-gray-800" : "text-gray-500"
-                }`}
+              className={`py-2 px-4 ${
+                activeTab === "myGym"
+                  ? "border-b-2 border-gray-800 text-gray-800"
+                  : "text-gray-500"
+              }`}
               onClick={() => handleTabClick("myGym")}
             >
               마이짐 탭
@@ -77,7 +86,7 @@ export default function MyInfoPage() {
           {activeTab === "myGym" && <MyGymRoomView />}
         </div>
       </div>
-      <div className='m-10'>
+      <div className="m-10">
         <div>생일 : {user.birthDate}</div>
         <div>성별 : {user.sex}</div>
         <div>키 : {user.height}</div>
@@ -91,4 +100,4 @@ export default function MyInfoPage() {
       <BottomBar />
     </>
   );
-};
+}
