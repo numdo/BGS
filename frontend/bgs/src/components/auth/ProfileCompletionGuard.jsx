@@ -1,6 +1,6 @@
 // src/components/auth/ProfileCompletionGuard.jsx
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { getUser } from "../../api/User"; // 현재 사용자 정보를 가져오는 API 함수
 
 const ProfileCompletionGuard = ({ children }) => {
@@ -35,7 +35,7 @@ const ProfileCompletionGuard = ({ children }) => {
     return <div>프로필 정보를 확인 중입니다...</div>;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 };
 
 export default ProfileCompletionGuard;
