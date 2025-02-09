@@ -5,8 +5,10 @@ import {
   getGuestBooks, 
   updateGuestBook 
 } from "../../api/Mygym";
+import { getUser } from "../../api/User"; // User API에서 getUser 함수를 사용 (userId 전달 시 개별 조회)
 import useUserStore from "../../stores/useUserStore";
 import ProfileDefaultImage from "../../assets/icons/MyInfo.png";
+import Moreimg from "../../assets/icons/More.svg";
 
 const VisitorMemoModal = ({
   isOpen,
@@ -95,7 +97,7 @@ const VisitorMemoModal = ({
       const payload = { content: editingContent };
       await updateGuestBook(userId, guestbookId, payload);
       // 수정된 댓글을 state에 반영
-      const updatedMemos = visitorMemos.map(memo => {
+      const updatedMemos = visitorMemos.map((memo) => {
         if (memo.guestbookId === guestbookId) {
           return { ...memo, content: editingContent };
         }
@@ -109,23 +111,93 @@ const VisitorMemoModal = ({
     }
   };
 
-  // 작성자 프로필 이미지 및 이름 반환 함수
-  const getProfileImage = (guestId) => {
-    // 현재 로그인한 사용자의 댓글이면 useUserStore의 profileImageUrl 사용
-    if (guestId === currentUserId && user.profileImageUrl) {
-      return user.profileImageUrl;
-    }
-    // 다른 사용자는 기본 프로필 이미지 사용
-    return ProfileDefaultImage;
-  };
+  // 댓글 항목 렌더링 컴포넌트
+  const CommentItem = ({ memo }) => {
+    const [guestInfo, setGuestInfo] = useState(null);
 
-  const getWriterName = (guestId) => {
-    // 현재 로그인한 사용자의 댓글이면 useUserStore의 nickname 사용
-    if (guestId === currentUserId && user.nickname) {
-      return user.nickname;
-    }
-    // 다른 사용자는 "익명" 또는 기본 이름으로 표시 (추후 API로 조회 가능)
-    return "익명";
+    useEffect(() => {
+      // 현재 로그인 사용자가 아닌 경우, 다른 사용자의 정보를 API로 가져옴
+      if (memo.guestId !== currentUserId) {
+        getUser(memo.guestId)
+          .then((data) => setGuestInfo(data))
+          .catch((error) => {
+            console.error(`사용자 정보(${memo.guestId}) 조회 오류:`, error);
+          });
+      }
+    }, [memo.guestId, currentUserId]);
+
+    // 프로필 이미지: 본인인 경우 store, 아니면 guestInfo 혹은 기본 이미지
+    const profileImage =
+      memo.guestId === currentUserId
+        ? user.profileImageUrl || ProfileDefaultImage
+        : (guestInfo && guestInfo.profileImageUrl) || ProfileDefaultImage;
+
+    // 작성자 이름: 본인인 경우 store, 아니면 guestInfo의 닉네임 또는 "익명"
+    const writerName =
+      memo.guestId === currentUserId
+        ? user.nickname || "익명"
+        : (guestInfo && guestInfo.nickname) || "익명";
+
+    return (
+      <div className="flex items-center justify-between space-x-3 p-2 border-b">
+        <div className="flex items-center space-x-3">
+          <img
+            src={profileImage}
+            alt="프로필"
+            className="w-10 h-10 rounded-full"
+          />
+          <div>
+            <div className="text-sm font-bold">{writerName}</div>
+            {editingCommentId === memo.guestbookId ? (
+              <input
+                type="text"
+                value={editingContent}
+                onChange={(e) => setEditingContent(e.target.value)}
+                className="border p-1 rounded"
+              />
+            ) : (
+              <p className="text-gray-800">{memo.content}</p>
+            )}
+          </div>
+        </div>
+        {/* 현재 로그인 사용자가 작성한 댓글이면 수정 및 삭제 버튼 표시 */}
+        {currentUserId === memo.guestId && (
+          <div className="flex space-x-2">
+            {editingCommentId === memo.guestbookId ? (
+              <>
+                <button
+                  onClick={() => handleSaveEditing(memo.guestbookId)}
+                  className="text-green-500 text-sm"
+                >
+                  저장
+                </button>
+                <button
+                  onClick={handleCancelEditing}
+                  className="text-gray-500 text-sm"
+                >
+                  취소
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => handleStartEditing(memo)}
+                  className="text-blue-500 text-sm"
+                >
+                  수정
+                </button>
+                <button
+                  onClick={() => handleDeleteMemo(memo.guestbookId)}
+                  className="text-red-500 text-sm"
+                >
+                  삭제
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -149,7 +221,7 @@ const VisitorMemoModal = ({
         {/* 댓글 입력 필드 */}
         <div className="flex items-center space-x-3 p-3 border-b">
           <img
-            src={getProfileImage(currentUserId)}
+            src={user.profileImageUrl || ProfileDefaultImage}
             alt="프로필"
             className="w-10 h-10 rounded-full"
           />
@@ -168,67 +240,7 @@ const VisitorMemoModal = ({
         {/* 댓글 목록 */}
         <div className="space-y-4 mt-4">
           {visitorMemos.map((memo) => (
-            <div
-              key={memo.guestbookId}
-              className="flex items-center justify-between space-x-3 p-2 border-b"
-            >
-              <div className="flex items-center space-x-3">
-                <img
-                  src={getProfileImage(memo.guestId)}
-                  alt="프로필"
-                  className="w-10 h-10 rounded-full"
-                />
-                <div>
-                  <div className="text-sm font-bold">{getWriterName(memo.guestId)}</div>
-                  {editingCommentId === memo.guestbookId ? (
-                    <input
-                      type="text"
-                      value={editingContent}
-                      onChange={(e) => setEditingContent(e.target.value)}
-                      className="border p-1 rounded"
-                    />
-                  ) : (
-                    <p className="text-gray-800">{memo.content}</p>
-                  )}
-                </div>
-              </div>
-              {/* 현재 로그인한 사용자가 작성한 댓글이면 수정 및 삭제 버튼 표시 */}
-              {currentUserId === memo.guestId && (
-                <div className="flex space-x-2">
-                  {editingCommentId === memo.guestbookId ? (
-                    <>
-                      <button
-                        onClick={() => handleSaveEditing(memo.guestbookId)}
-                        className="text-green-500 text-sm"
-                      >
-                        저장
-                      </button>
-                      <button
-                        onClick={handleCancelEditing}
-                        className="text-gray-500 text-sm"
-                      >
-                        취소
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => handleStartEditing(memo)}
-                        className="text-blue-500 text-sm"
-                      >
-                        수정
-                      </button>
-                      <button
-                        onClick={() => handleDeleteMemo(memo.guestbookId)}
-                        className="text-red-500 text-sm"
-                      >
-                        삭제
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
+            <CommentItem key={memo.guestbookId} memo={memo} />
           ))}
         </div>
       </div>
