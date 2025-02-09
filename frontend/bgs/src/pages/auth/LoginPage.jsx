@@ -22,7 +22,7 @@ const LoginPage = () => {
       <div className="w-full max-w-md flex flex-col space-y-4 justify-center">
         {/* 불끈 계정으로 로그인 */}
         <button
-          onClick={() => navigate("/bullogin")}
+          onClick={() => navigate("/bgslogin")}
           className="w-2/3 mx-auto px-4 py-2 bg-red-500 text-white rounded shadow hover:bg-red-600 flex items-center space-x-2"
         >
           <span className="flex-grow text-center">불끈 계정으로 로그인</span>

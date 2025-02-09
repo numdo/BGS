@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import logoImage from "../../assets/images/logo_image.png";
 import nameImage from "../../assets/images/name.png";
 
-const BulLoginPage = () => {
+const BgsLoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
@@ -114,4 +114,4 @@ const BulLoginPage = () => {
   );
 };
 
-export default BulLoginPage;
+export default BgsLoginPage;

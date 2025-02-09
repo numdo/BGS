@@ -5,10 +5,9 @@ const PASSWORD_CHANGE_URL = "/users/change-password"; // 비밀번호 변경 API
 const PASSWORD_RESET_URL = "/users/reset-password"; // 비밀번호 재설정 API 경로
 
 // ✅ 회원 개별 조회
-export async function getUser(userId = null) {
+export async function getUser() {
   try {
-    const url = userId ? `${BASE_URL}/${userId}` : `${BASE_URL}/me`;
-    const response = await axiosInstance.get(url);
+    const response = await axiosInstance.get(`${BASE_URL}/me`);
     return response.data;
   } catch (error) {
     throw error;
@@ -42,6 +41,16 @@ export async function changePassword(passwordData) {
       PASSWORD_CHANGE_URL,
       passwordData
     );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// 닉네임 중복 체크 (GET /auth/nickname-check/{nickname})
+export async function checkNickname(nickname) {
+  try {
+    const response = await axiosInstance.get(`${BASE_URL}/nickname-check/${nickname}`);
     return response.data;
   } catch (error) {
     throw error;
