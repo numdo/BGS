@@ -1,14 +1,10 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 // 달력에 체크 표시할 날짜(예: ["2025-02-07", "2025-02-10"])
 // selectedDate: 현재 선택된 날짜
 // onDateSelect: 날짜 클릭 시 상위로 전달
 // diaryDates: "YYYY-MM-DD" 형식으로 일지 있는 날짜 배열
-const WorkoutCalendar = ({
-  onDateSelect,
-  selectedDate,
-  diaryDates = [],
-}) => {
+const WorkoutCalendar = ({ onDateSelect, selectedDate, diaryDates = [] }) => {
   const [currentDate, setCurrentDate] = useState(new Date()); // 현재 (년/월/일) 추적
 
   const handleDateClick = (day) => {
@@ -51,8 +47,8 @@ const WorkoutCalendar = ({
   const formatDate = (year, month, day) => {
     // month는 0~11
     const y = year;
-    const m = String(month + 1).padStart(2, '0');
-    const d = String(day).padStart(2, '0');
+    const m = String(month + 1).padStart(2, "0");
+    const d = String(day).padStart(2, "0");
     return `${y}-${m}-${d}`;
   };
 
@@ -72,21 +68,24 @@ const WorkoutCalendar = ({
   const calendarDays = generateCalendar();
 
   return (
-    <div className="mb-3 p-4 bg-gray-50 rounded-md">
-      <div className="flex justify-between items-center mb-4">
+    <div className="mb-3 p-4 bg-gray-50 rounded-lg">
+      <div className="flex justify-between items-center mb-4 ">
         <button onClick={() => handleChangeMonth(-1)}>&lt;</button>
-        <h2 className="text-lg font-bold">
+        <h2 className="text-lg font-bold text-gray-500">
           {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
         </h2>
         <button onClick={() => handleChangeMonth(1)}>&gt;</button>
-        <button onClick={goToToday} className="text-blue-500 hover:underline">
+        <button
+          onClick={goToToday}
+          className="text-gray-500 rounded-lg bg-gray-200 p-1"
+        >
           오늘
         </button>
       </div>
 
       {/* 요일 헤더 */}
-      <div className="grid grid-cols-7 gap-2 text-center font-semibold">
-        {['일', '월', '화', '수', '목', '금', '토'].map((dayName) => (
+      <div className="grid grid-cols-7 gap-2 text-center text-gray-500 font-semibold">
+        {["일", "월", "화", "수", "목", "금", "토"].map((dayName) => (
           <div key={dayName}>{dayName}</div>
         ))}
       </div>
@@ -96,9 +95,7 @@ const WorkoutCalendar = ({
         {calendarDays.map((day, index) => {
           // 날짜가 null인 칸(이전월 공백)은 클릭 안 되도록 처리
           if (!day) {
-            return (
-              <div key={index} className="p-2 bg-gray-100 border border-gray-200" />
-            );
+            return <div key={index} className="p-2 bg-gray-50 rounded-md" />;
           }
 
           // 현재 셀의 연/월/일
@@ -122,13 +119,15 @@ const WorkoutCalendar = ({
           return (
             <div
               key={index}
-              className={`relative p-2 border border-gray-200 cursor-pointer ${
-                isSelected ? 'bg-blue-100' : 'bg-white'
+              className={`relative p-2 rounded-md border border-gray-200 cursor-pointer ${
+                isSelected
+                  ? "bg-[#987D11] text-white"
+                  : "bg-white text-gray-500"
               }`}
               onClick={onClick}
             >
               {/* 날짜 숫자 */}
-              <div className="z-10">{day}</div>
+              <div className="z-10 ">{day}</div>
 
               {/* 체크 이모지 표시 (반투명) */}
               {hasDiary && (
@@ -136,10 +135,10 @@ const WorkoutCalendar = ({
                   className="absolute text-xl"
                   style={{
                     opacity: 0.5,
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    pointerEvents: 'none', // 체크이모지 클릭 이벤트 무시
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    pointerEvents: "none", // 체크이모지 클릭 이벤트 무시
                   }}
                 >
                   💪

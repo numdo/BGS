@@ -73,6 +73,7 @@ export default function MainPage() {
               <p className="text-xl font-semibold text-gray-800">마이짐</p>
               <p className="text-lg text-gray-600">바로가기</p>
             </div>
+            <div></div>
           </button>
 
           <button
