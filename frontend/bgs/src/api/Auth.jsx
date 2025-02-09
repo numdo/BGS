@@ -110,3 +110,12 @@ export async function resetPassword(email) {
     throw error;
   }
 }
+
+export async function checkEmail(email) {
+  try {
+    const response = await axiosInstance.get(`${BASE_URL}/email-check/${email}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
