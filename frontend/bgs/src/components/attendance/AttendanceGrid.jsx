@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useImperativeHandle, forwardRef, useMemo } from "react";
+import {
+  useState,
+  useEffect,
+  useImperativeHandle,
+  forwardRef,
+  useMemo,
+} from "react";
 import { getAttendanceByRange, checkAttendance } from "../../api/Attendance";
 
 const AttendanceGrid = forwardRef((props, ref) => {
@@ -14,7 +20,8 @@ const AttendanceGrid = forwardRef((props, ref) => {
   const weeksInYear = useMemo(
     () =>
       Math.ceil(
-        (new Date(currentYear, 11, 31) - startOfYear) / (7 * 24 * 60 * 60 * 1000)
+        (new Date(currentYear, 11, 31) - startOfYear) /
+          (7 * 24 * 60 * 60 * 1000)
       ),
     [currentYear, startOfYear]
   );
@@ -100,7 +107,10 @@ const AttendanceGrid = forwardRef((props, ref) => {
   };
 
   return (
-    <div className="overflow-x-auto w-full px-4" style={{ whiteSpace: "nowrap" }}>
+    <div
+      className="overflow-x-auto w-full px-4"
+      style={{ whiteSpace: "nowrap" }}
+    >
       <div className="inline-block min-w-full">
         {/* 월(Month) 레이블 */}
         <div className="flex justify-between text-gray-500 text-xs px-2 mb-1">
@@ -154,18 +164,20 @@ const AttendanceGrid = forwardRef((props, ref) => {
         <div className="flex items-center text-gray-500 text-xs mt-2">
           <span>Less</span>
           <div className="flex ml-2">
-            {["#ebedf0", "#c6e48b", "#7bc96f", "#239a3b", "#196127"].map((color, index) => (
-              <div
-                key={index}
-                style={{
-                  width: "14px",
-                  height: "14px",
-                  backgroundColor: color,
-                  marginLeft: "2px",
-                  borderRadius: "2px",
-                }}
-              ></div>
-            ))}
+            {["#ebedf0", "#ddcb62", "#ceb71b", "#ac9314", "#775a0b"].map(
+              (color, index) => (
+                <div
+                  key={index}
+                  style={{
+                    width: "14px",
+                    height: "14px",
+                    backgroundColor: color,
+                    marginLeft: "2px",
+                    borderRadius: "2px",
+                  }}
+                ></div>
+              )
+            )}
           </div>
           <span className="ml-2">More</span>
         </div>
@@ -174,4 +186,5 @@ const AttendanceGrid = forwardRef((props, ref) => {
   );
 });
 
+AttendanceGrid.displayName = "AttendanceGrid";
 export default AttendanceGrid;
