@@ -1,14 +1,14 @@
 package com.ssafy.bgs.auth.dto.request;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor  // 기본 생성자 추가
+@AllArgsConstructor // 모든 필드를 받는 생성자 추가 (옵션)
 public class SocialSignupRequestDto {
     private String name;
     private String nickname;

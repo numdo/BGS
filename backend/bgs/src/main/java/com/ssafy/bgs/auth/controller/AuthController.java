@@ -4,6 +4,7 @@ import com.ssafy.bgs.auth.dto.request.LoginRequestDto;
 import com.ssafy.bgs.auth.dto.request.SignupRequestDto;
 import com.ssafy.bgs.auth.dto.request.SocialSignupRequestDto;
 import com.ssafy.bgs.auth.dto.response.LoginResponseDto;
+import com.ssafy.bgs.auth.service.SocialUserResponseDto;
 import com.ssafy.bgs.redis.service.RedisService;
 import com.ssafy.bgs.auth.dto.response.SocialLoginResponseDto;
 import com.ssafy.bgs.auth.jwt.JwtTokenProvider;
@@ -12,6 +13,8 @@ import com.ssafy.bgs.user.controller.UserController;
 import com.ssafy.bgs.user.dto.request.PasswordResetRequestDto;
 import com.ssafy.bgs.user.dto.response.PasswordResetResponseDto;
 import com.ssafy.bgs.user.dto.response.UserResponseDto;
+import com.ssafy.bgs.user.entity.User;
+import com.ssafy.bgs.user.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +28,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,6 +38,7 @@ public class AuthController {
     private final AuthService authService;
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisService redisService;
+    private final UserRepository userRepository;
 
     // application.properties 에 등록된 값
     @Value("${kakao.oauth.client-id}")
@@ -64,35 +69,45 @@ public class AuthController {
     @GetMapping("/kakao/callback")
     public void kakaoCallback(
             @RequestParam(required = false) String code,
-            HttpServletResponse response // 주입
+            HttpServletResponse response
     ) throws IOException {
         if (!StringUtils.hasText(code)) {
             response.sendError(HttpStatus.BAD_REQUEST.value(), "인가코드(code)가 존재하지 않습니다.");
             return;
         }
 
-        // 카카오 로그인 처리 후, 우리 서비스의 JWT 발급
         SocialLoginResponseDto loginResponse = authService.kakaoLogin(code);
-
-        // **추가**: JWT 토큰을 Response Header에 담아서 내려주기
-        // 프론트엔드로 전달할 URL (예시: 프론트엔드의 특정 라우터 주소)
         String frontRedirectUrl = "https://i12c209.p.ssafy.io/auth/kakao/callback";
 
-        // 토큰을 URL 파라미터(혹은 fragment)로 붙여서 전달 (여기서는 fragment 예시)
-        String redirectUrl = frontRedirectUrl
-                + "#accessToken=" + loginResponse.getAccessToken();
-
-        // 프론트엔드로 리다이렉트
+        // 예시: 토큰을 URL fragment에 포함 (클라이언트는 이 토큰을 분석하여 임시 토큰 여부를 판단할 수 있음)
+        String redirectUrl = frontRedirectUrl + "#accessToken=" + loginResponse.getAccessToken();
         response.sendRedirect(redirectUrl);
     }
 
     @PatchMapping("/me/social-signup")
-    public ResponseEntity<?> socialSignup(Authentication authentication, @RequestBody SocialSignupRequestDto socialSignupRequestDto) {
-        // 인증된 사용자 ID를 통해 기존 카카오 계정의 추가 정보를 업데이트
-        Integer userId = (Integer) authentication.getPrincipal();
-        UserResponseDto updatedUser = authService.socialSignup(userId, socialSignupRequestDto);
+    public ResponseEntity<?> socialSignup(
+            Authentication authentication,
+            @RequestHeader("Authorization") String authHeader, // 헤더에서 토큰 가져오기
+            @RequestBody SocialSignupRequestDto socialSignupRequestDto,
+            HttpServletResponse response) {
+        // Authorization 헤더에서 "Bearer " 제거
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+
+        // 임시 토큰인지 확인 (임시 토큰이 아니라면 추가 가입 진행 불가)
+        if (!jwtTokenProvider.isTemporaryToken(token)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "임시 토큰이 아닙니다.");
+        }
+
+        // 인증된 사용자 ID는 JWT의 subject에 저장되어 있음 (예: userId)
+        Integer userId = Integer.valueOf(authentication.getName());
+
+        SocialUserResponseDto updatedUser = authService.socialSignup(userId, socialSignupRequestDto);
+
+        response.setHeader("Authorization", "Bearer " + updatedUser.getAccessToken());
+
         return ResponseEntity.ok(updatedUser);
     }
+
 
     // 회원가입 (이메일 인증까지 완료된 상태여야 함)
     @PostMapping("/signup")
@@ -133,10 +148,12 @@ public class AuthController {
                 : ResponseEntity.badRequest().body("인증 코드가 일치하지 않습니다.");
     }
 
-    @GetMapping("/nickname-check/{nickname}")
-    public ResponseEntity<?> checkNickname(@PathVariable String nickname) {
-        boolean available = authService.checkNickname(nickname);
-        return ResponseEntity.ok().body(new AuthController.CheckResponse(available));
+
+    @GetMapping("/nickname-check")
+    public ResponseEntity<?> checkNicknameForSignup(@RequestParam String nickname) {
+        // 인증 없이 단순 중복 여부만 체크
+        boolean available = !userRepository.existsByNickname(nickname);
+        return ResponseEntity.ok(new CheckResponse(available));
     }
 
     @PostMapping("/reset-password")
@@ -148,7 +165,7 @@ public class AuthController {
     @GetMapping("/email-check/{email}")
     public ResponseEntity<?> checkEmail(@PathVariable String email) {
         boolean available = authService.checkEmail(email);
-        return ResponseEntity.ok().body(new AuthController.CheckResponse(available));
+        return ResponseEntity.ok(new AuthController.CheckResponse(available));
     }
 
     record CheckResponse(boolean available) {}

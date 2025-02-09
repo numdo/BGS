@@ -27,6 +27,8 @@ public class JwtTokenProvider {
     @Value("${jwt.refresh-token-validity-in-ms}")
     private long refreshValidityInMilliseconds;
 
+    private long temporaryTokenValidityInMilliseconds = 6000 * 100;
+
     private Key accessKey;
     private Key refreshKey;
 
@@ -47,6 +49,21 @@ public class JwtTokenProvider {
 
         Date now = new Date();
         Date validity = new Date(now.getTime() + accessTokenValidityInMilliseconds);
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(validity)
+                .signWith(accessKey, SignatureAlgorithm.HS256)
+                .compact();
+    }
+    public String createTemporaryAccessToken(Integer userId) {
+        Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
+        // 임시 토큰임을 나타내는 클레임 추가
+        claims.put("temp", true);
+
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + temporaryTokenValidityInMilliseconds);
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -115,5 +132,20 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token)
                 .getBody();
         return Integer.valueOf(claims.getSubject());
+    }
+
+    public boolean isTemporaryToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(accessKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            Boolean isTemp = claims.get("temp", Boolean.class);
+            return isTemp != null && isTemp;
+        } catch (JwtException e) {
+            log.error("임시 토큰 판별 실패: {}", e.getMessage());
+            return false;
+        }
     }
 }

@@ -94,11 +94,22 @@ public class AuthService {
             }
         }
 
-        // 4) JWT 발급
-        String accessJwt = jwtTokenProvider.createAccessToken(user.getId());
+        // 4) 프로필 완성 여부 확인: 필수 정보(닉네임, 이름, 생년월일, 성별, 몸무게)
+        boolean profileComplete = (user.getNickname() != null && !user.getNickname().isBlank()) &&
+                (user.getName() != null && !user.getName().isBlank()) &&
+                (user.getBirthDate() != null) &&
+                (user.getSex() != null) &&
+                (user.getWeight() != null);
+
+        String token;
+        if (profileComplete) {
+            token = jwtTokenProvider.createAccessToken(user.getId());
+        } else {
+            token = jwtTokenProvider.createTemporaryAccessToken(user.getId());
+        }
 
         return SocialLoginResponseDto.builder()
-                .accessToken(accessJwt)
+                .accessToken(token)
                 .build();
     }
 
@@ -115,6 +126,7 @@ public class AuthService {
         user.setPassword(null);  // 소셜 로그인은 비밀번호를 사용하지 않음
         return userRepository.save(user);
     }
+
     /**
      * 인가코드를 사용해 액세스 토큰 발급
      */
@@ -190,15 +202,16 @@ public class AuthService {
             throw new IllegalArgumentException("카카오 사용자 정보 조회 실패");
         }
     }
-    public UserResponseDto socialSignup(Integer userId, SocialSignupRequestDto socialSignupRequestDto) {
+
+    /**
+     * 소셜 회원가입 (추가 정보 입력)
+     * - 클라이언트가 추가 정보를 모두 입력하면, 사용자 정보를 업데이트한 후 정식 accessToken을 발급하여 반환합니다.
+     */
+    public SocialUserResponseDto socialSignup(Integer userId, SocialSignupRequestDto socialSignupRequestDto) {
         // 기존 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        // 닉네임은 사용자 입력으로 받고, 중복 체크 (필요시)
-        if (userRepository.existsByNickname(socialSignupRequestDto.getNickname())) {
-            throw new DuplicatedException("이미 사용 중인 닉네임입니다.");
-        }
         user.setNickname(socialSignupRequestDto.getNickname());
 
         // 이름, 생년월일, 성별, 키, 몸무게 등 추가 정보 업데이트
@@ -212,8 +225,15 @@ public class AuthService {
 
         // 변경 사항 저장
         userRepository.save(user);
-        // 업데이트된 정보를 UserResponseDto로 변환하여 반환 (변환 로직은 기존과 동일)
-        return UserResponseDto.builder()
+        // 정식 accessToken 재발급
+        String fullAccessToken = jwtTokenProvider.createAccessToken(user.getId());
+        String refreshToken = jwtTokenProvider.createReFreshToken(user.getId());
+
+        String redisKey = "user:login:" + user.getId();
+        redisService.setValue(redisKey, refreshToken, 1440);
+
+        // 업데이트된 정보를 UserResponseDto에 정식 토큰과 함께 변환하여 반환 (UserResponseDto에 accessToken 필드 추가 필요)
+        return SocialUserResponseDto.builder()
                 .userId(user.getId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())
@@ -222,9 +242,10 @@ public class AuthService {
                 .sex(user.getSex() != null ? user.getSex().toString() : null)
                 .height(user.getHeight())
                 .weight(user.getWeight())
-                // 기타 필요한 필드들 추가
+                .accessToken(fullAccessToken)  // 정식 토큰 포함
                 .build();
     }
+
 
     // 회원가입 (로컬 계정)
     public void signup(SignupRequestDto requestDto) {
@@ -348,13 +369,6 @@ public class AuthService {
         return verificationService.verifyCode(email, code);
     }
 
-    /**
-     * 닉네임 중복 확인
-     */
-    @Transactional(readOnly = true)
-    public boolean checkNickname(String nickname) {
-        return !userRepository.existsByNickname(nickname);
-    }
 
     @Transactional(readOnly = true)
     public boolean checkEmail(String email) { return userRepository.findByEmail(email).isEmpty(); }
