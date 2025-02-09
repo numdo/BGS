@@ -1,4 +1,4 @@
-// src/components/feed/CommentItem.jsx
+// src/components/mygym/CommentItem.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUser } from "../../api/User";

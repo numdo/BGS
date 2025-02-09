@@ -1,4 +1,4 @@
-// src/components/feed/CommentInput.jsx
+// src/components/mygym/CommentInput.jsx
 import React from "react";
 import ProfileDefaultImage from "../../assets/icons/MyInfo.png";
 import useUserStore from "../../stores/useUserStore";
