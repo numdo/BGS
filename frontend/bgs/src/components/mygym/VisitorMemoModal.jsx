@@ -69,7 +69,7 @@ const VisitorMemoModal = ({ isOpen, onClose, visitorMemos, setVisitorMemos, user
     } catch (error) {
       console.error("댓글 수정 실패:", error);
     }
-  }, [editingContent, userId, visitorMemos, setVisitorMemos]);
+  }, [editingContent, userId, visitorMemos, setVisitorMemos]); 
 
   return (
     <div
