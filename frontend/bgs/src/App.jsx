@@ -22,6 +22,7 @@ import UserInfoPage from "./pages/info/UserInfoPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import BgsLoginPage from "./pages/auth/BgsLoginPage";
 import ProtectedLayout from "./components/auth/ProtectedLayout";
+import AtomicPage from "./pages/admin/AtomicPage";
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
               element={<WorkoutUpdatePage />}
             />
             <Route path="/workoutrealtime" element={<WorkoutRealtimePage />} />
+            <Route path="/atomic" element={<AtomicPage />} />
           </Route>
         </Route>
       </Routes>
