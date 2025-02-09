@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import VisitorMemoModal from "./VisitorMemoModal";
 import { getGuestBooks, createGuestBooks } from "../../api/Mygym"; // 실제 API 함수 import
 import useUserStore from "../../stores/useUserStore";
+import ProfileDefaultImage from "../../assets/icons/MyInfo.png";
 const VisitorMemo = ({ userId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [visitorMemos, setVisitorMemos] = useState([]);
@@ -25,7 +26,7 @@ const VisitorMemo = ({ userId }) => {
   const lastMemo = visitorMemos.length
     ? visitorMemos[visitorMemos.length - 1]
     : null;
-  const userProfile = "https://via.placeholder.com/40"; // 프로필 이미지 (실제 데이터가 있다면 교체)
+  
 
   return (
     <>
@@ -37,7 +38,7 @@ const VisitorMemo = ({ userId }) => {
           {lastMemo ? (
             <>
               <img
-                src={userProfile}
+                src={ProfileDefaultImage}
                 alt="프로필"
                 className="w-8 h-8 rounded-full mr-3"
               />
@@ -58,7 +59,7 @@ const VisitorMemo = ({ userId }) => {
         onClose={() => setIsOpen(false)}
         visitorMemos={visitorMemos}
         setVisitorMemos={setVisitorMemos}
-        userProfile={userProfile}
+        userProfile={ProfileDefaultImage}
         userId={userId}
       />
     </>

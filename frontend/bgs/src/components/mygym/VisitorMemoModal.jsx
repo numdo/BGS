@@ -6,6 +6,7 @@ import {
   updateGuestBook 
 } from "../../api/Mygym";
 import useUserStore from "../../stores/useUserStore";
+import ProfileDefaultImage from "../../assets/icons/MyInfo.png";
 
 const VisitorMemoModal = ({
   isOpen,
@@ -18,7 +19,7 @@ const VisitorMemoModal = ({
   const { user } = useUserStore();
   const currentUserId = user.userId; // 현재 로그인한 사용자의 ID
 
-  // 편집 상태 관련 상태값
+  // 댓글 수정 상태 관리
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingContent, setEditingContent] = useState("");
 
@@ -34,13 +35,13 @@ const VisitorMemoModal = ({
       // 새 댓글 생성 API 호출
       await createGuestBooks(userId, payload);
       
-      // GET 요청으로 전체 목록 다시 가져오기
+      // GET 요청으로 전체 댓글 목록 다시 가져오기 (페이지 번호는 0부터 시작)
       const updatedData = await getGuestBooks(userId);
       const freshMemos = updatedData.content.filter(memo => !memo.deleted);
       
       console.log("GET 응답 freshMemos:", freshMemos);
       
-      // 만약 새 댓글이 응답에 없다면, 임시 객체를 추가 (백엔드 응답이 늦을 경우 대비)
+      // 만약 새 댓글이 GET 응답에 없다면, 임시 객체를 추가 (백엔드 응답 지연 대비)
       if (!freshMemos.some(memo => memo.content === newComment)) {
         const newMemo = {
           guestbookId: Date.now(), // 임시 ID
@@ -66,7 +67,7 @@ const VisitorMemoModal = ({
   const handleDeleteMemo = async (guestbookId) => {
     try {
       await deleteGuestBook(userId, guestbookId);
-      // 삭제 후 state 업데이트
+      // 삭제 후 state 업데이트: 삭제된 댓글은 필터링
       const updatedMemos = visitorMemos.filter(
         (memo) => memo.guestbookId !== guestbookId
       );
@@ -93,7 +94,7 @@ const VisitorMemoModal = ({
     try {
       const payload = { content: editingContent };
       await updateGuestBook(userId, guestbookId, payload);
-      // 수정된 내용을 state에 반영
+      // 수정된 댓글을 state에 반영
       const updatedMemos = visitorMemos.map(memo => {
         if (memo.guestbookId === guestbookId) {
           return { ...memo, content: editingContent };
@@ -110,17 +111,21 @@ const VisitorMemoModal = ({
 
   // 작성자 프로필 이미지 및 이름 반환 함수
   const getProfileImage = (guestId) => {
+    // 현재 로그인한 사용자의 댓글이면 useUserStore의 profileImageUrl 사용
     if (guestId === currentUserId && user.profileImageUrl) {
       return user.profileImageUrl;
     }
-    return "https://via.placeholder.com/40"; // 다른 사용자는 기본 이미지
+    // 다른 사용자는 기본 프로필 이미지 사용
+    return ProfileDefaultImage;
   };
 
   const getWriterName = (guestId) => {
+    // 현재 로그인한 사용자의 댓글이면 useUserStore의 nickname 사용
     if (guestId === currentUserId && user.nickname) {
       return user.nickname;
     }
-    return "익명"; // 다른 사용자는 익명 처리 (필요 시 별도 API 호출 고려)
+    // 다른 사용자는 "익명" 또는 기본 이름으로 표시 (추후 API로 조회 가능)
+    return "익명";
   };
 
   return (
@@ -187,7 +192,7 @@ const VisitorMemoModal = ({
                   )}
                 </div>
               </div>
-              {/* 현재 로그인 사용자가 작성한 댓글이면 수정 및 삭제 버튼 표시 */}
+              {/* 현재 로그인한 사용자가 작성한 댓글이면 수정 및 삭제 버튼 표시 */}
               {currentUserId === memo.guestId && (
                 <div className="flex space-x-2">
                   {editingCommentId === memo.guestbookId ? (
