@@ -349,37 +349,33 @@ public class DiaryService {
         List<WorkoutSet> workoutSets = new ArrayList<>();
         int i = 0;
         for (DiaryWorkoutRequestDto workoutRequestDto : workouts) {
-            // DiaryWorkout 삭제되면 패스
-            if (workoutRequestDto.getDeleted())
+            // 삭제된 운동이면 건너뛰기 - null이면 false로 처리
+            if (Boolean.TRUE.equals(workoutRequestDto.getDeleted()))
                 continue;
 
             for (WorkoutSetRequestDto setRequestDto : workoutRequestDto.getSets()) {
                 WorkoutSet existingWorkoutSet;
-                // 새로운 운동 세트
                 if (setRequestDto.getWorkoutSetId() == null) {
                     existingWorkoutSet = new WorkoutSet();
                     existingWorkoutSet.setDiaryWorkoutId(savedDiaryWorkouts.get(i).getDiaryWorkoutId());
-                }
-                // 기존 운동 세트
-                else {
-                    existingWorkoutSet = workoutSetRepository.findById(setRequestDto.getWorkoutSetId()).orElseThrow(() -> new WorkoutSetNotFoundException(setRequestDto.getWorkoutSetId()));
+                } else {
+                    existingWorkoutSet = workoutSetRepository.findById(setRequestDto.getWorkoutSetId())
+                            .orElseThrow(() -> new WorkoutSetNotFoundException(setRequestDto.getWorkoutSetId()));
                 }
 
-                // WorkoutSet column 수정
                 existingWorkoutSet.setDiaryWorkoutId(savedDiaryWorkouts.get(i).getDiaryWorkoutId());
                 existingWorkoutSet.setWeight(setRequestDto.getWeight());
                 existingWorkoutSet.setRepetition(setRequestDto.getRepetition());
                 existingWorkoutSet.setWorkoutTime(setRequestDto.getWorkoutTime());
                 existingWorkoutSet.setDeleted(setRequestDto.getDeleted());
 
-                // 리스트에 추가
                 workoutSets.add(existingWorkoutSet);
             }
             i++;
         }
-
         return workoutSets;
     }
+
 
     /**
      * Diary Delete
