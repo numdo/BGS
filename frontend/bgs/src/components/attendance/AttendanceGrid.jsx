@@ -164,7 +164,7 @@ const AttendanceGrid = forwardRef((props, ref) => {
         <div className="flex items-center text-gray-500 text-xs mt-2">
           <span>Less</span>
           <div className="flex ml-2">
-            {["#ebedf0", "#ddcb62", "#ceb71b", "#ac9314", "#775a0b"].map(
+            {["#ebedf0", "#ddcb 62", "#ceb71b", "#ac9314", "#775a0b"].map(
               (color, index) => (
                 <div
                   key={index}

@@ -4,13 +4,13 @@ import { useState, useEffect } from "react";
 import useUserStore from "../../stores/useUserStore";
 import { getUser } from "../../api/User";
 import { follow, unfollow, getFollowingList } from "../../api/Follow";
-import MyGymRoomView from "../../components/mygym/MyGymRoomView";
 import PostsTab from "../../components/myinfo/PostsTab";
 import StatsTab from "../../components/myinfo/StatsTab";
 import MyGymTab from "../../components/myinfo/MyGymTab";
 import DefaultProfileImage from "../../assets/icons/MyInfo.png";
 export default function MyInfoPage() {
   const { user, setUser } = useUserStore();
+  const [isFollowing, setIsFollowing] = useState(false);
   const [activeTab, setActiveTab] = useState("posts");
   const [weightData, setWeightData] = useState([]);
   const [totalWeightData, setTotalWeightData] = useState([]);
@@ -21,90 +21,134 @@ export default function MyInfoPage() {
   useEffect(() => {
     console.log(user);
   }, [user]);
-  console.log(localStorage.getItem("accessToken"));
-  const [showFollowers, setShowFollowers] = useState(false); // 팔로워 모달
-  const [showFollowing, setShowFollowing] = useState(false); // 팔로잉 모달
-  const handleTabClick = (tab) => {
-    setActiveTab(tab);
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const res = await getUser(); // ✅ 친구 프로필 정보 가져오기
+        console.log("🔹 내 프로필 데이터:", res);
+        setUser(res);
+        // ✅ 팔로우 상태 확인
+        const followingList = await getFollowingList();
+        const isUserFollowing = followingList.some(
+          (f) => f.userId === res.userId
+        );
+        setIsFollowing(isUserFollowing);
+
+        setWeightData([
+          { date: "01-01", weight: res.weight - 3 },
+          { date: "01-10", weight: res.weight - 2 },
+          { date: "01-20", weight: res.weight - 1 },
+          { date: "02-01", weight: res.weight },
+        ]);
+        setTotalWeightData([
+          { date: "01-01", totalWeight: res.totalWeight - 10 },
+          { date: "01-10", totalWeight: res.totalWeight - 5 },
+          { date: "01-20", totalWeight: res.totalWeight },
+          { date: "02-01", totalWeight: res.totalWeight + 5 },
+        ]);
+        setWorkoutFrequency([
+          { day: "월", count: 3 },
+          { day: "화", count: 2 },
+          { day: "수", count: 4 },
+          { day: "목", count: 1 },
+          { day: "금", count: 3 },
+          { day: "토", count: 5 },
+          { day: "일", count: 2 },
+        ]);
+      } catch (error) {
+        console.error("❌ 친구 프로필 가져오기 실패:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+  const handleFollowToggle = async () => {
+    if (!user?.userId) {
+      console.error("❌ 유저 ID가 존재하지 않습니다.");
+      return;
+    }
+
+    const previousState = isFollowing; // 이전 상태 저장
+    setIsFollowing(!isFollowing); // ✅ UI 즉시 반영
+
+    try {
+      if (isFollowing) {
+        await unfollow(user.userId);
+        console.log(`언팔로우 성공: ${user.userId}`);
+      } else {
+        await follow(user.userId);
+        console.log(`팔로우 성공: ${user.userId}`);
+      }
+      setIsFollowing(!isFollowing);
+    } catch (error) {
+      console.error("❌ 팔로우 변경 중 오류 발생:", error);
+      setIsFollowing(previousState); // ✅ 실패하면 원래 상태로 롤백
+    }
   };
+  if (!user) return <p>로딩 중...</p>;
   return (
     <>
       <TopBar />
       <div className="p-6 max-w-3xl mx-auto">
         {/* 상단 프로필 섹션 */}
-        <div className="flex items-center mb-6">
-          <img
-            src={user.profileImageUrl}
-            alt="Profile img Pro file img Profile img Profile img"
-            className="rounded-full h-24 w-24"
-          />
-          <div className="ml-6 flex-1">
-            <h2 className="mt-4 text-2xl font-semibold text-gray-800">
-              {user.nickname}
-            </h2>
-            <p className="text-gray-600 mt-2">{user.introduce}</p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <img
+              src={user.profileImageUrl || DefaultProfileImage} // ✅ 기본 이미지 추가
+              alt="Profile"
+              className="rounded-full h-24 w-24"
+            />
+            <div className="ml-6">
+              <h2 className="mt-4 text-2xl font-semibold text-gray-800">
+                {user.nickname}
+              </h2>
+              <p className="text-gray-600 mt-2">{user.introduce}</p>
+            </div>
           </div>
-          <div className="flex justify-between items-center">
-            <button className="bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-200">
-              팔로우
-            </button>
-          </div>
+          {/* ✅ 팔로우 버튼 */}
+          <button
+            className={`py-2 px-4 rounded-lg font-semibold transition ${
+              isFollowing ? "bg-gray-400 text-white" : "bg-primary text-white"
+            }`}
+            onClick={handleFollowToggle}
+          >
+            {isFollowing ? "언팔로우" : "팔로우"}
+          </button>
         </div>
 
         {/* 탭 네비게이션 */}
-        <div className="border-b mb-4">
-          <div className="flex justify-around">
+        <div className="flex justify-around">
+          {["posts", "stats", "myGym"].map((tab) => (
             <button
+              key={tab}
               className={`py-2 px-4 ${
-                activeTab === "posts"
-                  ? "border-b-2 border-gray-800 text-gray-800"
+                activeTab === tab
+                  ? "border-b-2 border-primary text-gray-800"
                   : "text-gray-500"
               }`}
-              onClick={() => handleTabClick("posts")}
+              onClick={() => setActiveTab(tab)}
             >
-              게시물 탭
+              {tab === "posts" ? "게시물" : tab === "stats" ? "통계" : "마이짐"}
             </button>
-            <button
-              className={`py-2 px-4 ${
-                activeTab === "stats"
-                  ? "border-b-2 border-gray-800 text-gray-800"
-                  : "text-gray-500"
-              }`}
-              onClick={() => handleTabClick("stats")}
-            >
-              통계 탭
-            </button>
-            <button
-              className={`py-2 px-4 ${
-                activeTab === "myGym"
-                  ? "border-b-2 border-gray-800 text-gray-800"
-                  : "text-gray-500"
-              }`}
-              onClick={() => handleTabClick("myGym")}
-            >
-              마이짐 탭
-            </button>
-          </div>
+          ))}
         </div>
 
-        {/* 탭 내용 */}
+        {/* 탭 내용 렌더링 */}
         <div className="p-4">
-          {activeTab === "posts" && <p>게시물 탭입니다</p>}
-          {activeTab === "stats" && <p>통계 탭입니다</p>}
-          {activeTab === "myGym" && <MyGymRoomView />}
+          {activeTab === "posts" && (
+            <PostsTab userId={user.userId} nickname={user.nickname} />
+          )}
+          {activeTab === "stats" && (
+            <StatsTab
+              weightData={weightData}
+              totalWeightData={totalWeightData}
+              workoutFrequency={workoutFrequency}
+            />
+          )}
+          {activeTab === "myGym" && <MyGymTab friendId={user.userId} />}
         </div>
       </div>
-      <div className="m-10">
-        <div>생일 : {user.birthDate}</div>
-        <div>성별 : {user.sex}</div>
-        <div>키 : {user.height}</div>
-        <div>몸무게 : {user.weight}</div>
-        <div>불끈도 : {user.degree}</div>
-        <div>3대 합 : {user.totalWeight}</div>
-        <div>연속 출석 일수 : {user.strickAttendance}</div>
-        <div>마지막 출석 일자 : {user.lastAttendance}</div>
-        <div>코인 : {user.coin}</div>
-      </div>
+
       <BottomBar />
     </>
   );
