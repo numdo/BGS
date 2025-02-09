@@ -1,6 +1,6 @@
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
-import MoreIcon from "../../assets/icons/More.svg";
+import moreicon from "../../assets/icons/More.svg";
 
 export default function WorkoutRealtimePage() {
   return (
@@ -37,7 +37,7 @@ export default function WorkoutRealtimePage() {
       <h1>더보기 버튼</h1>
       <div>
         <button className="bg-gray-100 rounded-md w-6 h-6" onClick={() => {}}>
-          <img src={MoreIcon} alt="" />
+          <img src={moreicon} alt="" />
         </button>
       </div>
       <h1>추가 버튼</h1>
