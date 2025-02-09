@@ -3,9 +3,18 @@ import TopBar from "../../components/bar/TopBar";
 import { useState, useEffect } from "react";
 import useUserStore from "../../stores/useUserStore";
 import { getUser } from "../../api/User";
+import { follow, unfollow, getFollowingList } from "../../api/Follow";
 import MyGymRoomView from "../../components/mygym/MyGymRoomView";
+import PostsTab from "../../components/myinfo/PostsTab";
+import StatsTab from "../../components/myinfo/StatsTab";
+import MyGymTab from "../../components/myinfo/MyGymTab";
+import DefaultProfileImage from "../../assets/icons/MyInfo.png";
 export default function MyInfoPage() {
   const { user, setUser } = useUserStore();
+  const [activeTab, setActiveTab] = useState("posts");
+  const [weightData, setWeightData] = useState([]);
+  const [totalWeightData, setTotalWeightData] = useState([]);
+  const [workoutFrequency, setWorkoutFrequency] = useState([]);
   useEffect(() => {
     getUser().then((res) => setUser(res));
   }, []);
@@ -13,7 +22,6 @@ export default function MyInfoPage() {
     console.log(user);
   }, [user]);
   console.log(localStorage.getItem("accessToken"));
-  const [activeTab, setActiveTab] = useState("posts"); // 현재 활성화된 탭
   const [showFollowers, setShowFollowers] = useState(false); // 팔로워 모달
   const [showFollowing, setShowFollowing] = useState(false); // 팔로잉 모달
   const handleTabClick = (tab) => {
