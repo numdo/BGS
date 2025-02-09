@@ -55,7 +55,7 @@ function App() {
           <Route path="/workout" element={<WorkoutPage />} />
           <Route path="/workoutdiary" element={<WorkoutDiaryPage />} />
           <Route path="/workoutcreate" element={<WorkoutCreatePage />} />
-          <Route path="/workoutupdate" element={<WorkoutUpdatePage />} />
+          <Route path="/workoutupdate/:diaryId" element={<WorkoutUpdatePage />} />
           <Route path="/workoutrealtime" element={<WorkoutRealtimePage />} />
         </Routes>
       </BrowserRouter>
