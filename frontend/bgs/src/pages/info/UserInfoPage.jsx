@@ -148,7 +148,7 @@ export default function UserInfoPage() {
               workoutFrequency={workoutFrequency}
             />
           )}
-          {activeTab === "myGym" && <MyGymTab />}
+          {activeTab === "myGym" && <MyGymTab friendId={user.userId} />}
         </div>
       </div>
 

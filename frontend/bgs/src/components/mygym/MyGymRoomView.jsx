@@ -2,7 +2,7 @@
 import React from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
 
-const MyGymRoomView = () => {
+const MyGymRoomView = ({userId}) => {
   const { myGym } = useMyGymStore();
   // deleted가 false인 아이템만 표시
   const visibleItems = myGym.places.filter((it) => !it.deleted);
