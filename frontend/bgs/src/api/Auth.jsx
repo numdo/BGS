@@ -90,10 +90,14 @@ export async function socialSignup(socialData) {
     throw error;
   }
 }
-// 닉네임 중복 체크 (GET /auth/nickname-check/{nickname})
+
+
+// 닉네임 중복 체크 (GET /auth/nickname-check?nickname={nickname})
 export async function checkNickname(nickname) {
   try {
-    const response = await axiosInstance.get(`${BASE_URL}/nickname-check/${nickname}`);
+    const response = await axiosInstance.get(`${BASE_URL}/nickname-check`,{
+      params: { nickname }
+    });
     return response.data;
   } catch (error) {
     throw error;
