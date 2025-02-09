@@ -5,7 +5,7 @@ import TopBar from "../../components/bar/TopBar";
 import addlogo from "../../assets/icons/add.svg";
 import miclogo from "../../assets/icons/mic.svg";
 import deletelogo from "../../assets/icons/delete.svg";
-import MoreIcon from "../../assets/icons/More.svg";
+import moreicon from "../../assets/icons/More.svg";
 
 import { useNavigate } from "react-router-dom";
 
@@ -460,7 +460,7 @@ export default function WorkoutCreatePage() {
           className="absolute right-0 bg-gray-100 rounded-md w-6 h-6"
           onClick={() => {}}
         >
-          <img src={MoreIcon} alt="" />
+          <img src={moreicon} alt="" />
         </button>
         {/* 날짜 */}
         <div className="border border-gray-100 text-gray-500 w-44 rounded-md pl-2">
