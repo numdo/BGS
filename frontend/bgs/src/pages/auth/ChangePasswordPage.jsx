@@ -26,7 +26,6 @@ const ChangePasswordPage = () => {
   const isPasswordValid = () => {
     return (
       formData.newPassword.length >= 10 &&
-      /[A-Z]/.test(formData.newPassword) && // 대문자 포함
       /[a-z]/.test(formData.newPassword) && // 소문자 포함
       /\d/.test(formData.newPassword) && // 숫자 포함
       /[!@#$%^&*(),.?":{}|<>]/.test(formData.newPassword) && // 특수문자 포함
@@ -40,7 +39,7 @@ const ChangePasswordPage = () => {
 
     if (!isPasswordValid()) {
       setError(
-        "비밀번호는 10자 이상, 대소문자, 숫자, 특수문자를 포함해야 합니다."
+        "비밀번호는 10자 이상, 영문, 숫자, 특수문자를 포함해야 합니다."
       );
       return;
     }
@@ -119,7 +118,7 @@ const ChangePasswordPage = () => {
 
         {/* 안내 문구 */}
         <p className="text-gray-500 text-sm mb-6 text-center">
-          새로운 비밀번호는 10자 이상이어야 하며, 대문자, 소문자, 숫자,
+          새로운 비밀번호는 10자 이상이어야 하며, 영문문, 숫자,
           특수문자를 포함해야 합니다.
         </p>
 

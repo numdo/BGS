@@ -75,9 +75,20 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public String recreateAccessToken(String refreshToken) {
-        Integer userId = getUserId(refreshToken, false);
-        return createAccessToken(userId);
+    public Jws<Claims> parseToken(String token, boolean isAccessToken) {
+        try {
+            Key key = isAccessToken ? accessKey : refreshKey;
+            return Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
+        } catch (ExpiredJwtException e) {
+            log.error("Token expired: {}", e.getMessage());
+            throw e; // 그대로 다시 던짐
+        } catch (JwtException e) {
+            log.error("Invalid token: {}", e.getMessage());
+            throw new RuntimeException("Invalid token", e);
+        }
     }
     /**
      * 토큰 유효성 & 만료일자 확인

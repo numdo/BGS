@@ -53,4 +53,21 @@ public class AttendanceController {
             return ResponseEntity.internalServerError().body("서버 오류가 발생했습니다.");
         }
     }
+    // 추가된 API: 시작일과 종료일을 지정하여 출석 정보 조회
+    @GetMapping("/range")
+    public ResponseEntity<?> getAttendanceByDateRange(Authentication authentication,
+                                                      @RequestParam("start") String startDateString,
+                                                      @RequestParam("end") String endDateString) {
+        try {
+            LocalDate startDate = LocalDate.parse(startDateString);
+            LocalDate endDate = LocalDate.parse(endDateString);
+            Integer userId = (Integer) authentication.getPrincipal();
+            List<AttendanceCheckResponseDto> attendanceList = attendanceService.getAttendanceBetweenDates(userId, startDate, endDate);
+            return ResponseEntity.ok(attendanceList);
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.badRequest().body("잘못된 날짜 형식입니다. (YYYY-MM-DD 형식이어야 합니다.)");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("서버 오류가 발생했습니다.");
+        }
+    }
 }

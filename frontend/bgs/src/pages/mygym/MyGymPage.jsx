@@ -98,7 +98,7 @@ const MyGymPage = () => {
           >
             편집
           </button>
-          <VisitorMemo />
+          <VisitorMemo userId={user.userId} />
         </>
       )}
 

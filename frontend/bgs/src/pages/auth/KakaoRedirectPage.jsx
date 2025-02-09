@@ -12,15 +12,13 @@ const KakaoRedirectPage = () => {
         const params = new URLSearchParams(hash);
 
         const accessToken = params.get("accessToken");
-        const refreshToken = params.get("refreshToken");
         const newUser = params.get("newUser") === "true";
 
         console.log("🔹 [Kakao] 토큰 저장 처리 중...");
-
-        if (accessToken && refreshToken) {
+        console.log("🔹 [Kakao] accessToken:", accessToken);
+        if (accessToken) {
           // ✅ 토큰을 로컬 스토리지에 저장
           localStorage.setItem("accessToken", accessToken);
-          localStorage.setItem("refreshToken", refreshToken);
 
           setTimeout(() => {
             if (newUser) {

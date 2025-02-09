@@ -8,8 +8,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class SocialLoginResponseDto {
-    private String name;
+    private boolean newUser; // 신규 회원 여부
     private String accessToken;
-    private String refreshToken;
-    private boolean newUser;
 }

@@ -1,42 +1,55 @@
+// VisitorMemoModal.jsx
 import { useState, useEffect } from "react";
+import { getGuestBooks,createGuestBooks } from "../../api/Mygym"; // 실제 API 함수 import
 
-const VisitorMemoModal = ({ isOpen, onClose, visitorMemos, userProfile }) => {
+const VisitorMemoModal = ({
+  isOpen,
+  onClose,
+  visitorMemos,
+  setVisitorMemos,
+  userProfile,
+  userId,
+}) => {
   const [newComment, setNewComment] = useState("");
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
+    document.body.style.overflow = isOpen ? "hidden" : "auto";
   }, [isOpen]);
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (newComment.trim() === "") return;
-    alert(`새 방명록 추가: ${newComment}`);
-    setNewComment("");
+    try {
+      const payload = { content: newComment };
+      // 새 방명록 생성 API 호출
+      await createGuestBooks(userId, payload);
+      // 새 방명록 추가 후 전체 방명록 목록을 다시 가져옴
+      const updatedData = await getGuestBooks(userId);
+      setVisitorMemos(updatedData.content);
+      setNewComment("");
+    } catch (error) {
+      console.error("방명록 추가에 실패했습니다:", error);
+    }
   };
 
   return (
-    <div 
+    <div
       className={`fixed inset-0 flex items-end justify-center z-50 transition-transform duration-500 
       ${isOpen ? "translate-y-0" : "translate-y-full"}`}
     >
       {/* 배경 클릭 시 닫힘 */}
-      <div 
+      <div
         className="bg-transparent"
         onClick={(e) => {
-          if (e.target === e.currentTarget) onClose(); // 배경 부분만 클릭하면 닫힘
+          if (e.target === e.currentTarget) onClose();
         }}
       ></div>
 
-      {/* 모달 내용 */}
       <div className="w-full max-w-md bg-white rounded-t-3xl shadow-lg p-4 overflow-y-auto max-h-[70vh]">
         <button className="text-gray-500 text-center w-full" onClick={onClose}>
           ▼
         </button>
 
-        {/* 입력 필드 + 프로필 이미지 */}
+        {/* 입력 필드 및 등록 버튼 */}
         <div className="flex items-center space-x-3 p-3 border-b">
           <img
             src={userProfile || "https://via.placeholder.com/40"}
@@ -55,11 +68,15 @@ const VisitorMemoModal = ({ isOpen, onClose, visitorMemos, userProfile }) => {
           </button>
         </div>
 
-        {/* 방명록 리스트 */}
+        {/* 방명록 목록 표시 */}
         <div className="space-y-4 mt-4">
           {visitorMemos.map((memo) => (
-            <div key={memo.id} className="flex items-start space-x-3 p-2 border-b">
-              <img src={memo.profileImage} alt="프로필" className="w-10 h-10 rounded-full" />
+            <div key={memo.guestbookId} className="flex items-start space-x-3 p-2 border-b">
+              <img
+                src={userProfile}
+                alt="프로필"
+                className="w-10 h-10 rounded-full"
+              />
               <p className="text-gray-800">{memo.content}</p>
             </div>
           ))}
