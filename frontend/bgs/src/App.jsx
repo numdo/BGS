@@ -25,29 +25,22 @@ import UserInfoPage from "./pages/info/UserInfoPage";
 
 function App() {
   return (
-    <>
-      <BrowserRouter>
-        <Routes>
+    <BrowserRouter>
+      <Routes>
+        {/* Public Routes: 프로필 체크 없이 접근 가능한 페이지 */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/bullogin" element={<BullLoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/auth/kakao/callback" element={<KakaoRedirectPage />} />
+        <Route path="/login/oauth2/success" element={<KakaoRedirectPage />} />
+        <Route path="/social-signup" element={<SocialSignupPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/change-password" element={<ChangePasswordPage />} />
+
+        {/* Protected Routes: 프로필 완성 여부를 확인하는 Guard로 감싸기 */}
+        <Route element={<ProfileCompletionGuard />}>
           <Route path="/" element={<MainPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/bullogin" element={<BullLoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/auth/kakao/callback" element={<KakaoRedirectPage />} />
-          <Route path="/social-signup" element={<SocialSignupPage />} />
-          {/* 보호된 메인 페이지: 프로필 완성 여부를 확인 */}
-          <Route
-            path="/"
-            element={
-              <ProfileCompletionGuard>
-                <MainPage />
-              </ProfileCompletionGuard>
-            }
-          />
           <Route path="/user-details" element={<UserDetailsPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/change-password" element={<ChangePasswordPage />} />
-          <Route path="/login/oauth2/success" element={<KakaoRedirectPage />} />
-          <Route path="/social-signup" element={<SocialSignupPage />} />
           <Route path="/mygym" element={<MyGymPage />} />
           <Route path="/admin-item" element={<AdminItemPage />} />
           <Route path="/feed" element={<FeedPage />} />
@@ -59,9 +52,9 @@ function App() {
           <Route path="/workoutcreate" element={<WorkoutCreatePage />} />
           <Route path="/workoutupdate/:diaryId" element={<WorkoutUpdatePage />} />
           <Route path="/workoutrealtime" element={<WorkoutRealtimePage />} />
-        </Routes>
-      </BrowserRouter>
-    </>
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
