@@ -1,4 +1,3 @@
-import React from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
 
 import LoginPage from "./pages/auth/LoginPage";
@@ -22,6 +21,7 @@ import AdminItemPage from "./pages/admin/AdminItemPage";
 import WorkoutRealtimePage from "./pages/workout/WorkoutRealtimePage";
 import ProfileCompletionGuard from "./components/auth/ProfileCompletionGuard";
 import UserInfoPage from "./pages/info/UserInfoPage";
+import AtomicPage from "./pages/admin/AtomicPage";
 
 function App() {
   return (
@@ -59,6 +59,8 @@ function App() {
           <Route path="/workoutcreate" element={<WorkoutCreatePage />} />
           <Route path="/workoutupdate/:diaryId" element={<WorkoutUpdatePage />} />
           <Route path="/workoutrealtime" element={<WorkoutRealtimePage />} />
+          <Route path="/atomic" element={<AtomicPage />} />
+
         </Routes>
       </BrowserRouter>
     </>

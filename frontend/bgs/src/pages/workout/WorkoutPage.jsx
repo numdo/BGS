@@ -1,16 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import TopBar from '../../components/bar/TopBar';
-import BottomBar from '../../components/bar/BottomBar';
-import WorkoutCalendar from '../../components/workout/WorkoutCalendar';
+import TopBar from "../../components/bar/TopBar";
+import BottomBar from "../../components/bar/BottomBar";
+import WorkoutCalendar from "../../components/workout/WorkoutCalendar";
 
-import useDiaryStore from '../../stores/useDiaryStore';
-import useUserStore from '../../stores/useUserStore';
+import useDiaryStore from "../../stores/useDiaryStore";
+import useUserStore from "../../stores/useUserStore";
 
-import { deleteDiary, getDiaries } from '../../api/Diary';
-import { getUser } from '../../api/User'; // ✅ user 정보를 가져오는 API
-
+import { deleteDiary, getDiaries } from "../../api/Diary";
+import { getUser } from "../../api/User"; // ✅ user 정보를 가져오는 API
 
 export default function WorkoutPage() {
   const { user, setUser } = useUserStore();
@@ -27,20 +26,24 @@ export default function WorkoutPage() {
       try {
         // 만약 user가 아직 없거나 user.userId가 없다면, 직접 getUser() 호출
         if (!user || !user.userId) {
-          const userData = await getUser(); 
+          const userData = await getUser();
           setUser(userData);
           // userData.userId 기반으로 diaries fetch
           const diariesData = await getDiaries(userData.userId);
           setDiaries(diariesData);
-          setDiaryDates(Array.from(new Set(diariesData.map(d => d.workoutDate))));
+          setDiaryDates(
+            Array.from(new Set(diariesData.map((d) => d.workoutDate)))
+          );
         } else {
           // 이미 user store에 user.userId가 있는 경우
           const diariesData = await getDiaries(user.userId);
           setDiaries(diariesData);
-          setDiaryDates(Array.from(new Set(diariesData.map(d => d.workoutDate))));
+          setDiaryDates(
+            Array.from(new Set(diariesData.map((d) => d.workoutDate)))
+          );
         }
       } catch (err) {
-        console.error('일지/유저 정보 불러오기 실패:', err);
+        console.error("일지/유저 정보 불러오기 실패:", err);
       }
     }
 
@@ -49,13 +52,18 @@ export default function WorkoutPage() {
 
   useEffect(() => {
     // "YYYY-MM-DD" 형식으로 변환
-    const formattedDate = selectedDate.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    }).replace(/\. /g, '-').replace('.', '');
+    const formattedDate = selectedDate
+      .toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+      .replace(/\. /g, "-")
+      .replace(".", "");
 
-    setFilteredDiaries(diaries.filter((diary) => diary.workoutDate === formattedDate));
+    setFilteredDiaries(
+      diaries.filter((diary) => diary.workoutDate === formattedDate)
+    );
   }, [diaries, selectedDate]);
 
   const handleDateSelect = (date) => {
@@ -67,7 +75,7 @@ export default function WorkoutPage() {
       await deleteDiary(diaryId);
       setDiaries(diaries.filter((d) => d.diaryId !== diaryId));
     } catch (error) {
-      console.error('삭제 중 오류:', error);
+      console.error("삭제 중 오류:", error);
     }
   };
 
@@ -88,9 +96,11 @@ export default function WorkoutPage() {
                 className="p-4 bg-white rounded-lg border border-gray-200 max-w-md"
               >
                 <div className="flex justify-between">
-                  <div 
+                  <div
                     onClick={() =>
-                      navigate('/workoutdiary', { state: { diaryId: diary.diaryId } })
+                      navigate("/workoutdiary", {
+                        state: { diaryId: diary.diaryId },
+                      })
                     }
                   >
                     <p className="text-gray-600">{diary.content}</p>
@@ -98,8 +108,8 @@ export default function WorkoutPage() {
                   <div className="flex space-x-2">
                     <button
                       className="px-auto py-2 border border-blue-300 rounded-md h-10 w-10"
-                      onClick={() =>
-                        navigate(`/workoutupdate/${diary.diaryId}`) // ✅ URL에 diaryId 포함
+                      onClick={
+                        () => navigate(`/workoutupdate/${diary.diaryId}`) // ✅ URL에 diaryId 포함
                       }
                     >
                       수정
@@ -121,10 +131,10 @@ export default function WorkoutPage() {
           )}
         </div>
         <button
-          onClick={() => navigate('/workoutcreate')}
-          className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-100 font-bold py-3 px-6 rounded-full transition-all duration-300"
+          onClick={() => navigate("/workoutcreate")}
+          className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-primary-light text-white font-bold py-3 px-6 rounded-full transition-all duration-300"
         >
-          + 운동일지 생성하기
+          운동 기록하기
         </button>
       </div>
       <BottomBar />
