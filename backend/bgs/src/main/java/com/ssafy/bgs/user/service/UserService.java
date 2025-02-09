@@ -71,12 +71,7 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public UserResponseDto getUserInfo(Integer userId) {
-        String cacheKey = "user:" + userId;
-        // 1. 캐시 조회
-        UserResponseDto cachedUser = (UserResponseDto) redisService.getValue(cacheKey);
-        if (cachedUser != null) {
-            return cachedUser;
-        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -86,8 +81,6 @@ public class UserService {
         // 2) 가장 최신 프로필 이미지를 조회하여 dto에 세팅
         imageService.findLatestProfileImage(userId)
                 .ifPresent(image -> dto.setProfileImageUrl(imageService.getS3Url(image.getUrl())));
-
-        redisService.setValue(cacheKey, dto, 30);
 
         return dto;
     }
@@ -313,7 +306,14 @@ public class UserService {
                 .map(this::toUserResponseDto)
                 .collect(Collectors.toList()); // toList() 대신 collect(Collectors.toList()) 사용
     }
-
+    @Transactional(readOnly = true)
+    public boolean checkNickname(String nickname, String currentNickname) {
+        // 본인이 사용 중인 닉네임이면 중복체크를 하지 않고 사용 가능 처리
+        if(nickname.equals(currentNickname)) {
+            return true;
+        }
+        return !userRepository.existsByNickname(nickname);
+    }
     /**
      * User(Entity) -> UserResponseDto 변환
      */
