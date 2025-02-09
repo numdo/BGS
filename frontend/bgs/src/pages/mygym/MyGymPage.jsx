@@ -91,7 +91,7 @@ const MyGymPage = () => {
       ) : (
         // 보기 모드
         <>
-          <MyGymRoomView />
+          <MyGymRoomView userId={user.userId}/>
           <button
             onClick={handleEditMode}
             className="bg-blue-400 text-white px-4 py-2 rounded-full"

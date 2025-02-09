@@ -1,5 +1,17 @@
 import MyGymRoomView from "../../components/mygym/MyGymRoomView";
+import { useEffect } from "react";
+import { getMygym } from "../../api/Mygym";
+import useMyGymStore from "../../stores/useMyGymStore";
 
-export default function MyGymTab() {
+export default function MyGymTab({ friendId }) {
+  const { myGym, setMyGym } = useMyGymStore();
+
+  useEffect(() => {
+    if (!friendId) return;
+    getMygym(friendId).then(fetched => {
+      setMyGym(fetched); // 전역 상태에 친구의 마이짐 저장
+    });
+  }, [friendId]);
+
   return <MyGymRoomView />;
 }

@@ -12,8 +12,8 @@ const VisitorMemo = ({ userId }) => {
     async function fetchGuestbooks() {
       try {
         const data = await getGuestBooks(userId);
-        // API 응답 구조가 { content: [...] } 형태라면:
-        setVisitorMemos(data.content);
+        // 삭제되지 않은 방명록만 필터링해서 저장
+        setVisitorMemos(data.content.filter(memo => !memo.deleted));
       } catch (error) {
         console.error("방명록 데이터를 불러오는데 실패했습니다:", error);
       }
