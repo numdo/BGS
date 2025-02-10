@@ -4,8 +4,6 @@ import axiosInstance from "../../utils/axiosInstance";
 import Slider from "react-slick";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
-import CommentList from "../../components/feed/CommentList";
-import CommentInput from "../../components/feed/CommentInput";
 import ProfileDefaultImage from "../../assets/icons/MyInfo.png";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -17,8 +15,9 @@ const EvaluationDetailPage = () => {
   const navigate = useNavigate();
   const [evaluation, setEvaluation] = useState(null);
   const [userId, setUserId] = useState(null);
-  const [isLiked, setIsLiked] = useState(false);
-  const [likedCount, setLikedCount] = useState(0);
+  const [approvalCount, setApprovalCount] = useState(0);
+  const [voteCount, setVoteCount] = useState(0);
+  const [voted, setVoted] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -36,27 +35,58 @@ const EvaluationDetailPage = () => {
       .get(`${API_URL}/${evaluationId}`)
       .then((response) => {
         setEvaluation(response.data);
-        setLikedCount(response.data.likedCount);
-        setIsLiked(response.data.isLiked);
+        setApprovalCount(response.data.approvalCount);
+        setVoteCount(response.data.voteCount);
+        setVoted(response.data.voted);
       })
       .catch((error) => console.error("게시글 불러오기 오류:", error));
   }, [evaluationId]);
 
   if (!evaluation) return <p>로딩 중...</p>;
 
-  // 좋아요 토글 함수
-  const onLikeToggle = async () => {
+  // ✅ 프로필 클릭 시 해당 유저 프로필 페이지로 이동하는 함수
+  const handleProfileClick = () => {
+    if (evaluation.userId) {
+      navigate(`/profile/${evaluation.userId}`);
+    }
+  };
+
+  // ✅ 투표 기능 (찬성 / 반대 / 취소)
+  const handleVote = async (approval) => {
+    const newVote = voted === approval ? null : approval;
+
     try {
-      if (isLiked) {
-        await axiosInstance.delete(`${API_URL}/${evaluationId}/liked`);
-        setLikedCount((prev) => prev - 1);
-      } else {
-        await axiosInstance.post(`${API_URL}/${evaluationId}/liked`);
-        setLikedCount((prev) => prev + 1);
-      }
-      setIsLiked(!isLiked);
+      await axiosInstance.post(
+        `https://i12c209.p.ssafy.io/api/evaluations/${evaluationId}/votes`,
+        { approval: newVote }
+      );
+
+      setVoted(newVote);
+
+      // 투표 상태 변경 반영
+      setApprovalCount((prevApproval) => {
+        if (newVote === true) {
+          return voted === false
+            ? prevApproval + 1
+            : prevApproval + (voted === null ? 1 : 0);
+        } else if (newVote === false) {
+          return voted === true ? prevApproval - 1 : prevApproval;
+        } else {
+          return voted === true ? prevApproval - 1 : prevApproval;
+        }
+      });
+
+      setVoteCount((prevVote) => {
+        if (newVote === null) {
+          return prevVote - 1;
+        } else if (voted === null) {
+          return prevVote + 1;
+        } else {
+          return prevVote;
+        }
+      });
     } catch (error) {
-      console.error("좋아요 처리 오류:", error);
+      console.error("투표 처리 오류:", error);
     }
   };
 
@@ -84,13 +114,19 @@ const EvaluationDetailPage = () => {
             <img
               src={evaluation.profileImageUrl || ProfileDefaultImage}
               alt="프로필"
-              className="w-10 h-10 rounded-full"
+              className="w-10 h-10 rounded-full cursor-pointer"
+              onClick={handleProfileClick}
             />
-            <p className="ml-2 font-bold">{evaluation.writer}</p>
+            <p
+              className="ml-2 font-bold cursor-pointer"
+              onClick={handleProfileClick}
+            >
+              {evaluation.writer}
+            </p>
 
             {/* 메뉴바 */}
             <div className="ml-auto relative">
-              {evaluation.userId == userId && (
+              {evaluation.userId === userId && (
                 <button onClick={toggleMenu} className="text-xl">
                   ⋮
                 </button>
@@ -102,7 +138,7 @@ const EvaluationDetailPage = () => {
                   <ul>
                     <li
                       onClick={() => {
-                        navigate("/evaluationupdate"); // 수정 페이지로 이동
+                        navigate("/evaluationupdate");
                       }}
                       className="px-4 py-2 cursor-pointer hover:bg-gray-200"
                     >
@@ -134,11 +170,7 @@ const EvaluationDetailPage = () => {
                 />
               ))
             ) : (
-              <img
-                src={FeedDefalutImage}
-                alt="게시글 기본 이미지"
-                className="w-full rounded-md"
-              />
+              <p>이미지가 없습니다.</p>
             )}
           </Slider>
 
@@ -147,18 +179,30 @@ const EvaluationDetailPage = () => {
             <p className="text-lg font-bold">{evaluation.content}</p>
             <p className="text-sm text-gray-500">{evaluation.workoutType}</p>
             <p className="mt-2 text-sm text-gray-700">{evaluation.weight}kg</p>
-            <p
-              className="mt-2 text-sm text-gray-700 cursor-pointer"
-              onClick={onLikeToggle}
-            >
-              {likedCount} {isLiked ? "❤️" : "🤍"}
-            </p>
           </div>
 
-          {/* 댓글 입력창 & 댓글 목록 */}
-          <div className="mt-6">
-            <CommentInput diaryId={evaluationId} onCommentAdded={() => {}} />
-            <CommentList diaryId={evaluationId} />
+          {/* ✅ 투표 (찬성 / 반대) */}
+          <div className="mt-4 flex gap-4">
+            <button
+              onClick={() => handleVote(true)}
+              className={`px-4 py-2 rounded-md ${
+                voted === true
+                  ? "bg-green-700 text-white"
+                  : "bg-green-500 text-white"
+              }`}
+            >
+              찬성 👍 {approvalCount}
+            </button>
+            <button
+              onClick={() => handleVote(false)}
+              className={`px-4 py-2 rounded-md ${
+                voted === false
+                  ? "bg-red-700 text-white"
+                  : "bg-red-500 text-white"
+              }`}
+            >
+              반대 👎 {voteCount - approvalCount}
+            </button>
           </div>
         </div>
 
