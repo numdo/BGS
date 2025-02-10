@@ -62,7 +62,7 @@ const MyGymPage = () => {
       backgroundSize : 'cover', 
       backgroundPosition : 'center', 
       backgroundRepeat : 'repeat-x',
-      animation : 'moveBg 20s linear infinite', 
+      animation : 'moveBg 60s linear infinite', 
       }}>
       <TopBar />
 
