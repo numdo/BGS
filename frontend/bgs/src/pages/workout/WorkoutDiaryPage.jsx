@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import BottomBar from '../../components/bar/BottomBar';
 import TopBar from '../../components/bar/TopBar';
 import { useLocation } from 'react-router-dom';

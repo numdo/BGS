@@ -4,35 +4,29 @@ import { useState, useEffect } from "react";
 import useUserStore from "../../stores/useUserStore";
 import { getUser } from "../../api/User";
 import { follow, unfollow, getFollowingList } from "../../api/Follow";
+import settings from "../../assets/icons/settings.svg"
 import PostsTab from "../../components/myinfo/PostsTab";
 import StatsTab from "../../components/myinfo/StatsTab";
 import MyGymTab from "../../components/myinfo/MyGymTab";
 import DefaultProfileImage from "../../assets/icons/MyInfo.png";
 export default function MyInfoPage() {
   const { user, setUser } = useUserStore();
-  const [isFollowing, setIsFollowing] = useState(false);
   const [activeTab, setActiveTab] = useState("posts");
   const [weightData, setWeightData] = useState([]);
   const [totalWeightData, setTotalWeightData] = useState([]);
   const [workoutFrequency, setWorkoutFrequency] = useState([]);
   useEffect(() => {
     getUser().then((res) => setUser(res));
-  }, []);
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
+  });
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const res = await getUser(); // ✅ 친구 프로필 정보 가져오기
+        const res = await getUser(); // ✅ 내내 프로필 정보 가져오기
         console.log("🔹 내 프로필 데이터:", res);
         setUser(res);
         // ✅ 팔로우 상태 확인
         const followingList = await getFollowingList();
-        const isUserFollowing = followingList.some(
-          (f) => f.userId === res.userId
-        );
-        setIsFollowing(isUserFollowing);
+
 
         setWeightData([
           { date: "01-01", weight: res.weight - 3 },
@@ -59,33 +53,10 @@ export default function MyInfoPage() {
         console.error("❌ 친구 프로필 가져오기 실패:", error);
       }
     };
-
     fetchUserData();
-  }, []);
-  const handleFollowToggle = async () => {
-    if (!user?.userId) {
-      console.error("❌ 유저 ID가 존재하지 않습니다.");
-      return;
-    }
-
-    const previousState = isFollowing; // 이전 상태 저장
-    setIsFollowing(!isFollowing); // ✅ UI 즉시 반영
-
-    try {
-      if (isFollowing) {
-        await unfollow(user.userId);
-        console.log(`언팔로우 성공: ${user.userId}`);
-      } else {
-        await follow(user.userId);
-        console.log(`팔로우 성공: ${user.userId}`);
-      }
-      setIsFollowing(!isFollowing);
-    } catch (error) {
-      console.error("❌ 팔로우 변경 중 오류 발생:", error);
-      setIsFollowing(previousState); // ✅ 실패하면 원래 상태로 롤백
-    }
-  };
+  });
   if (!user) return <p>로딩 중...</p>;
+
   return (
     <>
       <TopBar />
@@ -105,14 +76,8 @@ export default function MyInfoPage() {
               <p className="text-gray-600 mt-2">{user.introduce}</p>
             </div>
           </div>
-          {/* ✅ 팔로우 버튼 */}
-          <button
-            className={`py-2 px-4 rounded-lg font-semibold transition ${
-              isFollowing ? "bg-gray-400 text-white" : "bg-primary text-white"
-            }`}
-            onClick={handleFollowToggle}
-          >
-            {isFollowing ? "언팔로우" : "팔로우"}
+          <button>
+            <img src={settings} alt="" />
           </button>
         </div>
 
@@ -121,11 +86,10 @@ export default function MyInfoPage() {
           {["posts", "stats", "myGym"].map((tab) => (
             <button
               key={tab}
-              className={`py-2 px-4 ${
-                activeTab === tab
+              className={`py-2 px-4 ${activeTab === tab
                   ? "border-b-2 border-primary text-gray-800"
                   : "text-gray-500"
-              }`}
+                }`}
               onClick={() => setActiveTab(tab)}
             >
               {tab === "posts" ? "게시물" : tab === "stats" ? "통계" : "마이짐"}
