@@ -23,6 +23,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,7 +47,8 @@ public class EvaluationService {
 
     public List<EvaluationFeedResponseDto> getFeedList(Boolean closed, int page, int pageSize) {
         List<EvaluationFeedResponseDto> feedList = new ArrayList<>();
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by("createdAt").descending());
+
 
         Page<Evaluation> evaluations;
         if (closed == null) {

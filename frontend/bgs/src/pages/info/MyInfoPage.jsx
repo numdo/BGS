@@ -13,7 +13,7 @@ import DefaultProfileImage from "../../assets/icons/MyInfo.png";
 import { useNavigate } from "react-router-dom";
 export default function MyInfoPage() {
   const navigate = useNavigate();
-  const { user, setUser } = useUserStore();
+  const { me, setMe } = useUserStore();
   const [activeTab, setActiveTab] = useState("posts");
   const [weightData, setWeightData] = useState([]);
   const [totalWeightData, setTotalWeightData] = useState([]);
@@ -25,7 +25,7 @@ export default function MyInfoPage() {
       try {
         const res = await getUser(); // ✅ 내내 프로필 정보 가져오기
         console.log("🔹 내 프로필 데이터:", res);
-        setUser(res);
+        setMe(res);
         // ✅ 팔로우 상태 확인
         const followingList = await getFollowingList();
 
@@ -55,7 +55,7 @@ export default function MyInfoPage() {
       }
     };
     fetchUserData();
-  }, [setUser]);
+  }, [setMe]);
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -63,12 +63,12 @@ export default function MyInfoPage() {
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("click", handleClickOutside);
     };
   }, []);
-  if (!user) return <p>로딩 중...</p>;
+  if (!me) return <p>로딩 중...</p>;
   const handleDeleteUser = () => {
     const isConfirmed = window.confirm("정말로 탈퇴하시겠습니까?");
     if (isConfirmed) {
@@ -87,15 +87,15 @@ export default function MyInfoPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <img
-              src={user.profileImageUrl || DefaultProfileImage} // ✅ 기본 이미지 추가
+              src={me.profileImageUrl || DefaultProfileImage} // ✅ 기본 이미지 추가
               alt="Profile"
               className="rounded-full h-24 w-24"
             />
             <div className="ml-6">
               <h2 className="mt-4 text-2xl font-semibold text-gray-800">
-                {user.nickname}
+                {me.nickname}
               </h2>
-              <p className="text-gray-600 mt-2">{user.introduce}</p>
+              <p className="text-gray-600 mt-2">{me.introduce}</p>
             </div>
           </div>
           <button
@@ -107,8 +107,16 @@ export default function MyInfoPage() {
             <img src={settings} alt="" />
           </button>
           {isSettingsOpen && (
-            <div className="absolute right-0 top-36 w-30 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
+            <div className="absolute right-3 top-32 w-30 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
               <div className="" role="menu">
+                <div
+                  onClick={() => {
+                    navigate("/myinfoedit");
+                  }}
+                  className="hover:bg-gray-100 p-2"
+                >
+                  <p className="inline-block align-middle">프로필 편집</p>
+                </div>
                 <div
                   onClick={() => {
                     handleDeleteUser();
@@ -142,7 +150,7 @@ export default function MyInfoPage() {
         {/* 탭 내용 렌더링 */}
         <div className="p-4">
           {activeTab === "posts" && (
-            <PostsTab userId={user.userId} nickname={user.nickname} />
+            <PostsTab userId={me.userId} nickname={me.nickname} />
           )}
           {activeTab === "stats" && (
             <StatsTab
@@ -151,7 +159,7 @@ export default function MyInfoPage() {
               workoutFrequency={workoutFrequency}
             />
           )}
-          {activeTab === "myGym" && <MyGymTab friendId={user.userId} />}
+          {activeTab === "myGym" && <MyGymTab friendId={me.userId} />}
         </div>
       </div>
 
