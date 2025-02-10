@@ -57,7 +57,7 @@ export default function MyInfoPage() {
       }
     };
     fetchUserData();
-  });
+  }, []);
   if (!user) return <p>로딩 중...</p>;
   const handleDeleteUser = () => {
     const isConfirmed = window.confirm("정말로 탈퇴하시겠습니까?");
