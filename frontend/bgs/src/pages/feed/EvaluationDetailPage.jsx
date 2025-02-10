@@ -1,36 +1,28 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import useUserStore from "../../stores/useUserStore.jsx";
 import axiosInstance from "../../utils/axiosInstance";
 import Slider from "react-slick";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
 import ProfileDefaultImage from "../../assets/icons/MyInfo.png";
+import MoreIcon from "../../assets/icons/more.svg";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 const API_URL = "/evaluations";
 
 const EvaluationDetailPage = () => {
+  const { me, setMe } = useUserStore();
   const { evaluationId } = useParams();
   const navigate = useNavigate();
   const [evaluation, setEvaluation] = useState(null);
-  const [userId, setUserId] = useState(null);
   const [approvalCount, setApprovalCount] = useState(0);
   const [voteCount, setVoteCount] = useState(0);
   const [voted, setVoted] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      try {
-        const decodedToken = JSON.parse(atob(token.split(".")[1]));
-        setUserId(decodedToken.sub);
-      } catch (error) {
-        console.error("토큰 디코딩 오류:", error);
-      }
-    }
-
     axiosInstance
       .get(`${API_URL}/${evaluationId}`)
       .then((response) => {
@@ -41,7 +33,9 @@ const EvaluationDetailPage = () => {
       })
       .catch((error) => console.error("게시글 불러오기 오류:", error));
   }, [evaluationId]);
-
+  useEffect(() => {
+    console.log(me);
+  }, [me]);
   if (!evaluation) return <p>로딩 중...</p>;
 
   // ✅ 프로필 클릭 시 해당 유저 프로필 페이지로 이동하는 함수
@@ -110,31 +104,36 @@ const EvaluationDetailPage = () => {
       <div className="relative max-w-2xl mx-auto">
         <div className="p-4 pb-20">
           {/* 프로필 & 작성자 */}
-          <div className="flex items-center mb-4">
-            <img
-              src={evaluation.profileImageUrl || ProfileDefaultImage}
-              alt="프로필"
-              className="w-10 h-10 rounded-full cursor-pointer"
-              onClick={handleProfileClick}
-            />
-            <p
-              className="ml-2 font-bold cursor-pointer"
-              onClick={handleProfileClick}
-            >
-              {evaluation.writer}
-            </p>
-
+          <div className="w-full flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <img
+                src={evaluation.profileImageUrl || ProfileDefaultImage}
+                alt="프로필"
+                className="w-10 h-10 rounded-full cursor-pointer"
+                onClick={handleProfileClick}
+              />
+              <p
+                className="ml-2 font-bold cursor-pointer"
+                onClick={handleProfileClick}
+              >
+                {evaluation.writer}
+              </p>
+            </div>
+            {evaluation.userId === me.userId && (
+              <button
+                className="bg-gray-100 rounded-md w-6 h-6"
+                onClick={toggleMenu}
+              >
+                <img src={MoreIcon} alt="" />
+              </button>
+            )}
+          </div>
+          <div>
             {/* 메뉴바 */}
             <div className="ml-auto relative">
-              {evaluation.userId === userId && (
-                <button onClick={toggleMenu} className="text-xl">
-                  ⋮
-                </button>
-              )}
-
               {/* 메뉴 */}
               {isMenuOpen && (
-                <div className="absolute right-0 mt-2 bg-white border shadow-lg rounded-md w-40 z-10">
+                <div className="absolute right-0 bg-white border shadow-lg rounded-md w-40 z-10">
                   <ul>
                     <li
                       onClick={() => {
