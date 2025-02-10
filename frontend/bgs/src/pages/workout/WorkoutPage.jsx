@@ -152,7 +152,7 @@ export default function WorkoutPage() {
                               onClick={() =>
                                 navigate(`/workoutupdate/${diary.diaryId}`)
                               }
-                              className="block text-left text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                              className="block text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600"
                             >
                               수정
                             </button>
@@ -160,7 +160,7 @@ export default function WorkoutPage() {
                               onClick={() => {
                                 handleDeleteDiary(diary.diaryId);
                               }}
-                              className="text-left text-sm text-red-600 hover:bg-red-50"
+                              className="text-left text-red-600 hover:bg-red-50"
                             >
                               삭제
                             </button>
@@ -178,8 +178,7 @@ export default function WorkoutPage() {
             </p>
           )}
         </div>
-        <div className="w-full h-32">
-        </div>
+        <div className="w-full h-32"></div>
         <button
           onClick={() => navigate("/workoutcreate")}
           className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-primary-light text-white font-bold py-3 px-6 rounded-full transition-all duration-300"
