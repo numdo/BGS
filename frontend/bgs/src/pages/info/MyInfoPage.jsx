@@ -2,15 +2,20 @@ import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import { useState, useEffect, useRef } from "react";
 import useUserStore from "../../stores/useUserStore";
-import { getUser } from "../../api/User";
-import { deleteUser } from "../../api/User";
-import { follow, unfollow, getFollowingList } from "../../api/Follow";
+import { getUser, deleteUser } from "../../api/User";
+import {
+  follow,
+  unfollow,
+  getFollowerList,
+  getFollowingList,
+} from "../../api/Follow";
 import settings from "../../assets/icons/settings.svg";
 import PostsTab from "../../components/myinfo/PostsTab";
 import StatsTab from "../../components/myinfo/StatsTab";
 import MyGymTab from "../../components/myinfo/MyGymTab";
 import DefaultProfileImage from "../../assets/icons/MyInfo.png";
 import { useNavigate } from "react-router-dom";
+
 export default function MyInfoPage() {
   const navigate = useNavigate();
   const { user, setUser } = useUserStore();
@@ -19,15 +24,22 @@ export default function MyInfoPage() {
   const [totalWeightData, setTotalWeightData] = useState([]);
   const [workoutFrequency, setWorkoutFrequency] = useState([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const dropdownRef = useRef({});
+  const [followerCount, setFollowerCount] = useState(0); // ✅ 팔로워 수
+  const [followingCount, setFollowingCount] = useState(0); // ✅ 팔로잉 수
+  const dropdownRef = useRef(null);
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const res = await getUser(); // ✅ 내내 프로필 정보 가져오기
+        const res = await getUser(); // ✅ 내 프로필 정보 가져오기
         console.log("🔹 내 프로필 데이터:", res);
         setUser(res);
-        // ✅ 팔로우 상태 확인
-        const followingList = await getFollowingList();
+
+        // ✅ 팔로워 & 팔로잉 수 가져오기
+        const followers = await getFollowerList();
+        const followings = await getFollowingList();
+        setFollowerCount(followers.length);
+        setFollowingCount(followings.length);
 
         setWeightData([
           { date: "01-01", weight: res.weight - 3 },
@@ -51,15 +63,17 @@ export default function MyInfoPage() {
           { day: "일", count: 2 },
         ]);
       } catch (error) {
-        console.error("❌ 친구 프로필 가져오기 실패:", error);
+        console.error("❌ 내 프로필 가져오기 실패:", error);
       }
     };
+
     fetchUserData();
   }, [setUser]);
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsSettingsOpen(null);
+        setIsSettingsOpen(false);
       }
     }
 
@@ -68,7 +82,9 @@ export default function MyInfoPage() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
   if (!user) return <p>로딩 중...</p>;
+
   const handleDeleteUser = () => {
     const isConfirmed = window.confirm("정말로 탈퇴하시겠습니까?");
     if (isConfirmed) {
@@ -79,6 +95,7 @@ export default function MyInfoPage() {
       navigate("/login");
     }
   };
+
   return (
     <>
       <TopBar />
@@ -87,7 +104,7 @@ export default function MyInfoPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <img
-              src={user.profileImageUrl || DefaultProfileImage} // ✅ 기본 이미지 추가
+              src={user.profileImageUrl || DefaultProfileImage}
               alt="Profile"
               className="rounded-full h-24 w-24"
             />
@@ -96,6 +113,21 @@ export default function MyInfoPage() {
                 {user.nickname}
               </h2>
               <p className="text-gray-600 mt-2">{user.introduce}</p>
+              {/* ✅ 팔로워 & 팔로잉 수 */}
+              <div className="flex space-x-4 mt-2">
+                <div
+                  className="cursor-pointer"
+                  onClick={() => navigate("/follow/followers")}
+                >
+                  팔로워 <span className="font-bold">{followerCount}</span>
+                </div>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => navigate("/follow/following")}
+                >
+                  팔로잉 <span className="font-bold">{followingCount}</span>
+                </div>
+              </div>
             </div>
           </div>
           <button
@@ -110,9 +142,7 @@ export default function MyInfoPage() {
             <div className="absolute right-0 top-36 w-30 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
               <div className="" role="menu">
                 <div
-                  onClick={() => {
-                    handleDeleteUser();
-                  }} // ✅ handleLogout 함수 실행
+                  onClick={handleDeleteUser}
                   className="text-danger hover:bg-gray-100 p-2"
                 >
                   <p className="inline-block align-middle">회원탈퇴</p>
