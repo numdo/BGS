@@ -21,9 +21,6 @@ export default function MyInfoPage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const dropdownRef = useRef({});
   useEffect(() => {
-    getUser().then((res) => setUser(res));
-  }, []);
-  useEffect(() => {
     const fetchUserData = async () => {
       try {
         const res = await getUser(); // ✅ 내내 프로필 정보 가져오기
