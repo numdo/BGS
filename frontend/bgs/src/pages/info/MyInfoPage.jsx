@@ -3,18 +3,22 @@ import TopBar from "../../components/bar/TopBar";
 import { useState, useEffect } from "react";
 import useUserStore from "../../stores/useUserStore";
 import { getUser } from "../../api/User";
+import { deleteUser } from "../../api/User";
 import { follow, unfollow, getFollowingList } from "../../api/Follow";
-import settings from "../../assets/icons/settings.svg"
+import settings from "../../assets/icons/settings.svg";
 import PostsTab from "../../components/myinfo/PostsTab";
 import StatsTab from "../../components/myinfo/StatsTab";
 import MyGymTab from "../../components/myinfo/MyGymTab";
 import DefaultProfileImage from "../../assets/icons/MyInfo.png";
+import { useNavigate } from "react-router-dom";
 export default function MyInfoPage() {
+  const navigate = useNavigate();
   const { user, setUser } = useUserStore();
   const [activeTab, setActiveTab] = useState("posts");
   const [weightData, setWeightData] = useState([]);
   const [totalWeightData, setTotalWeightData] = useState([]);
   const [workoutFrequency, setWorkoutFrequency] = useState([]);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   useEffect(() => {
     getUser().then((res) => setUser(res));
   });
@@ -26,7 +30,6 @@ export default function MyInfoPage() {
         setUser(res);
         // ✅ 팔로우 상태 확인
         const followingList = await getFollowingList();
-
 
         setWeightData([
           { date: "01-01", weight: res.weight - 3 },
@@ -56,13 +59,22 @@ export default function MyInfoPage() {
     fetchUserData();
   });
   if (!user) return <p>로딩 중...</p>;
-
+  const handleDeleteUser = () => {
+    const isConfirmed = window.confirm("정말로 탈퇴하시겠습니까?");
+    if (isConfirmed) {
+      deleteUser();
+      alert("회원 탈퇴가 완료되었습니다");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      navigate("/login");
+    }
+  };
   return (
     <>
       <TopBar />
-      <div className="p-6 max-w-3xl mx-auto">
+      <div className="px-6 pt-2 max-w-3xl mx-auto">
         {/* 상단 프로필 섹션 */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between">
           <div className="flex items-center">
             <img
               src={user.profileImageUrl || DefaultProfileImage} // ✅ 기본 이미지 추가
@@ -76,9 +88,27 @@ export default function MyInfoPage() {
               <p className="text-gray-600 mt-2">{user.introduce}</p>
             </div>
           </div>
-          <button>
+          <button
+            onClick={() => {
+              setIsSettingsOpen(!isSettingsOpen);
+            }}
+          >
             <img src={settings} alt="" />
           </button>
+          {isSettingsOpen && (
+            <div className="absolute right-0 top-36 w-30 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
+              <div className="" role="menu">
+                <div
+                  onClick={() => {
+                    handleDeleteUser();
+                  }} // ✅ handleLogout 함수 실행
+                  className="text-danger hover:bg-gray-100 p-2"
+                >
+                  <p className="inline-block align-middle">회원탈퇴</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 탭 네비게이션 */}
@@ -86,10 +116,11 @@ export default function MyInfoPage() {
           {["posts", "stats", "myGym"].map((tab) => (
             <button
               key={tab}
-              className={`py-2 px-4 ${activeTab === tab
+              className={`py-2 px-4 ${
+                activeTab === tab
                   ? "border-b-2 border-primary text-gray-800"
                   : "text-gray-500"
-                }`}
+              }`}
               onClick={() => setActiveTab(tab)}
             >
               {tab === "posts" ? "게시물" : tab === "stats" ? "통계" : "마이짐"}

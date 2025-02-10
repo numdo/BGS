@@ -457,7 +457,7 @@ export default function WorkoutCreatePage() {
 
       <div className="m-5 pb-24 flex-col relative">
         <button
-          className="absolute right-0 bg-gray-100 rounded-md w-6 h-6"
+          className="absolute right-0 bg-gray-100 rounded-md w-6 h-6 z-1"
           onClick={() => { }}
         >
           <img src={moreicon} alt="" />
