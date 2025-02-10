@@ -711,46 +711,49 @@ export default function WorkoutCreatePage() {
           ))}
         </div>
         {/* 이미지 업로드 섹션 */}
-        <div className="mt-4">
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleImageChange}
-            ref={fileInputRef}
-            style={{ display: "none" }}
-          />
-          <div className="flex flex-col">
-            <label className="font-bold mb-2">이미지 업로드 (최대 6장)</label>
+<div className="mt-4">
+  <input
+    type="file"
+    accept="image/*"
+    multiple
+    onChange={handleImageChange}
+    ref={fileInputRef}
+    style={{ display: "none" }}
+  />
+  <div className="flex flex-col">
+    <label className="font-bold mb-2">이미지 업로드 (최대 6장)</label>
 
-            <div className="flex flex-wrap gap-2 ">
-              {previewUrls.map((url, idx) => (
-                <div key={idx} className="relative w-40 h-40">
-                  <img
-                    src={url}
-                    alt="preview"
-                    className="w-full h-full object-cover rounded-md shadow-md"
-                  />
-                  <button
-                    onClick={() => handleRemoveImage(idx)}
-                    className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded"
-                  >
-                    X
-                  </button>
-                </div>
-              ))}
-              {Array.from({ length: 1 }).map((_, i) => (
-                <div
-                  key={`placeholder-${i}`}
-                  className="w-40 h-40 bg-gray-200 rounded-md flex items-center justify-center cursor-pointer"
-                  onClick={() => fileInputRef.current.click()}
-                >
-                  <img src={addlogo} alt="" />
-                </div>
-              ))}
-            </div>
-          </div>
+    {/* ✅ 테두리(border) 제거, 패딩(p-2) 제거 */}
+    <div className="overflow-x-auto whitespace-nowrap flex gap-2">
+      {previewUrls.map((url, idx) => (
+        <div key={idx} className="relative flex-shrink-0 w-40 h-40">
+          <img
+            src={url}
+            alt="preview"
+            className="w-full h-full object-cover rounded-md shadow-md"
+          />
+          <button
+            onClick={() => handleRemoveImage(idx)}
+            className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded"
+          >
+            X
+          </button>
         </div>
+      ))}
+      {/* 파일 선택 버튼 (이미지가 6장 미만일 때만 보이도록 설정) */}
+      {previewUrls.length < 6 && (
+        <div
+          className="flex-shrink-0 w-40 h-40 bg-gray-200 rounded-md flex items-center justify-center cursor-pointer"
+          onClick={() => fileInputRef.current.click()}
+        >
+          <img src={addlogo} alt="추가 버튼" />
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+
+
         {/* 운동일지 내용 */}
         <textarea
           className="w-full h-24 mt-4 p-2 border rounded"

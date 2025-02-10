@@ -635,61 +635,62 @@ export default function WorkoutUpdatePage() {
         </div>
 
         {/* 기존 이미지 목록 */}
-        {existingImages.length > 0 && (
-          <div className="mt-6">
-            <label className="font-bold mb-2">기존 이미지</label>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {existingImages.map((img, idx) => (
-                <div key={`existing-${img.imageId}`} className="relative w-40 h-40">
-                  <img src={img.url} alt="existing" className="w-full h-full object-cover rounded-md shadow-md" />
-                  <button onClick={() => setExistingImages(prev => prev.filter((_, i) => i !== idx))} className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded">
-                    X
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 새 이미지 업로드 */}
-        <div className="mt-4">
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleImageChange}
-            ref={fileInputRef}
-            style={{ display: 'none' }}
-          />
-          <div className="flex flex-col">
-            <label className="font-bold mb-2">새 이미지 첨부 (최대 6장)</label>
-            <div className="flex flex-wrap gap-2">
-              {previewUrls.map((url, idx) => (
-                <div key={`preview-${idx}`} className="relative w-40 h-40">
-                  <img src={url} alt="preview" className="w-full h-full object-cover rounded-md shadow-md" />
-                  <button onClick={() => handleRemoveImage(idx)} className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded">
-                    X
-                  </button>
-                </div>
-              ))}
-              {(() => {
-                const placeholdersCount = Math.max(0, 6 - existingImages.length - previewUrls.length);
-                return Array.from({ length: placeholdersCount }).map((_, i) => (
-                  <div
-                    key={`placeholder-${i}`}
-                    className="w-40 h-40 bg-gray-200 rounded-md flex items-center justify-center cursor-pointer"
-                    onClick={() => fileInputRef.current.click()}
-                  >
-                    <span className="text-gray-500">이미지 없음</span>
-                  </div>
-                ));
-              })()}
-            </div>
-            <button className="mt-2 p-2 bg-blue-500 text-white rounded w-40" onClick={() => fileInputRef.current.click()}>
-              이미지 선택
-            </button>
-          </div>
+{existingImages.length > 0 && (
+  <div className="mt-6">
+    <label className="font-bold mb-2">기존 이미지</label>
+    <div className="overflow-x-auto whitespace-nowrap flex gap-2 p-2 border rounded">
+      {existingImages.map((img, idx) => (
+        <div key={`existing-${img.imageId}`} className="relative flex-shrink-0 w-40 h-40">
+          <img src={img.url} alt="existing" className="w-full h-full object-cover rounded-md shadow-md" />
+          <button
+            onClick={() => setExistingImages(prev => prev.filter((_, i) => i !== idx))}
+            className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded"
+          >
+            X
+          </button>
         </div>
+      ))}
+    </div>
+  </div>
+)}
+
+{/* 새 이미지 업로드 */}
+<div className="mt-4">
+  <input
+    type="file"
+    accept="image/*"
+    multiple
+    onChange={handleImageChange}
+    ref={fileInputRef}
+    style={{ display: 'none' }}
+  />
+  <div className="flex flex-col">
+    <label className="font-bold mb-2">새 이미지 첨부 (최대 6장)</label>
+    <div className="overflow-x-auto whitespace-nowrap flex gap-2 p-2 border rounded">
+      {previewUrls.map((url, idx) => (
+        <div key={`preview-${idx}`} className="relative flex-shrink-0 w-40 h-40">
+          <img src={url} alt="preview" className="w-full h-full object-cover rounded-md shadow-md" />
+          <button
+            onClick={() => handleRemoveImage(idx)}
+            className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded"
+          >
+            X
+          </button>
+        </div>
+      ))}
+      {/* 파일 선택 버튼 (이미지가 6장 미만일 때만 보이도록 설정) */}
+      {existingImages.length + previewUrls.length < 6 && (
+        <button
+          className="flex-shrink-0 w-40 h-40 bg-blue-500 text-white rounded-md flex items-center justify-center"
+          onClick={() => fileInputRef.current.click()}
+        >
+          +
+        </button>
+      )}
+    </div>
+  </div>
+</div>
+
 
         {/* 운동일지 내용 */}
         <textarea
