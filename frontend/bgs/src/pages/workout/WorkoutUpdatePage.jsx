@@ -4,6 +4,7 @@ import axiosInstance from '../../utils/axiosInstance';
 import BottomBar from '../../components/bar/BottomBar';
 import TopBar from '../../components/bar/TopBar';
 import SttWorkoutGuide from '../../components/workout/SttWorkoutGuide';
+import miclogo from "../../assets/icons/mic.svg";
 
 export default function WorkoutUpdatePage() {
   const navigate = useNavigate();
@@ -417,8 +418,12 @@ export default function WorkoutUpdatePage() {
           <button onClick={() => setIsExerciseModalOpen(true)} className="px-4 py-2 bg-primary-light text-white text-sm rounded-l-md">
             🏋️‍♂️ 운동 추가
           </button>
-          <button onClick={handleRecordButton} className="flex items-center px-4 py-2 bg-primary-light border-l border-gray-400 text-white text-sm rounded-r-md">
-            🎙 녹음
+          <button
+            onClick={handleRecordButton}
+            className="flex items-center px-4 py-2 bg-primary-light border-l border-gray-400 text-white text-sm rounded-r-md"
+          >
+            <img src={miclogo} alt="녹음 버튼" className="w-5 h-5" />
+            {isRecording ? "⏹ 녹음 중..." : "🎙 녹음"}
           </button>
         </div>
         <button onClick={() => setIsPreviousModalOpen(true)} className="m-3 p-2 bg-gray-200 text-gray-500 rounded text-sm">
