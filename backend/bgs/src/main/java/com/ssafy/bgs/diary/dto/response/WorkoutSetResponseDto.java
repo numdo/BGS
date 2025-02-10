@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 @Setter
 public class WorkoutSetResponseDto {
     private Integer workoutSetId;
+    private Integer workoutId;
     private Float weight;
     private Integer repetition;
     private Integer workoutTime;

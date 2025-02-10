@@ -1,15 +1,13 @@
 package com.ssafy.bgs.user.controller;
 
-import com.ssafy.bgs.auth.dto.request.SocialSignupRequestDto;
 import com.ssafy.bgs.user.dto.request.*;
 import com.ssafy.bgs.user.dto.response.InfoResponseDto;
-import com.ssafy.bgs.user.dto.response.LoginResponseDto;
-import com.ssafy.bgs.user.dto.response.PasswordResetResponseDto;
 import com.ssafy.bgs.user.dto.response.UserResponseDto;
+import com.ssafy.bgs.user.entity.User;
+import com.ssafy.bgs.user.repository.UserRepository;
 import com.ssafy.bgs.user.service.EmailService;
 import com.ssafy.bgs.user.service.UserService;
-import com.ssafy.bgs.user.service.VerificationService;
-import jakarta.servlet.http.HttpServletResponse;
+import com.ssafy.bgs.auth.service.VerificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,57 +31,23 @@ public class UserController {
     private final EmailService emailService;
     private final VerificationService verificationService;
     private final Map<String, String> verificationStorage = new HashMap<>();
-
-    @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody UserSignupRequestDto signupRequest) {
-        String email = signupRequest.getEmail();
-        if (!verificationService.isEmailVerified(email)) {
-            return ResponseEntity.badRequest().body("이메일 인증이 완료되지 않았습니다.");
-        }
-        UserResponseDto response = userService.signup(signupRequest);
-        verificationService.removeVerificationCode(email);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @PostMapping("/email-verification")
-    public ResponseEntity<?> sendEmailVerification(@RequestParam String email) {
-        String verificationCode = emailService.sendVerificationEmail(email);
-        verificationService.storeVerificationCode(email, verificationCode);
-        return ResponseEntity.ok("인증 코드가 전송되었습니다.");
-    }
-
-    @PostMapping("/verify-code")
-    public ResponseEntity<?> verifyCode(@RequestParam String email, @RequestParam String code) {
-        boolean verified = verificationService.verifyCode(email, code);
-        return verified ? ResponseEntity.ok("이메일 인증 성공") : ResponseEntity.badRequest().body("인증 코드가 일치하지 않습니다.");
-    }
-
-    @PatchMapping("/me/social-signup")
-    public ResponseEntity<?> kakaoSignup(Authentication authentication, @RequestBody SocialSignupRequestDto socialSignupRequestDto) {
-        Integer userId = (Integer) authentication.getPrincipal();
-        UserResponseDto result = userService.socialSignup(userId, socialSignupRequestDto);
-        return ResponseEntity.ok(result);
-    }
+    private final UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<?> getAllUsers(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int pageSize) {
         Page<UserResponseDto> result = userService.getAllUsers(page, pageSize);
         return ResponseEntity.ok(result);
     }
+    @GetMapping("/nickname-check/{nickname}")
+    public ResponseEntity<?> checkNickname(@PathVariable String nickname, Authentication authentication) {
+        // authentication.getName()은 JWT 생성 시 subject에 저장한 userId (문자열) 입니다.
+        Integer currentUserId = Integer.valueOf(authentication.getName());
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+        String currentNickname = currentUser.getNickname();
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequest, HttpServletResponse response) {
-        LoginResponseDto loginResponseDto = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
-        response.setHeader("Authorization", "Bearer " + loginResponseDto.getAccessToken());
-        response.setHeader("Refresh-Token", "Bearer " + loginResponseDto.getRefreshToken());
-        return ResponseEntity.ok("로그인 성공");
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(Authentication authentication) {
-        Integer userId = (Integer) authentication.getPrincipal();
-        userService.logout(userId);
-        return ResponseEntity.ok("로그아웃 성공");
+        boolean available = userService.checkNickname(nickname, currentNickname);
+        return ResponseEntity.ok(new UserController.CheckResponse(available));
     }
 
     @GetMapping("/me")
@@ -112,20 +77,7 @@ public class UserController {
         return ResponseEntity.ok("{\"message\":\"탈퇴 처리되었습니다.\"}");
     }
 
-    @GetMapping("/nickname-check/{nickname}")
-    public ResponseEntity<?> checkNickname(@PathVariable String nickname) {
-        boolean available = userService.checkNickname(nickname);
-        return ResponseEntity.ok().body(new NicknameCheckResponse(available));
-    }
 
-    record NicknameCheckResponse(boolean available) {}
-
-    @PostMapping("/me/attendance")
-    public ResponseEntity<?> checkAttendance(Authentication authentication) {
-        Integer userId = (Integer) authentication.getPrincipal();
-        userService.checkAttendance(userId);
-        return ResponseEntity.ok("{\"message\":\"출석 체크가 완료되었습니다.\"}");
-    }
 
     @PostMapping("/change-password")
     public ResponseEntity<String> changePassword(@Valid @RequestBody PasswordChangeRequestDto requestDto, Authentication authentication) {
@@ -141,18 +93,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/reset-password")
-    public ResponseEntity<PasswordResetResponseDto> resetPassword(@Valid @RequestBody PasswordResetRequestDto requestDto) {
-        PasswordResetResponseDto response = userService.resetPassword(requestDto);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/me/attendance")
-    public ResponseEntity<?> getAttendance(Authentication authentication) {
-        Integer userId = (Integer) authentication.getPrincipal();
-        UserResponseDto response = userService.getAttendance(userId);
-        return ResponseEntity.ok(response);
-    }
 
     @PostMapping("/following/{followeeId}")
     public ResponseEntity<?> followUser(
@@ -193,5 +133,6 @@ public class UserController {
         List<UserResponseDto> list = userService.getFollowerList(userId, nickname);
         return ResponseEntity.ok(list);
     }
+    record CheckResponse(boolean available) {}
 
 }

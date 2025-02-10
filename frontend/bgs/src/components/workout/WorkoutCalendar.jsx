@@ -1,81 +1,152 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-const WorkoutCalendar = ({ onDateSelect, selectedDate }) => {
-  const [currentDate, setCurrentDate] = useState(new Date()); // 현재 년월일
+// 달력에 체크 표시할 날짜(예: ["2025-02-07", "2025-02-10"])
+// selectedDate: 현재 선택된 날짜
+// onDateSelect: 날짜 클릭 시 상위로 전달
+// diaryDates: "YYYY-MM-DD" 형식으로 일지 있는 날짜 배열
+const WorkoutCalendar = ({ onDateSelect, selectedDate, diaryDates = [] }) => {
+  const [currentDate, setCurrentDate] = useState(new Date()); // 현재 (년/월/일) 추적
+
   const handleDateClick = (day) => {
     if (day) {
-      const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-      onDateSelect(newDate); // 날짜를 선택할 때 상위 컴포넌트로 전달
+      // day는 1~31
+      const newDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        day
+      );
+      onDateSelect(newDate);
     }
-  }
-  const handleChangeMonth = (increment) => {
-    const newDate = new Date(currentDate)
-    newDate.setMonth(currentDate.getMonth() + increment)
-    setCurrentDate(newDate)
-  }
-  const goToToday = () => {
-    setCurrentDate(new Date())
-    onDateSelect(new Date())
-  }
+  };
 
-  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)   // 현재 월의 첫 날과 마지막 날 계산
-  const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-  const firstDayWeekday = firstDayOfMonth.getDay()   // 첫 날의 요일 (0: 일요일, 1: 월요일 ...)
-  const daysInMonth = lastDayOfMonth.getDate()   // 월의 전체 날짜 수
+  const handleChangeMonth = (increment) => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(currentDate.getMonth() + increment);
+    setCurrentDate(newDate);
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
+    onDateSelect(new Date());
+  };
+
+  const firstDayOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1
+  );
+  const lastDayOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    0
+  );
+  const firstDayWeekday = firstDayOfMonth.getDay(); // 0=일,1=월,...
+  const daysInMonth = lastDayOfMonth.getDate(); // 이번 달 총 일수
+
+  // 달력에서 특정 day를 "YYYY-MM-DD"로 포맷
+  const formatDate = (year, month, day) => {
+    // month는 0~11
+    const y = year;
+    const m = String(month + 1).padStart(2, "0");
+    const d = String(day).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+
   const generateCalendar = () => {
-    const days = []
+    const days = [];
+    // 첫 주에 비는 칸 추가
     for (let i = 0; i < firstDayWeekday; i++) {
-      days.push(null)     // 이전 월의 공백 (빈 칸)
+      days.push(null);
     }
+    // 이번 달 1일부터 daysInMonth까지 채우기
     for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i)     // 현재 월의 날짜
+      days.push(i);
     }
     return days;
   };
+
   const calendarDays = generateCalendar();
 
   return (
-    <div className="mb-3 p-4 bg-gray-50 rounded-md">
-      <div className="flex justify-between items-center mb-4">
+    <div className="mb-3 p-4 bg-gray-50 rounded-lg">
+      <div className="flex justify-between items-center mb-4 ">
         <button onClick={() => handleChangeMonth(-1)}>&lt;</button>
-        <h2 className="text-lg font-bold">
+        <h2 className="text-lg font-bold text-gray-500">
           {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
         </h2>
         <button onClick={() => handleChangeMonth(1)}>&gt;</button>
-        <button onClick={goToToday} className="text-blue-500 hover:underline">
+        <button
+          onClick={goToToday}
+          className="text-gray-500 rounded-lg bg-gray-200 p-1"
+        >
           오늘
         </button>
       </div>
+
+      {/* 요일 헤더 */}
+      <div className="grid grid-cols-7 gap-2 text-center text-gray-500 font-semibold">
+        {["일", "월", "화", "수", "목", "금", "토"].map((dayName) => (
+          <div key={dayName}>{dayName}</div>
+        ))}
+      </div>
+
+      {/* 날짜 영역 */}
       <div className="grid grid-cols-7 gap-2 text-center">
-        {['일', '월', '화', '수', '목', '금', '토'].map((day, index) => (
-          <div key={index} className="font-semibold">
-            {day}
-          </div>
-        ))}
-        {calendarDays.map((day, index) => (
-          <div
-            key={index}
-            className={`p-2 ${day
-              ? 'bg-white-200 text-gray-800 cursor-pointer'
-              : 'bg-white-200'
+        {calendarDays.map((day, index) => {
+          // 날짜가 null인 칸(이전월 공백)은 클릭 안 되도록 처리
+          if (!day) {
+            return <div key={index} className="p-2 bg-gray-50 rounded-md" />;
+          }
+
+          // 현재 셀의 연/월/일
+          const y = currentDate.getFullYear();
+          const m = currentDate.getMonth();
+          const formattedStr = formatDate(y, m, day);
+
+          // 일지 존재 여부
+          const hasDiary = diaryDates.includes(formattedStr);
+
+          // 날짜 클릭 핸들러
+          const onClick = () => handleDateClick(day);
+
+          // selectedDate와 같은지 비교
+          const isSelected =
+            selectedDate &&
+            selectedDate.getFullYear() === y &&
+            selectedDate.getMonth() === m &&
+            selectedDate.getDate() === day;
+
+          return (
+            <div
+              key={index}
+              className={`relative p-2 rounded-md border border-gray-200 cursor-pointer ${
+                isSelected
+                  ? "bg-[#987D11] text-white"
+                  : "bg-white text-gray-500"
               }`}
-            onClick={() => handleDateClick(day)}
-          >
-            {day && (
-              <div
-                className={`relative inline-block ${selectedDate &&
-                  selectedDate.getDate() === day &&
-                  selectedDate.getFullYear() === currentDate.getFullYear() &&
-                  selectedDate.getMonth() === currentDate.getMonth()
-                  ? 'w-6 h-6 bg-gray-500 rounded-full text-white'
-                  : ''
-                  }`}
-              >
-                {day}
-              </div>
-            )}
-          </div>
-        ))}
+              onClick={onClick}
+            >
+              {/* 날짜 숫자 */}
+              <div className="z-10 ">{day}</div>
+
+              {/* 체크 이모지 표시 (반투명) */}
+              {hasDiary && (
+                <span
+                  className="absolute text-xl"
+                  style={{
+                    opacity: 0.5,
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    pointerEvents: "none", // 체크이모지 클릭 이벤트 무시
+                  }}
+                >
+                  💪
+                </span>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

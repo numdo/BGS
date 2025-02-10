@@ -2,6 +2,8 @@ package com.ssafy.bgs.user.service;
 
 
 import com.ssafy.bgs.auth.dto.request.SocialSignupRequestDto;
+import com.ssafy.bgs.auth.dto.request.SignupRequestDto;
+import com.ssafy.bgs.auth.service.VerificationService;
 import com.ssafy.bgs.common.DuplicatedException;
 import com.ssafy.bgs.common.UnauthorizedAccessException;
 import com.ssafy.bgs.image.entity.Image;
@@ -9,7 +11,7 @@ import com.ssafy.bgs.image.service.ImageService;
 import com.ssafy.bgs.redis.service.RedisService;
 import com.ssafy.bgs.user.dto.request.*;
 import com.ssafy.bgs.user.dto.response.InfoResponseDto;
-import com.ssafy.bgs.user.dto.response.LoginResponseDto;
+import com.ssafy.bgs.auth.dto.response.LoginResponseDto;
 import com.ssafy.bgs.user.dto.response.PasswordResetResponseDto;
 import com.ssafy.bgs.user.dto.response.UserResponseDto;
 import com.ssafy.bgs.user.entity.AccountType;
@@ -53,90 +55,6 @@ public class UserService {
     private final VerificationService verificationService;
 
     /**
-     * 회원가입
-     */
-    public UserResponseDto signup(UserSignupRequestDto requestDto) {
-        // 1. 이메일 인증 여부 확인 (VerificationService는 Redis를 사용함)
-        if (!verificationService.isEmailVerified(requestDto.getEmail())) {
-            throw new UnauthorizedAccessException("이메일 인증이 완료되지 않았습니다.");
-        }
-
-        // 2. 닉네임 중복 체크
-        if (userRepository.existsByNickname(requestDto.getNickname())) {
-            throw new DuplicatedException("이미 사용 중인 닉네임입니다.");
-        }
-
-        // 3. 이메일 중복 체크
-        if (userRepository.findByEmail(requestDto.getEmail()).isPresent()) {
-            throw new DuplicatedException("이미 가입된 이메일입니다.");
-        }
-
-        // 4. 비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
-
-        // 5. User 엔티티 생성 (기본값 설정)
-        User user = new User();
-        user.setEmail(requestDto.getEmail());
-        user.setPassword(encodedPassword);
-        user.setNickname(requestDto.getNickname());
-        user.setName(requestDto.getName());
-        user.setBirthDate(requestDto.getBirthDate());
-        if (requestDto.getSex() != null && requestDto.getSex().length() > 0) {
-            user.setSex(requestDto.getSex().charAt(0));
-        }
-        user.setHeight(requestDto.getHeight());
-        user.setWeight(requestDto.getWeight());
-        user.setDegree(BigDecimal.valueOf(36.5));  // 기본값
-        user.setTotalWeight(BigDecimal.valueOf(0.0));
-        user.setCoin(0);
-        user.setDeleted(false);
-        user.setStrickAttendance(0);
-        user.setAccountType(AccountType.LOCAL);
-
-        // 6. 사용자 저장
-        User savedUser = userRepository.save(user);
-
-        // 7. 가입 완료 후, Redis에 저장된 이메일 인증 데이터를 제거 (인증 완료 상태는 더 이상 필요 없으므로)
-        verificationService.removeVerificationCode(requestDto.getEmail());
-
-        // 8. 응답 DTO로 변환 후 반환
-        return toUserResponseDto(savedUser);
-    }
-
-    public UserResponseDto socialSignup(Integer userId, SocialSignupRequestDto socialSignupRequestDto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
-        user.setName(socialSignupRequestDto.getName());
-        // 로컬 로그인을 허용한다면, 비밀번호 저장 (BCrypt)
-
-        if (userRepository.existsByNickname(socialSignupRequestDto.getNickname())) {
-            throw new DuplicatedException("이미 사용 중인 닉네임입니다.");
-        }
-        user.setNickname(socialSignupRequestDto.getNickname());
-
-        if (socialSignupRequestDto.getBirthDate() != null) {
-            user.setBirthDate(socialSignupRequestDto.getBirthDate());
-        }
-
-        if (socialSignupRequestDto.getSex() != null && socialSignupRequestDto.getSex().length() > 0) {
-            user.setSex(socialSignupRequestDto.getSex().charAt(0));  // DB는 Character
-        }
-
-        if (socialSignupRequestDto.getHeight() != null) {
-            user.setHeight(socialSignupRequestDto.getHeight());
-        }
-
-        if (socialSignupRequestDto.getWeight() != null) {
-            user.setWeight(socialSignupRequestDto.getWeight());
-        }
-
-        // 4) 저장
-        User updatedUser = userRepository.save(user);
-
-        // 5) 응답 DTO 변환
-        return toUserResponseDto(updatedUser);
-    }
-    /**
      * 전체 회원 조회 (페이지네이션)
      */
     @Transactional(readOnly = true)
@@ -147,62 +65,13 @@ public class UserService {
         return result.map(this::toUserResponseDto);
     }
 
-    /**
-     * 로그인
-     * @param email
-     * @param password
-     * @return
-     */
-    public LoginResponseDto login(String email, String password) {
-        // 1. 이메일로 사용자를 조회
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(EmailNotFoundException::new);
-
-
-        // 2. 계정 유형 확인
-        if (user.getAccountType() == AccountType.KAKAO) {
-            throw new IllegalArgumentException("소셜 계정입니다. 소셜 로그인을 사용하세요.");
-        }
-
-        // 2. 비밀번호 확인 (BCrypt)
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 틀립니다.");
-        }
-
-        String accessToken = jwtTokenProvider.createAccessToken(user.getId());
-        String refreshToken = jwtTokenProvider.createReFreshToken(user.getId());
-
-        // 4. Redis에 refreshToken 저장 (예: 키 "user:login:{userId}")
-        String redisKey = "user:login:" + user.getId();
-        // 예시: 1일(1440분) 동안 저장
-        redisService.setValue(redisKey, refreshToken, 1440);
-
-        // 3. JWT 생성 및 반환
-        return LoginResponseDto.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
-    }
-
-    /**
-     * 로그아웃
-     * @param userId
-     */
-    public void logout(Integer userId) {
-        // 별도 처리 없다고 가정
-    }
 
     /**
      * 내 정보 조회
      */
     @Transactional(readOnly = true)
     public UserResponseDto getUserInfo(Integer userId) {
-        String cacheKey = "user:" + userId;
-        // 1. 캐시 조회
-        UserResponseDto cachedUser = (UserResponseDto) redisService.getValue(cacheKey);
-        if (cachedUser != null) {
-            return cachedUser;
-        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -212,8 +81,6 @@ public class UserService {
         // 2) 가장 최신 프로필 이미지를 조회하여 dto에 세팅
         imageService.findLatestProfileImage(userId)
                 .ifPresent(image -> dto.setProfileImageUrl(imageService.getS3Url(image.getUrl())));
-
-        redisService.setValue(cacheKey, dto, 30);
 
         return dto;
     }
@@ -329,13 +196,6 @@ public class UserService {
 
     }
 
-    /**
-     * 닉네임 중복 확인
-     */
-    @Transactional(readOnly = true)
-    public boolean checkNickname(String nickname) {
-        return !userRepository.existsByNickname(nickname);
-    }
 
     /**
      * 비밀번호 변경
@@ -368,72 +228,7 @@ public class UserService {
 
     }
 
-    /**
-     * 비밀번호 재설정
-     */
-    public PasswordResetResponseDto resetPassword(PasswordResetRequestDto requestDto) {
-        User user = userRepository.findByEmail(requestDto.getEmail())
-                .orElseThrow(EmailNotFoundException::new);
 
-        // 1. ACCOUNT_TYPE이 LOCAL인지 확인
-        if (user.getAccountType() != AccountType.LOCAL) {
-            throw new IllegalArgumentException("로컬 계정만 비밀번호를 재설정할 수 있습니다.");
-        }
-
-        // 2. 임시 비밀번호 생성
-        String tempPassword = generateTemporaryPassword();
-
-        // 3. 임시 비밀번호 암호화 및 저장
-        String encodedTempPassword = passwordEncoder.encode(tempPassword);
-        user.setPassword(encodedTempPassword);
-        userRepository.save(user);
-
-        // 4. 이메일로 임시 비밀번호 전송
-        emailService.sendTemporaryPasswordEmail(user.getEmail(), tempPassword);
-
-        return PasswordResetResponseDto.builder()
-                .message("임시 비밀번호가 이메일로 전송되었습니다.")
-                .build();
-    }
-
-    /**
-     * 임시 비밀번호 생성
-     */
-    private String generateTemporaryPassword() {
-        int length = 8;
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_";
-        StringBuilder tempPassword = new StringBuilder();
-        Random random = new Random();
-        for(int i = 0; i < length; i++) {
-            tempPassword.append(chars.charAt(random.nextInt(chars.length())));
-        }
-        return tempPassword.toString();
-    }
-
-    /**
-     * 출석 체크
-     * - 예) 당일 처음 체크 시 strick_attendance + 1
-     */
-    public void checkAttendance(Integer userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
-
-        LocalDate today = LocalDate.now();
-        if (user.getLastAttendance() == null || !user.getLastAttendance().isEqual(today)) {
-            user.setStrickAttendance(user.getStrickAttendance() + 1);
-            user.setLastAttendance(today);
-        }
-    }
-
-    /**
-     * 출석 정보 조회
-     */
-    @Transactional(readOnly = true)
-    public UserResponseDto getAttendance(Integer userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
-        return toUserResponseDto(user);
-    }
 
     /**
      * 팔로잉 (followerId -> followeeId)
@@ -511,7 +306,14 @@ public class UserService {
                 .map(this::toUserResponseDto)
                 .collect(Collectors.toList()); // toList() 대신 collect(Collectors.toList()) 사용
     }
-
+    @Transactional(readOnly = true)
+    public boolean checkNickname(String nickname, String currentNickname) {
+        // 본인이 사용 중인 닉네임이면 중복체크를 하지 않고 사용 가능 처리
+        if(nickname.equals(currentNickname)) {
+            return true;
+        }
+        return !userRepository.existsByNickname(nickname);
+    }
     /**
      * User(Entity) -> UserResponseDto 변환
      */

@@ -1,10 +1,6 @@
 // axiosInstance.jsx
 import axios from "axios";
 
-
-/* ======================================================================
-   1. Axios 인스턴스 생성 및 인터셉터 설정
-====================================================================== */
 const axiosInstance = axios.create({
   baseURL: "https://i12c209.p.ssafy.io/api",
   headers: {
@@ -12,7 +8,7 @@ const axiosInstance = axios.create({
   },
 });
 
-// 요청 인터셉터: 로컬 스토리지의 accessToken을 자동으로 헤더에 추가
+// 요청 인터셉터: localStorage의 accessToken을 헤더에 자동 추가
 axiosInstance.interceptors.request.use(
   (config) => {
     const accessToken = localStorage.getItem("accessToken");
@@ -24,51 +20,29 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 응답 인터셉터: 401 발생 시 refresh 토큰을 통해 accessToken 재발급 후 재시도
+// 응답 인터셉터: 응답 헤더에 새 accessToken이 있다면 업데이트, 401 발생 시 처리
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 백엔드 JwtAuthenticationFilter에서 재발급된 새 토큰이 있으면 "Authorization" 헤더에 포함되어 있음
+    const newAccessToken = response.headers["authorization"];
+    if (newAccessToken) {
+      // "Bearer " 접두사 제거 후 localStorage 업데이트
+      const token = newAccessToken.startsWith("Bearer ")
+        ? newAccessToken.slice(7)
+        : newAccessToken;
+      localStorage.setItem("accessToken", token);
+    }
+    return response;
+  },
   async (error) => {
     if (error.response?.status === 401) {
-      const refreshToken = localStorage.getItem("refreshToken");
-      if (!refreshToken) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        window.location.href = "/login";
-        return Promise.reject(error);
-      }
-      try {
-        const res = await axios.post(
-          "https://i12c209.p.ssafy.io/api/auth/refresh", // 서버의 refresh 엔드포인트
-          {}, // body는 빈 객체 전송
-          {
-            headers: {
-              "Refresh-Token": refreshToken,
-            },
-          }
-        );
-        // 새 accessToken은 응답 헤더 "Authorization"에 담겨 있다고 가정
-        const newAccessTokenHeader = res.headers["authorization"];
-        if (newAccessTokenHeader) {
-          const newAccessToken = newAccessTokenHeader.replace("Bearer ", "");
-          localStorage.setItem("accessToken", newAccessToken);
-          // 원래 요청의 헤더를 새 토큰으로 업데이트 후 재시도
-          error.config.headers.Authorization = `Bearer ${newAccessToken}`;
-          return axios(error.config);
-        } else {
-          throw new Error("새 AccessToken 헤더가 없습니다.");
-        }
-      } catch (err) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        window.location.href = "/login";
-        return Promise.reject(err);
-      }
+      localStorage.removeItem("accessToken");
+      // 만료된 토큰으로 인한 인증 실패 시 로그인 페이지로 이동
+      window.location.href = "/login";
+      return Promise.reject(error);
     }
     return Promise.reject(error);
   }
 );
 
-/* ======================================================================
-   4. 내보내기
-====================================================================== */
-export default axiosInstance ;
+export default axiosInstance;

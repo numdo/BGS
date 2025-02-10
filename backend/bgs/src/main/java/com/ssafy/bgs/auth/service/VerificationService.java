@@ -1,4 +1,4 @@
-package com.ssafy.bgs.user.service;
+package com.ssafy.bgs.auth.service;
 
 import com.ssafy.bgs.redis.service.RedisService;
 import org.springframework.stereotype.Service;

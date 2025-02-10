@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { resetPassword } from "../../api/User"; // ✅ API 함수 불러오기
+import { resetPassword } from "../../api/Auth"; // ✅ API 함수 불러오기
 import { ArrowLeft } from "lucide-react";
 import logoImage from "../../assets/images/logo_image.png";
 import nameImage from "../../assets/images/name.png";
@@ -23,7 +23,7 @@ const ForgotPasswordPage = () => {
       setMessage(
         response.message || "비밀번호 재설정 링크가 이메일로 전송되었습니다."
       );
-      setTimeout(() => navigate("/bullogin"), 5000); // 5초 후 로그인 페이지로 이동
+      setTimeout(() => navigate("/bgslogin"), 1000); // 5초 후 로그인 페이지로 이동
     } catch (err) {
       if (err.response?.status === 400) {
         setError("등록되지 않은 이메일입니다.");
@@ -46,18 +46,17 @@ const ForgotPasswordPage = () => {
         className="absolute top-5 left-5 text-black font-medium p-2 rounded hover:bg-gray-100 flex items-center space-x-2"
       >
         <ArrowLeft size={20} />
-        <span>뒤로가기</span>
       </button>
 
       {/* ✅ 페이지 상단: 로고 & 앱 이름 (가로 배치) */}
-      <div className="flex flex-row items-center space-x-6 mb-16">
-        <img src={logoImage} alt="Logo" className="w-28 h-28" />
-        <img src={nameImage} alt="App Name" className="h-16" />
+      <div className="flex flex-col items-center space-y-4 mb-10 mt-8">
+        <img src={logoImage} alt="Logo" className="h-32" />
+        <img src={nameImage} alt="Name" className="h-15" />
       </div>
 
       {/* ✅ 제목 */}
-      <h2 className="text-4xl font-bold text-gray-800 mb-6">
-        임시 비밀번호 발급
+      <h2 className="text-3xl font-bold text-gray-800 mb-6">
+        비밀번호 재설정
       </h2>
 
       {/* ✅ 안내 문구 */}
@@ -91,7 +90,7 @@ const ForgotPasswordPage = () => {
           }`}
           disabled={!email || loading}
         >
-          {loading ? "처리 중..." : "임시 비밀번호 발급"}
+          {loading ? "처리 중..." : "비밀번호 재설정"}
         </button>
       </div>
 

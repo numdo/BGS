@@ -7,12 +7,15 @@ import MyGymRoomView from "../../components/mygym/MyGymRoomView";
 import MyGymItem from "../../components/mygym/MyGymItem";
 import SelectColor from "../../components/mygym/SelectColor";
 import MyGymRoomBgColor from "../../components/mygym/MyGymRoomBgColor"
+import VisitorMemo from "../../components/mygym/VisitorMemo";
+import '../../style.css'
 
 import useUserStore from "../../stores/useUserStore";
 import useMyGymStore from "../../stores/useMyGymStore";
 import { getMygym, updateMygym, getGuestBooks, createGuestBooks } from "../../api/Mygym";
 import { getUser } from "../../api/User";
 
+import mygymbackimg from "../../assets/images/mygymbackimg.png"
 
 const MyGymPage = () => {
   // 유저 정보
@@ -52,7 +55,15 @@ const MyGymPage = () => {
   }, [user])
   return (
     // 전체 페이지 배경 → pageBgColor
-    <div style={{ backgroundColor: myGym.backgroundColor, minHeight: "100vh" }}>
+    <div style={{ 
+      backgroundColor: myGym.backgroundColor, 
+      minHeight: "100vh", 
+      backgroundImage : `url(${mygymbackimg})`, 
+      backgroundSize : 'cover', 
+      backgroundPosition : 'center', 
+      backgroundRepeat : 'repeat-x',
+      animation : 'moveBg 20s linear infinite', 
+      }}>
       <TopBar />
 
       <div className="flex justify-center items-center">
@@ -90,13 +101,14 @@ const MyGymPage = () => {
       ) : (
         // 보기 모드
         <>
-          <MyGymRoomView />
+          <MyGymRoomView userId={user.userId}/>
           <button
             onClick={handleEditMode}
             className="bg-blue-400 text-white px-4 py-2 rounded-full"
           >
             편집
           </button>
+          <VisitorMemo userId={user.userId} />
         </>
       )}
 

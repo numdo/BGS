@@ -6,7 +6,7 @@ import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
 import CommentList from "../../components/feed/CommentList";
 import CommentInput from "../../components/feed/CommentInput";
-import FeedDefalutImage from "../../assets/images/FeedDefaultImage.png"
+import FeedDefalutImage from "../../assets/images/FeedDefaultImage.png";
 import ProfileDefaultImage from "../../assets/icons/MyInfo.png";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -44,6 +44,13 @@ const DiaryDetailPage = () => {
   }, [diaryId]);
 
   if (!feed) return <p>로딩 중...</p>;
+
+  // ✅ 프로필 클릭 시 해당 유저 프로필 페이지로 이동하는 함수
+  const handleProfileClick = () => {
+    if (feed.userId) {
+      navigate(`/profile/${feed.userId}`); // ✅ 유저 ID 기반으로 이동
+    }
+  };
 
   // 좋아요 토글 함수
   const onLikeToggle = async () => {
@@ -98,9 +105,15 @@ const DiaryDetailPage = () => {
             <img
               src={feed.profileImageUrl || ProfileDefaultImage}
               alt="프로필"
-              className="w-10 h-10 rounded-full"
+              className="w-10 h-10 rounded-full cursor-pointer"
+              onClick={handleProfileClick}
             />
-            <p className="ml-2 font-bold">{feed.writer}</p>
+            <p
+              className="ml-2 font-bold cursor-pointer"
+              onClick={handleProfileClick}
+            >
+              {feed.writer}
+            </p>
 
             {/* 메뉴바 */}
             <div className="ml-auto relative">
