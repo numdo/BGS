@@ -19,11 +19,10 @@ export default function BottomBar() {
         <div className="flex justify-evenly items-center py-2">
           <button
             onClick={() => navigate('/')}
-            className="flex flex-col items-center text-gray-800 active:bg-gray-100 w-16 h-12"> 
+            className="flex flex-col items-center text-gray-800 active:bg-gray-100 w-16 h-12">
             <img src={location.pathname ==="/"?HomeColored:Home} alt="Home"/>
             <span className={`text-sm font-bold ${location.pathname==="/"?"text-[#775A0B]":""}`}>홈</span>
           </button>
-
           <button
             onClick={() => navigate('/workout')}
             className="flex flex-col items-center text-gray-800 w-16 h-12">
@@ -37,7 +36,7 @@ export default function BottomBar() {
             <span className={`text-sm font-bold ${location.pathname.startsWith("/mygym")?"text-[#775A0B]":""}`}>마이짐</span>
           </button>
           <button
-            onClick={() => navigate('/feed')}
+            onClick={() => navigate('/feeds')}
             className="flex flex-col items-center text-gray-800 w-16 h-12">
             <img src={location.pathname.startsWith("/feed")?AppsColored:Apps} alt="Feed" className="" />
             <span className={`text-sm font-bold ${location.pathname.startsWith("/feed")?"text-[#775A0B]":""}`}>피드</span>
