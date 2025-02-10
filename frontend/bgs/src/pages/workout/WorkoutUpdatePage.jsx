@@ -21,7 +21,7 @@ export default function WorkoutUpdatePage() {
     diaryWorkouts: [],
   });
 
-  // 기존 이미지 목록 (서버에 저장되어 있는)
+  // 기존 이미지 목록
   const [existingImages, setExistingImages] = useState([]);
 
   // ---------------------------
@@ -52,8 +52,8 @@ export default function WorkoutUpdatePage() {
   // ---------------------------
   // 3) 새로 업로드할 이미지
   // ---------------------------
-  const [files, setFiles] = useState([]);           // 새로 첨부할 파일들
-  const [previewUrls, setPreviewUrls] = useState([]); // 미리보기 URL
+  const [files, setFiles] = useState([]);
+  const [previewUrls, setPreviewUrls] = useState([]);
   const fileInputRef = useRef(null);
 
   // ---------------------------
@@ -71,9 +71,7 @@ export default function WorkoutUpdatePage() {
   const [newHashtag, setNewHashtag] = useState('');
 
   // ---------------------------
-  // 마운트 시점
-  // - (A) 일지 상세 조회
-  // - (B) 운동 목록/이전 기록/최근 운동 조회
+  // 마운트 시점: 일지 상세 + 운동 목록/이전 기록/최근 운동 조회
   // ---------------------------
   useEffect(() => {
     if (!diaryId) {
@@ -90,7 +88,6 @@ export default function WorkoutUpdatePage() {
     try {
       const res = await axiosInstance.get(`/diaries/${id}`, { withCredentials: true });
       const data = res.data;
-      // 서버 응답 구조에 따라 diary state 세팅
       setDiary({
         diaryId: data.diaryId,
         workoutDate: data.workoutDate,
@@ -99,21 +96,18 @@ export default function WorkoutUpdatePage() {
         hashtags: data.hashtags || [],
         diaryWorkouts: (data.diaryWorkouts || []).map((dw) => ({
           workoutId: dw.workoutId,
-          // deleted: false (UI에서 삭제 시 표기용)
           deleted: false,
           sets: (dw.sets || []).map((s) => ({
             weight: s.weight,
             repetition: s.repetition,
             workoutTime: s.workoutTime,
-            // deleted: false (세트별 삭제 시 표기용)
             deleted: false,
           })),
         })),
       });
 
-      // 기존 이미지 목록
       if (data.images && data.images.length > 0) {
-        setExistingImages(data.images); // [{ imageId, url }, ...]
+        setExistingImages(data.images);
       }
     } catch (err) {
       console.error('❌ 일지 불러오기 실패:', err);
@@ -122,21 +116,18 @@ export default function WorkoutUpdatePage() {
     }
   };
 
-  // (B) 운동 목록 / 이전 기록 / 최근 운동
+  // (B) 운동 목록/이전 기록/최근 운동 조회
   const fetchBaseData = async () => {
     try {
-      // (1) 운동 목록
       const workoutRes = await axiosInstance.get('/diaries/workout', { withCredentials: true });
       setAllWorkoutList(workoutRes.data);
-      setWorkoutList(workoutRes.data); // 초기 목록
+      setWorkoutList(workoutRes.data);
 
-      // (2) 이전 기록
       const prevRes = await axiosInstance.get('/diaries/workout/previous?limit=5', {
         withCredentials: true,
       });
       setPreviousRecords(prevRes.data);
 
-      // (3) 최근 운동
       const recentRes = await axiosInstance.get('/diaries/workout/recent?limit=20', {
         withCredentials: true,
       });
@@ -161,16 +152,13 @@ export default function WorkoutUpdatePage() {
     }
   };
 
-  // 이미 추가된(삭제표시 안 된) 운동은 목록에서 제외 & 부위/기구 필터
   const filteredWorkoutList = workoutList.filter((workout) => {
     const alreadyInDiary = diary.diaryWorkouts.some(
       (dw) => dw.workoutId === workout.workoutId && dw.deleted !== true
     );
     if (alreadyInDiary) return false;
-
     if (selectedPartFilter && workout.part !== selectedPartFilter) return false;
     if (selectedToolFilter && workout.tool !== selectedToolFilter) return false;
-
     return true;
   });
 
@@ -179,13 +167,9 @@ export default function WorkoutUpdatePage() {
   // ---------------------------
   const openExerciseModal = () => setIsExerciseModalOpen(true);
   const closeExerciseModal = () => setIsExerciseModalOpen(false);
-
   const openPreviousModal = () => setIsPreviousModalOpen(true);
   const closePreviousModal = () => setIsPreviousModalOpen(false);
-
-  const toggleRecentExercisesVisibility = () => {
-    setShowRecentExercises((prev) => !prev);
-  };
+  const toggleRecentExercisesVisibility = () => setShowRecentExercises((prev) => !prev);
 
   // ---------------------------
   // (운동 모달) 운동 선택/해제
@@ -201,8 +185,7 @@ export default function WorkoutUpdatePage() {
       alert('운동을 하나 이상 선택해주세요!');
       return;
     }
-
-    // 선택된 운동들을 diaryWorkouts에 추가
+    // 선택된 운동들을 diaryWorkouts에 추가 (기본 세트 한 개씩)
     setDiary((prevDiary) => {
       const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
       selectedWorkouts.forEach((wid) => {
@@ -214,7 +197,6 @@ export default function WorkoutUpdatePage() {
       });
       return { ...prevDiary, diaryWorkouts: newDiaryWorkouts };
     });
-
     setSelectedWorkouts([]);
     closeExerciseModal();
   };
@@ -223,15 +205,11 @@ export default function WorkoutUpdatePage() {
   // 이전 기록 / 최근 운동에서 추가
   // ---------------------------
   const handleAddRecord = (record) => {
-    // record = { workoutIds, sets, workoutName, ... }
     setDiary((prevDiary) => {
       const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
-
       record.workoutIds.forEach((wid) => {
-        // 이미 추가되지 않았다면 추가
         const exists = newDiaryWorkouts.some((dw) => dw.workoutId === wid && dw.deleted === false);
         if (!exists) {
-          // 해당 wid에 대한 세트만 추출
           const setsForThisWorkout = record.sets
             .filter((s) => s.workoutId === wid)
             .map((s) => ({
@@ -240,13 +218,10 @@ export default function WorkoutUpdatePage() {
               workoutTime: s.workoutTime || 10,
               deleted: false,
             }));
-
-          // 세트가 없으면 기본 1세트
           const finalSets =
             setsForThisWorkout.length > 0
               ? setsForThisWorkout
               : [{ weight: 10, repetition: 10, workoutTime: 10, deleted: false }];
-
           newDiaryWorkouts.push({
             workoutId: wid,
             deleted: false,
@@ -254,10 +229,8 @@ export default function WorkoutUpdatePage() {
           });
         }
       });
-
       return { ...prevDiary, diaryWorkouts: newDiaryWorkouts };
     });
-
     alert(`"${record.workoutName}" 운동들이 추가되었습니다.`);
     closePreviousModal();
   };
@@ -267,27 +240,18 @@ export default function WorkoutUpdatePage() {
   // ---------------------------
   const handleRecordButton = async () => {
     if (!isRecording) {
-      // 녹음 시작
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            sampleRate: 48000,
-            channelCount: 1,
-            noiseSuppression: true,
-            echoCancellation: true,
-          },
+          audio: { sampleRate: 48000, channelCount: 1, noiseSuppression: true, echoCancellation: true },
         });
         const recorder = new MediaRecorder(stream);
         setMediaRecorder(recorder);
         audioChunksRef.current = [];
         setRecordStartTime(Date.now());
-
         recorder.ondataavailable = (event) => {
           audioChunksRef.current.push(event.data);
         };
-
         recorder.onstop = async () => {
-          // 녹음 종료 시점에 Blob 생성
           const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
           const duration = Date.now() - recordStartTime;
           if (duration < 2000 || audioBlob.size < 5000) {
@@ -296,28 +260,21 @@ export default function WorkoutUpdatePage() {
           }
           setIsLoading(true);
           try {
-            // STT 요청
             const formData = new FormData();
             formData.append('audioFile', audioBlob);
-
             const response = await axiosInstance.post('/ai-diary/auto', formData, {
               headers: { 'Content-Type': 'multipart/form-data' },
               withCredentials: true,
             });
-
             console.log('📦 STT 응답 데이터:', response.data);
-
             if (response.data.invalidInput) {
               alert('운동을 인식하지 못했습니다. 다시 말씀해주세요.');
               return;
             }
-
             if (response.data.diaryWorkouts) {
-              // 새로 인식된 운동들을 diaryWorkouts에 추가
               setDiary((prevDiary) => {
                 const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
                 for (const dw of response.data.diaryWorkouts) {
-                  // 중복되지 않은 운동이면 추가
                   if (!newDiaryWorkouts.some((x) => x.workoutId === dw.workoutId && !x.deleted)) {
                     newDiaryWorkouts.push({
                       workoutId: dw.workoutId,
@@ -340,7 +297,6 @@ export default function WorkoutUpdatePage() {
           }
           setIsLoading(false);
         };
-
         recorder.start();
         setIsRecording(true);
       } catch (error) {
@@ -348,58 +304,60 @@ export default function WorkoutUpdatePage() {
         console.error('마이크 접근 오류:', error);
       }
     } else {
-      // 녹음 중단
       mediaRecorder.stop();
       setIsRecording(false);
     }
   };
 
   // ---------------------------
-  // (UI) 운동 삭제 / 세트 추가/삭제 / 세트 수정
+  // 운동 삭제 / 세트 추가/삭제 / 세트 수정 (핸들러들: workoutId 사용)
   // ---------------------------
-  const handleDeleteWorkout = (wIndex) => {
-    // 실제 배열에서 제거 대신 deleted: true 처리
+  const handleAddSet = (workoutId) => {
     setDiary((prev) => {
-      const newDiaryWorkouts = [...prev.diaryWorkouts];
-      newDiaryWorkouts[wIndex] = {
-        ...newDiaryWorkouts[wIndex],
-        deleted: true,
-        sets: newDiaryWorkouts[wIndex].sets.map((s) => ({ ...s, deleted: true })),
-      };
+      const newDiaryWorkouts = prev.diaryWorkouts.map((dw) => {
+        if (!dw.deleted && dw.workoutId === workoutId) {
+          return { ...dw, sets: [...dw.sets, { weight: 10, repetition: 10, workoutTime: 10, deleted: false }] };
+        }
+        return dw;
+      });
       return { ...prev, diaryWorkouts: newDiaryWorkouts };
     });
   };
 
-  const handleAddSet = (wIndex) => {
+  const handleDeleteWorkout = (workoutId) => {
     setDiary((prev) => {
-      const newDiaryWorkouts = [...prev.diaryWorkouts];
-      newDiaryWorkouts[wIndex] = {
-        ...newDiaryWorkouts[wIndex],
-        sets: [
-          ...newDiaryWorkouts[wIndex].sets,
-          { weight: 10, repetition: 10, workoutTime: 10, deleted: false },
-        ],
-      };
+      const newDiaryWorkouts = prev.diaryWorkouts.map((dw) => {
+        if (!dw.deleted && dw.workoutId === workoutId) {
+          return { ...dw, deleted: true, sets: dw.sets.map((s) => ({ ...s, deleted: true })) };
+        }
+        return dw;
+      });
       return { ...prev, diaryWorkouts: newDiaryWorkouts };
     });
   };
 
-  const handleDeleteSet = (wIndex, sIndex) => {
+  const handleDeleteSet = (workoutId, setIndex) => {
     setDiary((prev) => {
-      const newDiaryWorkouts = [...prev.diaryWorkouts];
-      const newSets = [...newDiaryWorkouts[wIndex].sets];
-      newSets[sIndex] = { ...newSets[sIndex], deleted: true };
-      newDiaryWorkouts[wIndex] = { ...newDiaryWorkouts[wIndex], sets: newSets };
+      const newDiaryWorkouts = prev.diaryWorkouts.map((dw) => {
+        if (!dw.deleted && dw.workoutId === workoutId) {
+          const newSets = dw.sets.map((s, idx) => (idx === setIndex ? { ...s, deleted: true } : s));
+          return { ...dw, sets: newSets };
+        }
+        return dw;
+      });
       return { ...prev, diaryWorkouts: newDiaryWorkouts };
     });
   };
 
-  const handleWorkoutSetChange = (wIndex, sIndex, field, value) => {
+  const handleWorkoutSetChange = (workoutId, setIndex, field, value) => {
     setDiary((prev) => {
-      const newDiaryWorkouts = [...prev.diaryWorkouts];
-      const newSets = [...newDiaryWorkouts[wIndex].sets];
-      newSets[sIndex] = { ...newSets[sIndex], [field]: Number(value) };
-      newDiaryWorkouts[wIndex] = { ...newDiaryWorkouts[wIndex], sets: newSets };
+      const newDiaryWorkouts = prev.diaryWorkouts.map((dw) => {
+        if (!dw.deleted && dw.workoutId === workoutId) {
+          const newSets = dw.sets.map((s, idx) => (idx === setIndex ? { ...s, [field]: Number(value) } : s));
+          return { ...dw, sets: newSets };
+        }
+        return dw;
+      });
       return { ...prev, diaryWorkouts: newDiaryWorkouts };
     });
   };
@@ -408,7 +366,6 @@ export default function WorkoutUpdatePage() {
   // 기존 이미지 제거
   // ---------------------------
   const handleRemoveExistingImage = (index) => {
-    // 실제 서버에서 바로 삭제하지 않고, 우선 local state에서 제거
     setExistingImages((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -418,21 +375,16 @@ export default function WorkoutUpdatePage() {
   const handleImageChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
     const maxSize = 1 * 1024 * 1024; // 1MB 제한
-
-    // 용량 체크
     for (let file of selectedFiles) {
       if (file.size > maxSize) {
         alert(`파일이 너무 큽니다: ${file.name}`);
         return;
       }
     }
-
-    // (기존 이미지 + 이미 선택된 새 이미지 + 이번에 고른 파일) <= 6장
     if (existingImages.length + files.length + selectedFiles.length > 6) {
       alert('이미지는 최대 6장까지 업로드할 수 있습니다.');
       return;
     }
-
     setFiles((prev) => [...prev, ...selectedFiles]);
     const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
     setPreviewUrls((prev) => [...prev, ...newPreviews]);
@@ -451,21 +403,14 @@ export default function WorkoutUpdatePage() {
       alert('수정할 일지 ID가 없습니다!');
       return;
     }
-
-    // (1) diary JSON
     const formData = new FormData();
     const diaryBlob = new Blob([JSON.stringify(diary)], { type: 'application/json' });
     formData.append('diary', diaryBlob);
-
-    // (2) 유지할 기존 이미지 URL 목록
     const urlsBlob = new Blob([JSON.stringify(existingImages.map((img) => img.url))], {
       type: 'application/json',
     });
     formData.append('urls', urlsBlob);
-
-    // (3) 새로 추가되는 이미지 파일
     files.forEach((f) => formData.append('files', f));
-
     try {
       await axiosInstance.patch(`/diaries/${diary.diaryId}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -504,7 +449,6 @@ export default function WorkoutUpdatePage() {
   return (
     <>
       <TopBar />
-
       <div className="m-5 pb-24">
         {/* 날짜 */}
         <div>
@@ -535,15 +479,12 @@ export default function WorkoutUpdatePage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded shadow-lg max-w-2xl w-full">
               <h2 className="text-xl font-bold mb-4">운동 추가하기</h2>
-
               {/* 부위 필터 */}
               <div className="mb-2">
                 <span className="mr-2 font-semibold">부위: </span>
                 <button
                   onClick={() => setSelectedPartFilter('')}
-                  className={`mr-2 px-2 py-1 border rounded ${
-                    selectedPartFilter === '' ? 'bg-blue-500 text-white' : ''
-                  }`}
+                  className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === '' ? 'bg-blue-500 text-white' : ''}`}
                 >
                   전체
                 </button>
@@ -551,23 +492,18 @@ export default function WorkoutUpdatePage() {
                   <button
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
-                    className={`mr-2 px-2 py-1 border rounded ${
-                      selectedPartFilter === part ? 'bg-blue-500 text-white' : ''
-                    }`}
+                    className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === part ? 'bg-blue-500 text-white' : ''}`}
                   >
                     {part}
                   </button>
                 ))}
               </div>
-
               {/* 기구 필터 */}
               <div className="mb-2">
                 <span className="mr-2 font-semibold">기구: </span>
                 <button
                   onClick={() => setSelectedToolFilter('')}
-                  className={`mr-2 px-2 py-1 border rounded ${
-                    selectedToolFilter === '' ? 'bg-blue-500 text-white' : ''
-                  }`}
+                  className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === '' ? 'bg-blue-500 text-white' : ''}`}
                 >
                   전체
                 </button>
@@ -575,15 +511,12 @@ export default function WorkoutUpdatePage() {
                   <button
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
-                    className={`mr-2 px-2 py-1 border rounded ${
-                      selectedToolFilter === tool ? 'bg-blue-500 text-white' : ''
-                    }`}
+                    className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === tool ? 'bg-blue-500 text-white' : ''}`}
                   >
                     {tool}
                   </button>
                 ))}
               </div>
-
               {/* 검색창 */}
               <input
                 type="text"
@@ -592,13 +525,9 @@ export default function WorkoutUpdatePage() {
                 value={searchKeyword}
                 onChange={(e) => handleSearch(e.target.value)}
               />
-
               {/* 최근 운동 토글 */}
               <div className="mb-4">
-                <button
-                  onClick={toggleRecentExercisesVisibility}
-                  className="px-4 py-2 bg-purple-500 text-white rounded"
-                >
+                <button onClick={toggleRecentExercisesVisibility} className="px-4 py-2 bg-purple-500 text-white rounded">
                   {showRecentExercises ? '최근 운동 숨기기' : '최근 운동 보기'}
                 </button>
               </div>
@@ -617,7 +546,6 @@ export default function WorkoutUpdatePage() {
                   ))}
                 </div>
               )}
-
               {/* 필터 후 목록 */}
               <div className="space-y-2 max-h-60 overflow-y-auto border-t pt-2">
                 {filteredWorkoutList.map((workout) => (
@@ -628,9 +556,7 @@ export default function WorkoutUpdatePage() {
                   >
                     <div>
                       <p className="font-bold">{workout.workoutName}</p>
-                      <p className="text-sm text-gray-600">
-                        {workout.part} / {workout.tool}
-                      </p>
+                      <p className="text-sm text-gray-600">{workout.part} / {workout.tool}</p>
                     </div>
                     <input
                       type="checkbox"
@@ -640,19 +566,12 @@ export default function WorkoutUpdatePage() {
                   </div>
                 ))}
               </div>
-
-              {/* 하단 버튼들 */}
+              {/* 하단 버튼 */}
               <div className="mt-4 flex justify-end space-x-2">
-                <button
-                  onClick={closeExerciseModal}
-                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                >
+                <button onClick={closeExerciseModal} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
                   취소
                 </button>
-                <button
-                  onClick={handleWorkoutSelection}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
+                <button onClick={handleWorkoutSelection} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                   추가 완료
                 </button>
               </div>
@@ -679,10 +598,7 @@ export default function WorkoutUpdatePage() {
                 ))}
               </div>
               <div className="mt-4 flex justify-end">
-                <button
-                  onClick={closePreviousModal}
-                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                >
+                <button onClick={closePreviousModal} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
                   닫기
                 </button>
               </div>
@@ -690,42 +606,33 @@ export default function WorkoutUpdatePage() {
           </div>
         )}
 
-        {/* 이미 추가된 운동 목록 */}
+        {/* 이미 추가된 운동 목록 (workoutId를 key로 사용) */}
         <div className="mt-4">
           {diary.diaryWorkouts
-            .filter((dw) => !dw.deleted) // 삭제표시 안 된 운동만
-            .map((workout, wIndex) => (
-              <div key={`dw-${wIndex}`} className="border p-2 rounded mb-2">
+            .filter((dw) => !dw.deleted)
+            .map((workout) => (
+              <div key={workout.workoutId} className="border p-2 rounded mb-2">
                 <div className="flex justify-between items-center">
                   <h2>{getWorkoutName(workout.workoutId)}</h2>
                   <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleAddSet(wIndex)}
-                      className="px-2 py-1 bg-green-500 text-white rounded"
-                    >
+                    <button onClick={() => handleAddSet(workout.workoutId)} className="px-2 py-1 bg-green-500 text-white rounded">
                       +세트
                     </button>
-                    <button
-                      onClick={() => handleDeleteWorkout(wIndex)}
-                      className="px-2 py-1 bg-red-500 text-white rounded"
-                    >
+                    <button onClick={() => handleDeleteWorkout(workout.workoutId)} className="px-2 py-1 bg-red-500 text-white rounded">
                       🗑️운동
                     </button>
                   </div>
                 </div>
-
                 {workout.sets
                   .filter((s) => !s.deleted)
                   .map((set, setIndex) => (
-                    <div key={`set-${wIndex}-${setIndex}`} className="flex items-center space-x-4 mt-2">
+                    <div key={setIndex} className="flex items-center space-x-4 mt-2">
                       <div>
                         <label className="mr-1">무게:</label>
                         <input
                           type="number"
                           value={set.weight}
-                          onChange={(e) =>
-                            handleWorkoutSetChange(wIndex, setIndex, 'weight', e.target.value)
-                          }
+                          onChange={(e) => handleWorkoutSetChange(workout.workoutId, setIndex, 'weight', e.target.value)}
                           className="w-20 p-1 border rounded"
                         />
                       </div>
@@ -734,9 +641,7 @@ export default function WorkoutUpdatePage() {
                         <input
                           type="number"
                           value={set.repetition}
-                          onChange={(e) =>
-                            handleWorkoutSetChange(wIndex, setIndex, 'repetition', e.target.value)
-                          }
+                          onChange={(e) => handleWorkoutSetChange(workout.workoutId, setIndex, 'repetition', e.target.value)}
                           className="w-20 p-1 border rounded"
                         />
                       </div>
@@ -745,16 +650,11 @@ export default function WorkoutUpdatePage() {
                         <input
                           type="number"
                           value={set.workoutTime}
-                          onChange={(e) =>
-                            handleWorkoutSetChange(wIndex, setIndex, 'workoutTime', e.target.value)
-                          }
+                          onChange={(e) => handleWorkoutSetChange(workout.workoutId, setIndex, 'workoutTime', e.target.value)}
                           className="w-20 p-1 border rounded"
                         />
                       </div>
-                      <button
-                        onClick={() => handleDeleteSet(wIndex, setIndex)}
-                        className="px-2 py-1 bg-red-300 text-white rounded"
-                      >
+                      <button onClick={() => handleDeleteSet(workout.workoutId, setIndex)} className="px-2 py-1 bg-red-300 text-white rounded">
                         🗑️세트
                       </button>
                     </div>
@@ -770,15 +670,8 @@ export default function WorkoutUpdatePage() {
             <div className="flex flex-wrap gap-2 mt-2">
               {existingImages.map((img, idx) => (
                 <div key={img.imageId} className="relative w-40 h-40">
-                  <img
-                    src={img.url}
-                    alt="existing"
-                    className="w-full h-full object-cover rounded-md shadow-md"
-                  />
-                  <button
-                    onClick={() => handleRemoveExistingImage(idx)}
-                    className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded"
-                  >
+                  <img src={img.url} alt="existing" className="w-full h-full object-cover rounded-md shadow-md" />
+                  <button onClick={() => handleRemoveExistingImage(idx)} className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded">
                     X
                   </button>
                 </div>
@@ -787,43 +680,22 @@ export default function WorkoutUpdatePage() {
           </div>
         )}
 
-        {/* 새로 업로드할 이미지 목록 */}
+        {/* 새 이미지 업로드 */}
         <div className="mt-4">
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleImageChange}
-            ref={fileInputRef}
-            style={{ display: 'none' }}
-          />
+          <input type="file" accept="image/*" multiple onChange={handleImageChange} ref={fileInputRef} style={{ display: 'none' }} />
           <div className="flex flex-col">
             <label className="font-bold mb-2">새 이미지 첨부 (최대 6장)</label>
-
             <div className="flex flex-wrap gap-2">
               {previewUrls.map((url, idx) => (
                 <div key={idx} className="relative w-40 h-40">
-                  <img
-                    src={url}
-                    alt="preview"
-                    className="w-full h-full object-cover rounded-md shadow-md"
-                  />
-                  {/* 삭제 버튼 */}
-                  <button
-                    onClick={() => handleRemoveImage(idx)}
-                    className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded"
-                  >
+                  <img src={url} alt="preview" className="w-full h-full object-cover rounded-md shadow-md" />
+                  <button onClick={() => handleRemoveImage(idx)} className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded">
                     X
                   </button>
                 </div>
               ))}
-
-              {/* placeholder (빈 칸) - 남은 칸 만큼 */}
               {(() => {
-                const placeholdersCount = Math.max(
-                  0,
-                  6 - existingImages.length - previewUrls.length
-                );
+                const placeholdersCount = Math.max(0, 6 - existingImages.length - previewUrls.length);
                 return Array.from({ length: placeholdersCount }).map((_, i) => (
                   <div
                     key={`placeholder-${i}`}
@@ -835,11 +707,7 @@ export default function WorkoutUpdatePage() {
                 ));
               })()}
             </div>
-
-            <button
-              className="mt-2 p-2 bg-blue-500 text-white rounded w-40"
-              onClick={() => fileInputRef.current.click()}
-            >
+            <button className="mt-2 p-2 bg-blue-500 text-white rounded w-40" onClick={() => fileInputRef.current.click()}>
               이미지 선택
             </button>
           </div>
@@ -855,13 +723,7 @@ export default function WorkoutUpdatePage() {
 
         {/* 해시태그 입력 */}
         <div className="mt-4">
-          <input
-            type="text"
-            className="p-2 border rounded"
-            value={newHashtag}
-            onChange={(e) => setNewHashtag(e.target.value)}
-            placeholder="해시태그 입력"
-          />
+          <input type="text" className="p-2 border rounded" value={newHashtag} onChange={(e) => setNewHashtag(e.target.value)} placeholder="해시태그 입력" />
           <button onClick={handleAddHashtag} className="p-2 bg-blue-500 text-white rounded ml-2">
             추가
           </button>
@@ -876,10 +738,7 @@ export default function WorkoutUpdatePage() {
 
         {/* 공개 범위 설정 */}
         <div className="mt-2">
-          <select
-            value={diary.allowedScope}
-            onChange={(e) => setDiary({ ...diary, allowedScope: e.target.value })}
-          >
+          <select value={diary.allowedScope} onChange={(e) => setDiary({ ...diary, allowedScope: e.target.value })}>
             <option value="A">모두 공개</option>
             <option value="M">비공개</option>
           </select>
@@ -890,7 +749,6 @@ export default function WorkoutUpdatePage() {
           수정
         </button>
       </div>
-
       <BottomBar />
     </>
   );
