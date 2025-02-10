@@ -23,7 +23,7 @@ const ForgotPasswordPage = () => {
       setMessage(
         response.message || "비밀번호 재설정 링크가 이메일로 전송되었습니다."
       );
-      setTimeout(() => navigate("/bullogin"), 1000); // 5초 후 로그인 페이지로 이동
+      setTimeout(() => navigate("/bgslogin"), 1000); // 5초 후 로그인 페이지로 이동
     } catch (err) {
       if (err.response?.status === 400) {
         setError("등록되지 않은 이메일입니다.");
