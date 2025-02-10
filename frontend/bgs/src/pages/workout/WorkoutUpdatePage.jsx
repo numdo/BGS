@@ -16,7 +16,6 @@ export default function WorkoutUpdatePage() {
     content: '',
     allowedScope: 'A',
     hashtags: [],
-    // diaryWorkouts: 각 항목은 { diaryWorkoutId (optional), workoutId, sets: [{ weight, repetition, workoutTime }] }
     diaryWorkouts: [],
   });
 
@@ -57,7 +56,6 @@ export default function WorkoutUpdatePage() {
   // 5) 해시태그 입력
   const [newHashtag, setNewHashtag] = useState('');
 
-  // 마운트 시점: 일지 상세 및 관련 데이터 조회
   useEffect(() => {
     if (!diaryId) {
       alert('수정할 일지 ID가 없습니다.');
@@ -68,7 +66,6 @@ export default function WorkoutUpdatePage() {
     fetchBaseData();
   }, [diaryId]);
 
-  // (A) 기존 일지 상세 조회 (soft delete된 항목은 포함되지 않아야 함)
   const fetchDiaryDetail = async (id) => {
     try {
       const res = await axiosInstance.get(`/diaries/${id}`, { withCredentials: true });
@@ -99,7 +96,6 @@ export default function WorkoutUpdatePage() {
     }
   };
 
-  // (B) 운동 목록/이전 기록/최근 운동 조회
   const fetchBaseData = async () => {
     try {
       const workoutRes = await axiosInstance.get('/diaries/workout', { withCredentials: true });
@@ -116,7 +112,6 @@ export default function WorkoutUpdatePage() {
     }
   };
 
-  // 운동 목록 필터링 + 검색
   const handleSearch = (keyword) => {
     setSearchKeyword(keyword);
     if (keyword.trim() === '') {
@@ -137,21 +132,20 @@ export default function WorkoutUpdatePage() {
     return true;
   });
 
-  // 모달 열기/닫기 핸들러
   const openExerciseModal = () => setIsExerciseModalOpen(true);
   const closeExerciseModal = () => setIsExerciseModalOpen(false);
   const openPreviousModal = () => setIsPreviousModalOpen(true);
   const closePreviousModal = () => setIsPreviousModalOpen(false);
   const toggleRecentExercisesVisibility = () => setShowRecentExercises((prev) => !prev);
 
-  // (운동 모달) 운동 선택/해제
   const toggleSelectedWorkout = (workoutId) => {
     setSelectedWorkouts((prev) =>
-      prev.includes(workoutId) ? prev.filter((id) => id !== workoutId) : [...prev, workoutId]
+      prev.includes(workoutId)
+        ? prev.filter((id) => id !== workoutId)
+        : [...prev, workoutId]
     );
   };
 
-  // 운동 추가 (중복 추가 방지)
   const handleWorkoutSelection = () => {
     if (selectedWorkouts.length === 0) {
       alert('운동을 하나 이상 선택해주세요!');
@@ -173,7 +167,6 @@ export default function WorkoutUpdatePage() {
     closeExerciseModal();
   };
 
-  // 이전 기록 / 최근 운동 추가 (중복 방지)
   const handleAddRecord = (record) => {
     setDiary((prevDiary) => {
       const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
@@ -202,7 +195,6 @@ export default function WorkoutUpdatePage() {
     closePreviousModal();
   };
 
-  // 음성 녹음 버튼 핸들러 (STT 가이드 연동)
   const handleRecordButton = () => {
     if (isRecording) {
       if (mediaRecorder) {
@@ -218,7 +210,6 @@ export default function WorkoutUpdatePage() {
     }
   };
 
-  // 녹음 시작 함수
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -282,12 +273,10 @@ export default function WorkoutUpdatePage() {
     }
   };
 
-  // STT 가이드 모달에서 취소 버튼 클릭 시 (녹음 시작 안 함)
   const handleSttGuideCancel = () => {
     setShowSttGuide(false);
   };
 
-  // STT 가이드 모달에서 녹음 시작 버튼 클릭 시 (다시 보지 않기 적용 후 녹음 시작)
   const handleSttGuideStart = (dontShowAgain) => {
     if (dontShowAgain) {
       localStorage.setItem("hideSttGuide", "true");
@@ -297,7 +286,6 @@ export default function WorkoutUpdatePage() {
     startRecording();
   };
 
-  // 운동 삭제 / 세트 추가/삭제 / 세트 수정 (workoutId 기반)
   const handleDeleteWorkout = (workoutId) => {
     setDiary((prevDiary) => ({
       ...prevDiary,
@@ -346,7 +334,6 @@ export default function WorkoutUpdatePage() {
     });
   };
 
-  // 이미지 업로드
   const handleImageChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
     const maxAllowedSize = 1 * 1024 * 1024;
@@ -370,7 +357,6 @@ export default function WorkoutUpdatePage() {
     setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // 운동일지 수정 (PATCH 요청)
   const handleDiaryUpdate = async () => {
     if (!diary.diaryId) {
       alert('수정할 일지 ID가 없습니다!');
@@ -397,7 +383,6 @@ export default function WorkoutUpdatePage() {
     }
   };
 
-  // 해시태그 추가
   const handleAddHashtag = () => {
     const tag = newHashtag.trim();
     if (tag && !diary.hashtags.includes(tag)) {
@@ -406,7 +391,6 @@ export default function WorkoutUpdatePage() {
     }
   };
 
-  // Helper: workoutId -> 운동 이름 (백엔드에서 받은 모든 운동 데이터 기준)
   const getWorkoutName = (workoutId) => {
     const found = allWorkoutList.find((w) => w.workoutId === workoutId);
     return found ? found.workoutName : `운동ID: ${workoutId}`;
@@ -417,28 +401,29 @@ export default function WorkoutUpdatePage() {
       <TopBar />
       <div className="m-5 pb-24">
         {/* 날짜 */}
-        <div>
+        <div className="border border-gray-100 text-gray-500 w-44 rounded-md pl-2 mb-4">
           <label htmlFor="date">날짜 </label>
           <input
             type="date"
             id="date"
             value={diary.workoutDate}
             onChange={(e) => setDiary({ ...diary, workoutDate: e.target.value })}
+            className="bg-transparent outline-none"
           />
         </div>
 
         {/* 상단 버튼들 */}
-        <div className="flex items-center space-x-4 mt-4">
-          <button onClick={() => setIsExerciseModalOpen(true)} className="w-1/3 p-2 bg-gray-500 text-white rounded">
+        <div className="flex items-center mt-3 rounded-lg">
+          <button onClick={() => setIsExerciseModalOpen(true)} className="px-4 py-2 bg-primary-light text-white text-sm rounded-l-md">
             🏋️‍♂️ 운동 추가
           </button>
-          <button onClick={handleRecordButton} className="w-1/3 p-2 bg-blue-500 text-white rounded">
-            {isRecording ? '⏹ 녹음 중...' : '🎤 음성 운동 추가'}
-          </button>
-          <button onClick={() => setIsPreviousModalOpen(true)} className="w-1/3 p-2 bg-green-500 text-white rounded">
-            이전 기록 보기
+          <button onClick={handleRecordButton} className="flex items-center px-4 py-2 bg-primary-light border-l border-gray-400 text-white text-sm rounded-r-md">
+            🎙 녹음
           </button>
         </div>
+        <button onClick={() => setIsPreviousModalOpen(true)} className="m-3 p-2 bg-gray-200 text-gray-500 rounded text-sm">
+          이전 기록 보기
+        </button>
 
         {/* STT 가이드 모달 */}
         {showSttGuide && (
@@ -505,11 +490,7 @@ export default function WorkoutUpdatePage() {
               {showRecentExercises && (
                 <div className="space-y-1 max-h-48 overflow-y-auto mb-4 border-t pt-2">
                   {recentExercises.map((exercise, idx) => (
-                    <div
-                      key={`recent-${idx}`}
-                      className="p-2 border-b cursor-pointer"
-                      onClick={() => handleAddRecord(exercise)}
-                    >
+                    <div key={`recent-${idx}`} className="p-2 border-b cursor-pointer" onClick={() => handleAddRecord(exercise)}>
                       <p className="text-sm">
                         {exercise.workoutName} ({exercise.tool})
                       </p>
@@ -531,11 +512,7 @@ export default function WorkoutUpdatePage() {
                         {workout.part} / {workout.tool}
                       </p>
                     </div>
-                    <input
-                      type="checkbox"
-                      checked={selectedWorkouts.includes(workout.workoutId)}
-                      readOnly
-                    />
+                    <input type="checkbox" checked={selectedWorkouts.includes(workout.workoutId)} readOnly />
                   </div>
                 ))}
               </div>
@@ -560,7 +537,7 @@ export default function WorkoutUpdatePage() {
               <div className="space-y-1 max-h-64 overflow-y-auto border-t pt-2">
                 {previousRecords.map((record, idx) => (
                   <div
-                    key={`prev-${idx}`}
+                    key={`prev-${record.diaryWorkoutId || idx}`}
                     className="p-2 border-b cursor-pointer"
                     onClick={() => handleAddRecord(record)}
                   >
@@ -635,62 +612,60 @@ export default function WorkoutUpdatePage() {
         </div>
 
         {/* 기존 이미지 목록 */}
-{existingImages.length > 0 && (
-  <div className="mt-6">
-    <label className="font-bold mb-2">기존 이미지</label>
-    <div className="overflow-x-auto whitespace-nowrap flex gap-2 p-2 border rounded">
-      {existingImages.map((img, idx) => (
-        <div key={`existing-${img.imageId}`} className="relative flex-shrink-0 w-40 h-40">
-          <img src={img.url} alt="existing" className="w-full h-full object-cover rounded-md shadow-md" />
-          <button
-            onClick={() => setExistingImages(prev => prev.filter((_, i) => i !== idx))}
-            className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded"
-          >
-            X
-          </button>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
+        {existingImages.length > 0 && (
+          <div className="mt-6">
+            <label className="font-bold mb-2">기존 이미지</label>
+            <div className="overflow-x-auto whitespace-nowrap flex gap-2">
+              {existingImages.map((img, idx) => (
+                <div key={`existing-${img.imageId}`} className="relative flex-shrink-0 w-40 h-40">
+                  <img src={img.url} alt="existing" className="w-full h-full object-cover rounded-md shadow-md" />
+                  <button
+                    onClick={() => setExistingImages(prev => prev.filter((_, i) => i !== idx))}
+                    className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded"
+                  >
+                    X
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-{/* 새 이미지 업로드 */}
-<div className="mt-4">
-  <input
-    type="file"
-    accept="image/*"
-    multiple
-    onChange={handleImageChange}
-    ref={fileInputRef}
-    style={{ display: 'none' }}
-  />
-  <div className="flex flex-col">
-    <label className="font-bold mb-2">새 이미지 첨부 (최대 6장)</label>
-    <div className="overflow-x-auto whitespace-nowrap flex gap-2 p-2 border rounded">
-      {previewUrls.map((url, idx) => (
-        <div key={`preview-${idx}`} className="relative flex-shrink-0 w-40 h-40">
-          <img src={url} alt="preview" className="w-full h-full object-cover rounded-md shadow-md" />
-          <button
-            onClick={() => handleRemoveImage(idx)}
-            className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded"
-          >
-            X
-          </button>
+        {/* 새 이미지 업로드 */}
+        <div className="mt-4">
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleImageChange}
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+          />
+          <div className="flex flex-col">
+            <label className="font-bold mb-2">새 이미지 첨부 (최대 6장)</label>
+            <div className="overflow-x-auto whitespace-nowrap flex gap-2">
+              {previewUrls.map((url, idx) => (
+                <div key={`preview-${idx}`} className="relative flex-shrink-0 w-40 h-40">
+                  <img src={url} alt="preview" className="w-full h-full object-cover rounded-md shadow-md" />
+                  <button
+                    onClick={() => handleRemoveImage(idx)}
+                    className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded"
+                  >
+                    X
+                  </button>
+                </div>
+              ))}
+              {existingImages.length + previewUrls.length < 6 && (
+                <button
+                  className="flex-shrink-0 w-40 h-40 bg-gray-400 text-white rounded-md flex items-center justify-center"
+                  onClick={() => fileInputRef.current.click()}
+                >
+                  +
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-      ))}
-      {/* 파일 선택 버튼 (이미지가 6장 미만일 때만 보이도록 설정) */}
-      {existingImages.length + previewUrls.length < 6 && (
-        <button
-          className="flex-shrink-0 w-40 h-40 bg-blue-500 text-white rounded-md flex items-center justify-center"
-          onClick={() => fileInputRef.current.click()}
-        >
-          +
-        </button>
-      )}
-    </div>
-  </div>
-</div>
-
 
         {/* 운동일지 내용 */}
         <textarea
