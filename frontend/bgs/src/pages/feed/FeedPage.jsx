@@ -14,7 +14,7 @@ const FeedPage = () => {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true); // 추가 요청 가능 여부
   const [feedType, setFeedType] = useState("diary"); // 'diary' | 'evaluation'
-  const [evaluationStatus, setEvaluationStatus] = useState(""); // '' | 'ongoing' | 'closed'
+  const [evaluationStatus, setEvaluationStatus] = useState("ongoing"); // '' | 'ongoing' | 'closed'
   const loaderRef = useRef(null);
   const navigate = useNavigate();
 
