@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class DiaryService {
@@ -269,50 +270,109 @@ public class DiaryService {
      **/
     @Transactional
     public void updateDiary(Integer userId, DiaryRequestDto diaryRequestDto, List<String> urls, List<MultipartFile> files) {
-        // 다이어리 미존재
-        Diary existingDiary = diaryRepository.findById(diaryRequestDto.getDiaryId()).orElse(null);
-        if (existingDiary == null || existingDiary.getDeleted()) {
-            throw new DiaryNotFoundException(diaryRequestDto.getDiaryId());
+        // 1. 기존 다이어리 조회 및 수정 권한 체크
+        Diary existingDiary = diaryRepository.findById(diaryRequestDto.getDiaryId())
+                .orElseThrow(() -> new DiaryNotFoundException(diaryRequestDto.getDiaryId()));
+        if (existingDiary.getDeleted() || !existingDiary.getUserId().equals(userId)) {
+            throw new UnauthorizedAccessException("다이어리 수정 권한 없음");
         }
 
-        // 다이어리 수정 권한 없음
-        if (!existingDiary.getUserId().equals(userId))
-            throw new UnauthorizedAccessException("다이어리 수정 권한 없음") {
-            };
-
-        // Diary column 수정
+        // 2. 다이어리 컬럼 업데이트
         existingDiary.setWorkoutDate(diaryRequestDto.getWorkoutDate());
         existingDiary.setContent(diaryRequestDto.getContent());
         existingDiary.setAllowedScope(diaryRequestDto.getAllowedScope());
-
-        // Diary update
         Diary savedDiary = diaryRepository.save(existingDiary);
 
-        // Hashtag update
+        // 3. 해시태그 업데이트: 기존 해시태그 삭제 후 새 해시태그 저장
         hashtagRepository.deleteAllByIdDiaryId(savedDiary.getDiaryId());
         saveHashtags(diaryRequestDto.getHashtags(), savedDiary.getDiaryId());
 
-        // DiaryWorkout update
-        List<DiaryWorkout> diaryWorkouts = updateDiaryWorkouts(diaryRequestDto.getDiaryWorkouts(), savedDiary);
-        List<DiaryWorkout> savedDiaryWorkouts = diaryWorkoutRepository.saveAll(diaryWorkouts);
+        // 4. 기존 DiaryWorkout 중 클라이언트에 없는 항목은 soft delete 처리
+        List<DiaryWorkout> currentWorkouts = diaryWorkoutRepository.findByDiaryIdAndDeletedFalse(savedDiary.getDiaryId());
+        Set<Integer> incomingDiaryWorkoutIds = diaryRequestDto.getDiaryWorkouts().stream()
+                .filter(dw -> dw.getDiaryWorkoutId() != null)
+                .map(DiaryWorkoutRequestDto::getDiaryWorkoutId)
+                .collect(Collectors.toSet());
+        for (DiaryWorkout dw : currentWorkouts) {
+            if (!incomingDiaryWorkoutIds.contains(dw.getDiaryWorkoutId())) {
+                dw.setDeleted(true);
+            }
+        }
+        diaryWorkoutRepository.saveAll(currentWorkouts);
 
-        // WorkoutSet update
-        List<WorkoutSet> workoutSets = updateWorkoutSets(diaryRequestDto.getDiaryWorkouts(), savedDiaryWorkouts);
-        workoutSetRepository.saveAll(workoutSets);
+        // 5. 업데이트할 DiaryWorkout들을 병합 처리 (업데이트 + 신규 INSERT)
+        List<DiaryWorkout> updatedWorkouts = new ArrayList<>();
+        for (DiaryWorkoutRequestDto workoutDto : diaryRequestDto.getDiaryWorkouts()) {
+            DiaryWorkout dw;
+            if (workoutDto.getDiaryWorkoutId() != null) {
+                dw = diaryWorkoutRepository.findById(workoutDto.getDiaryWorkoutId())
+                        .orElseThrow(() -> new DiaryWorkoutNotFoundException(workoutDto.getDiaryWorkoutId()));
+                dw.setWorkoutId(workoutDto.getWorkoutId());
+                dw.setDeleted(Boolean.TRUE.equals(workoutDto.getDeleted()));
+            } else {
+                dw = new DiaryWorkout();
+                dw.setDiaryId(savedDiary.getDiaryId());
+                dw.setWorkoutId(workoutDto.getWorkoutId());
+                dw.setDeleted(Boolean.TRUE.equals(workoutDto.getDeleted()));
+            }
+            updatedWorkouts.add(dw);
+        }
+        List<DiaryWorkout> savedDiaryWorkouts = diaryWorkoutRepository.saveAll(updatedWorkouts);
 
-        // unused image delete
-        List<Image> existingImages = imageService.getImages("diary", existingDiary.getDiaryId());
-        for (Image image : existingImages) {
+        // 6. 운동 세트 업데이트
+        // → 기존 세트를 모두 soft delete한 후, 클라이언트에서 온 세트 정보로 새로 INSERT
+        List<WorkoutSet> newWorkoutSets = new ArrayList<>();
+        for (DiaryWorkoutRequestDto workoutDto : diaryRequestDto.getDiaryWorkouts()) {
+            // 만약 해당 운동이 삭제된 상태이면 세트는 무시
+            if (Boolean.TRUE.equals(workoutDto.getDeleted()))
+                continue;
+            // matching DiaryWorkout 찾기 (기존 항목: diaryWorkoutId, 신규 항목: workoutId로 비교)
+            DiaryWorkout matchingWorkout = null;
+            if (workoutDto.getDiaryWorkoutId() != null) {
+                matchingWorkout = savedDiaryWorkouts.stream()
+                        .filter(dw -> dw.getDiaryWorkoutId().equals(workoutDto.getDiaryWorkoutId()))
+                        .findFirst().orElse(null);
+            } else {
+                matchingWorkout = savedDiaryWorkouts.stream()
+                        .filter(dw -> dw.getWorkoutId().equals(workoutDto.getWorkoutId()))
+                        .findFirst().orElse(null);
+            }
+            if (matchingWorkout == null) continue;
+            // 기존 세트 모두 soft delete 처리
+            List<WorkoutSet> existingSets = workoutSetRepository.findByDiaryWorkoutIdAndDeletedFalse(matchingWorkout.getDiaryWorkoutId());
+            for (WorkoutSet ws : existingSets) {
+                ws.setDeleted(true);
+            }
+            workoutSetRepository.saveAll(existingSets);
+            // 새로 들어온 세트들을 INSERT
+            if (workoutDto.getSets() != null) {
+                for (WorkoutSetRequestDto setDto : workoutDto.getSets()) {
+                    // 만약 클라이언트에서 삭제 표시한 세트라면 건너뛰기 (삭제된 세트는 저장하지 않음)
+                    if (Boolean.TRUE.equals(setDto.getDeleted())) continue;
+                    WorkoutSet newSet = new WorkoutSet();
+                    newSet.setDiaryWorkoutId(matchingWorkout.getDiaryWorkoutId());
+                    newSet.setWeight(setDto.getWeight());
+                    newSet.setRepetition(setDto.getRepetition());
+                    newSet.setWorkoutTime(setDto.getWorkoutTime());
+                    newSet.setDeleted(false);
+                    newWorkoutSets.add(newSet);
+                }
+            }
+        }
+        workoutSetRepository.saveAll(newWorkoutSets);
+
+        // 7. 이미지 처리 (기존 이미지 유지/삭제 및 새 이미지 업로드)
+        List<Image> currentImages = imageService.getImages("diary", savedDiary.getDiaryId());
+        for (Image image : currentImages) {
             if (urls == null || !urls.contains(imageService.getS3Url(image.getUrl()))) {
                 imageService.deleteImage(image.getImageId());
             }
         }
-
-        // new image insert
         if (files != null && !files.isEmpty()) {
-            imageService.uploadImages(files, "diary", Long.valueOf(existingDiary.getDiaryId()));
+            imageService.uploadImages(files, "diary", Long.valueOf(savedDiary.getDiaryId()));
         }
     }
+
 
     /**
      * DB에 업데이트할 운동 목록 리스트 반환
