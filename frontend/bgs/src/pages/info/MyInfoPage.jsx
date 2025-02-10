@@ -1,6 +1,6 @@
 import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import useUserStore from "../../stores/useUserStore";
 import { getUser } from "../../api/User";
 import { deleteUser } from "../../api/User";
@@ -19,9 +19,10 @@ export default function MyInfoPage() {
   const [totalWeightData, setTotalWeightData] = useState([]);
   const [workoutFrequency, setWorkoutFrequency] = useState([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const dropdownRef = useRef({});
   useEffect(() => {
     getUser().then((res) => setUser(res));
-  });
+  }, []);
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -57,6 +58,18 @@ export default function MyInfoPage() {
       }
     };
     fetchUserData();
+  }, [setUser]);
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsSettingsOpen(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
   if (!user) return <p>로딩 중...</p>;
   const handleDeleteUser = () => {
@@ -89,6 +102,7 @@ export default function MyInfoPage() {
             </div>
           </div>
           <button
+            ref={dropdownRef}
             onClick={() => {
               setIsSettingsOpen(!isSettingsOpen);
             }}

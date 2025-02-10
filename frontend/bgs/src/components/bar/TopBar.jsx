@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import ArrowBackLogo from "../../assets/icons/ArrowBack.png";
 import Favicon from "../../assets/images/Favicon.png";
@@ -7,13 +7,23 @@ import SignoutIcon from "../../assets/icons/Signout.svg";
 import { handleLogout } from "../../api/Auth";
 export default function TopBar() {
   const [isOpen, setIsOpen] = useState(false);
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
+  const dropdownRef = useRef({});
   const navigate = useNavigate();
   const handleNavigation = (url) => {
     navigate(url); // url로 이동
   };
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   return (
     <div className="w-full border-b z-30">
       <div className="flex justify-between items-center px-4 py-3">
@@ -34,8 +44,11 @@ export default function TopBar() {
         </button>
 
         <button
+          ref={dropdownRef}
           className="text-gray-600 hover:text-blue-500"
-          onClick={toggleDropdown}
+          onClick={() => {
+            setIsOpen(!isOpen);
+          }}
         >
           <img src={MoreIcon} alt="Home" className="w-6 h-6" />
         </button>
