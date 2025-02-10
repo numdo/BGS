@@ -10,6 +10,7 @@ import SocialSignupPage from "./pages/auth/SocialSignupPage";
 import MainPage from "./pages/home/MainPage";
 import MyGymPage from "./pages/mygym/MyGymPage";
 import MyInfoPage from "./pages/info/MyInfoPage";
+import MyInfoEditPage from "./pages/info/MyInfoEditPage";
 import WorkoutPage from "./pages/workout/WorkoutPage";
 import WorkoutDiaryPage from "./pages/workout/WorkoutDiaryPage";
 import WorkoutCreatePage from "./pages/workout/WorkoutCreatePage";
@@ -53,6 +54,7 @@ function App() {
               element={<EvaluationDetailPage />}
             />
             <Route path="/myinfo" element={<MyInfoPage />} />
+            <Route path="/myinfoedit" element={<MyInfoEditPage />} />
             <Route path="/profile/:userId" element={<UserInfoPage />} />
             <Route path="/workout" element={<WorkoutPage />} />
             <Route path="/workoutdiary" element={<WorkoutDiaryPage />} />
