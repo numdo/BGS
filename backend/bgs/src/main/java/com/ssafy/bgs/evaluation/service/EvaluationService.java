@@ -31,6 +31,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,7 +53,7 @@ public class EvaluationService {
             evaluations = evaluationRepository.findByDeletedFalse(pageable);
         }
         else {
-            evaluations = evaluationRepository.findByDeletedFalseAndClosed(pageable, closed);
+            evaluations = evaluationRepository.findByDeletedFalseAndClosed(closed, pageable);
         }
         evaluations.forEach(evaluation -> {
             EvaluationFeedResponseDto responseDto = new EvaluationFeedResponseDto();
@@ -85,7 +86,7 @@ public class EvaluationService {
         if (closed == null) {
             evaluations = evaluationRepository.findByDeletedFalse(pageable); // 삭제되지 않은 모든 게시물
         } else {
-            evaluations = evaluationRepository.findByDeletedFalseAndClosed(pageable, closed); // 삭제되지 않고 투표 완료 여부 필터링
+            evaluations = evaluationRepository.findByDeletedFalseAndClosed(closed, pageable); // 삭제되지 않고 투표 완료 여부 필터링
         }
 
         return evaluations.map(this::convertToDto);
@@ -96,7 +97,7 @@ public class EvaluationService {
      * 평가 게시물 상세 조회
      */
     @Transactional
-    public EvaluationResponseDto getEvaluationById(Integer evaluationId) {
+    public EvaluationResponseDto getEvaluationById(Integer evaluationId, Integer userId) {
         Evaluation evaluation = evaluationRepository.findById(evaluationId)
                 .orElseThrow(() -> new EvaluationNotFoundException(evaluationId));
 
@@ -114,9 +115,17 @@ public class EvaluationService {
                 .collect(Collectors.toList());
 
         EvaluationResponseDto responseDto = convertToDto(evaluation);
+
+        // 작성자, 작성자 투표 여부 조회
         responseDto.setWriter(writer.getNickname());
+        Optional<Vote> voted = voteRepository.findById(new VoteId(evaluationId, userId));
+        voted.ifPresent(vote -> responseDto.setVoted(vote.getApproval()));
+
+        // 투표수 조회
         responseDto.setVoteCount(voteRepository.countByEvaluationId(evaluationId));
         responseDto.setApprovalCount(voteRepository.countByEvaluationIdAndApprovalTrue(evaluationId));
+
+        // 이미지 조회
         responseDto.setImageUrls(imageUrls);
         ImageResponseDto image = imageService.getImage("profile", writer.getId());
         if (image != null) {

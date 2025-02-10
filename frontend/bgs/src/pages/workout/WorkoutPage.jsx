@@ -133,20 +133,6 @@ export default function WorkoutPage() {
                     <p className="text-gray-600">{diary.content}</p>
                   </div>
                   <div className="flex space-x-2">
-                    {/* <button
-                      className="px-auto py-2 border border-blue-300 rounded-md h-10 w-10"
-                      onClick={
-                        () => navigate(`/workoutupdate/${diary.diaryId}`) // ✅ URL에 diaryId 포함
-                      }
-                    >
-                      수정
-                    </button>
-                    <button
-                      className="px-auto py-2 border border-red-300 rounded-md h-10 w-10"
-                      onClick={() => handleDeleteDiary(diary.diaryId)}
-                    >
-                      삭제
-                    </button> */}
                     <div
                       className="relative"
                       ref={(el) => (dropdownRefs.current[diary.diaryId] = el)}
@@ -191,6 +177,8 @@ export default function WorkoutPage() {
               선택한 날짜에 운동일지가 없습니다.
             </p>
           )}
+        </div>
+        <div className="w-full h-32">
         </div>
         <button
           onClick={() => navigate("/workoutcreate")}

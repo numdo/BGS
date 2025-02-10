@@ -13,7 +13,7 @@ import "slick-carousel/slick/slick-theme.css";
 
 const API_URL = "/diaries";
 
-const FeedDetailPage = () => {
+const DiaryDetailPage = () => {
   const { diaryId } = useParams();
   const navigate = useNavigate();
   const [feed, setFeed] = useState(null);
@@ -24,10 +24,9 @@ const FeedDetailPage = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-
     if (token) {
       try {
-        const decodedToken = JSON.parse(atob(token.split("."))[1]);
+        const decodedToken = JSON.parse(atob(token.split(".")[1]));
         setUserId(decodedToken.sub);
       } catch (error) {
         console.error("토큰 디코딩 오류:", error);
@@ -118,9 +117,9 @@ const FeedDetailPage = () => {
 
             {/* 메뉴바 */}
             <div className="ml-auto relative">
-              <button onClick={toggleMenu} className="text-xl">
+              { feed.userId == userId && (<button onClick={toggleMenu} className="text-xl">
                 ⋮
-              </button>
+              </button>)}
 
               {/* 메뉴 */}
               {isMenuOpen && (
@@ -191,4 +190,4 @@ const FeedDetailPage = () => {
   );
 };
 
-export default FeedDetailPage;
+export default DiaryDetailPage;

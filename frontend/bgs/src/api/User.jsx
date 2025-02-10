@@ -31,12 +31,8 @@ export async function updateUser(userData) {
 
 // ✅ 회원 탈퇴
 export async function deleteUser() {
-  try {
-    const response = await axiosInstance.delete(`${BASE_URL}/me`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await axiosInstance.delete(`${BASE_URL}/me`);
+  return response.data;
 }
 
 // ✅ 비밀번호 변경

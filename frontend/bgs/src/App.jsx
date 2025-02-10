@@ -1,3 +1,4 @@
+import React from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
 
 import LoginPage from "./pages/auth/LoginPage";
@@ -9,13 +10,14 @@ import SocialSignupPage from "./pages/auth/SocialSignupPage";
 import MainPage from "./pages/home/MainPage";
 import MyGymPage from "./pages/mygym/MyGymPage";
 import MyInfoPage from "./pages/info/MyInfoPage";
-import FeedPage from "./pages/feed/FeedPage";
-import FeedDetailPage from "./pages/feed/FeedDetailPage";
 import WorkoutPage from "./pages/workout/WorkoutPage";
 import WorkoutDiaryPage from "./pages/workout/WorkoutDiaryPage";
 import WorkoutCreatePage from "./pages/workout/WorkoutCreatePage";
 import WorkoutUpdatePage from "./pages/workout/WorkoutUpdatePage";
 import WorkoutRealtimePage from "./pages/workout/WorkoutRealtimePage";
+import FeedPage from "./pages/feed/FeedPage";
+import DiaryDetailPage from "./pages/feed/DiaryDetailPage";
+import EvaluationDetailPage from "./pages/feed/EvaluationDetailPage";
 import UserDetailsPage from "./pages/auth/UserDetailsPage";
 import AdminItemPage from "./pages/admin/AdminItemPage";
 import UserInfoPage from "./pages/info/UserInfoPage";
@@ -44,8 +46,12 @@ function App() {
             <Route path="/user-details" element={<UserDetailsPage />} />
             <Route path="/mygym" element={<MyGymPage />} />
             <Route path="/admin-item" element={<AdminItemPage />} />
-            <Route path="/feed" element={<FeedPage />} />
-            <Route path="/feed/:diaryId" element={<FeedDetailPage />} />
+            <Route path="/feeds" element={<FeedPage />} />
+            <Route path="/feeds/diary/:diaryId" element={<DiaryDetailPage />} />
+            <Route
+              path="/feeds/evaluation/:evaluationId"
+              element={<EvaluationDetailPage />}
+            />
             <Route path="/myinfo" element={<MyInfoPage />} />
             <Route path="/profile/:userId" element={<UserInfoPage />} />
             <Route path="/workout" element={<WorkoutPage />} />

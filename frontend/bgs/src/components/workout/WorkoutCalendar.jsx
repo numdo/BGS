@@ -68,8 +68,8 @@ const WorkoutCalendar = ({ onDateSelect, selectedDate, diaryDates = [] }) => {
   const calendarDays = generateCalendar();
 
   return (
-    <div className="mb-3 p-4 bg-gray-50 rounded-lg">
-      <div className="flex justify-between items-center mb-4 ">
+    <div className="mb-3 px-3 pt-1 pb-3 bg-gray-50 rounded-lg">
+      <div className="flex justify-between items-center mb-1">
         <button onClick={() => handleChangeMonth(-1)}>&lt;</button>
         <h2 className="text-lg font-bold text-gray-500">
           {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
@@ -84,14 +84,14 @@ const WorkoutCalendar = ({ onDateSelect, selectedDate, diaryDates = [] }) => {
       </div>
 
       {/* 요일 헤더 */}
-      <div className="grid grid-cols-7 gap-2 text-center text-gray-500 font-semibold">
+      <div className="grid grid-cols-7 text-center text-gray-500 font-semibold">
         {["일", "월", "화", "수", "목", "금", "토"].map((dayName) => (
           <div key={dayName}>{dayName}</div>
         ))}
       </div>
 
       {/* 날짜 영역 */}
-      <div className="grid grid-cols-7 gap-2 text-center">
+      <div className="grid grid-cols-7 gap-1 text-center">
         {calendarDays.map((day, index) => {
           // 날짜가 null인 칸(이전월 공백)은 클릭 안 되도록 처리
           if (!day) {
@@ -119,7 +119,7 @@ const WorkoutCalendar = ({ onDateSelect, selectedDate, diaryDates = [] }) => {
           return (
             <div
               key={index}
-              className={`relative p-2 rounded-md border border-gray-200 cursor-pointer ${
+              className={`relative px-1 py-2 rounded-md border border-gray-200 cursor-pointer ${
                 isSelected
                   ? "bg-[#987D11] text-white"
                   : "bg-white text-gray-500"

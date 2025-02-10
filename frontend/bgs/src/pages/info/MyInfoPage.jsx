@@ -3,36 +3,33 @@ import TopBar from "../../components/bar/TopBar";
 import { useState, useEffect } from "react";
 import useUserStore from "../../stores/useUserStore";
 import { getUser } from "../../api/User";
+import { deleteUser } from "../../api/User";
 import { follow, unfollow, getFollowingList } from "../../api/Follow";
+import settings from "../../assets/icons/settings.svg";
 import PostsTab from "../../components/myinfo/PostsTab";
 import StatsTab from "../../components/myinfo/StatsTab";
 import MyGymTab from "../../components/myinfo/MyGymTab";
 import DefaultProfileImage from "../../assets/icons/MyInfo.png";
+import { useNavigate } from "react-router-dom";
 export default function MyInfoPage() {
+  const navigate = useNavigate();
   const { user, setUser } = useUserStore();
-  const [isFollowing, setIsFollowing] = useState(false);
   const [activeTab, setActiveTab] = useState("posts");
   const [weightData, setWeightData] = useState([]);
   const [totalWeightData, setTotalWeightData] = useState([]);
   const [workoutFrequency, setWorkoutFrequency] = useState([]);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   useEffect(() => {
     getUser().then((res) => setUser(res));
-  }, []);
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
+  });
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const res = await getUser(); // ✅ 친구 프로필 정보 가져오기
+        const res = await getUser(); // ✅ 내내 프로필 정보 가져오기
         console.log("🔹 내 프로필 데이터:", res);
         setUser(res);
         // ✅ 팔로우 상태 확인
         const followingList = await getFollowingList();
-        const isUserFollowing = followingList.some(
-          (f) => f.userId === res.userId
-        );
-        setIsFollowing(isUserFollowing);
 
         setWeightData([
           { date: "01-01", weight: res.weight - 3 },
@@ -59,39 +56,25 @@ export default function MyInfoPage() {
         console.error("❌ 친구 프로필 가져오기 실패:", error);
       }
     };
-
     fetchUserData();
   }, []);
-  const handleFollowToggle = async () => {
-    if (!user?.userId) {
-      console.error("❌ 유저 ID가 존재하지 않습니다.");
-      return;
-    }
-
-    const previousState = isFollowing; // 이전 상태 저장
-    setIsFollowing(!isFollowing); // ✅ UI 즉시 반영
-
-    try {
-      if (isFollowing) {
-        await unfollow(user.userId);
-        console.log(`언팔로우 성공: ${user.userId}`);
-      } else {
-        await follow(user.userId);
-        console.log(`팔로우 성공: ${user.userId}`);
-      }
-      setIsFollowing(!isFollowing);
-    } catch (error) {
-      console.error("❌ 팔로우 변경 중 오류 발생:", error);
-      setIsFollowing(previousState); // ✅ 실패하면 원래 상태로 롤백
+  if (!user) return <p>로딩 중...</p>;
+  const handleDeleteUser = () => {
+    const isConfirmed = window.confirm("정말로 탈퇴하시겠습니까?");
+    if (isConfirmed) {
+      deleteUser();
+      alert("회원 탈퇴가 완료되었습니다");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      navigate("/login");
     }
   };
-  if (!user) return <p>로딩 중...</p>;
   return (
     <>
       <TopBar />
-      <div className="p-6 max-w-3xl mx-auto">
+      <div className="px-6 pt-2 max-w-3xl mx-auto">
         {/* 상단 프로필 섹션 */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between">
           <div className="flex items-center">
             <img
               src={user.profileImageUrl || DefaultProfileImage} // ✅ 기본 이미지 추가
@@ -105,15 +88,27 @@ export default function MyInfoPage() {
               <p className="text-gray-600 mt-2">{user.introduce}</p>
             </div>
           </div>
-          {/* ✅ 팔로우 버튼 */}
           <button
-            className={`py-2 px-4 rounded-lg font-semibold transition ${
-              isFollowing ? "bg-gray-400 text-white" : "bg-primary text-white"
-            }`}
-            onClick={handleFollowToggle}
+            onClick={() => {
+              setIsSettingsOpen(!isSettingsOpen);
+            }}
           >
-            {isFollowing ? "언팔로우" : "팔로우"}
+            <img src={settings} alt="" />
           </button>
+          {isSettingsOpen && (
+            <div className="absolute right-0 top-36 w-30 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
+              <div className="" role="menu">
+                <div
+                  onClick={() => {
+                    handleDeleteUser();
+                  }} // ✅ handleLogout 함수 실행
+                  className="text-danger hover:bg-gray-100 p-2"
+                >
+                  <p className="inline-block align-middle">회원탈퇴</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 탭 네비게이션 */}

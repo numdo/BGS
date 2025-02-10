@@ -36,11 +36,8 @@ const PostsTab = ({ userId, nickname }) => {
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <h3 className="text-xl font-bold mb-4">{nickname}님의 게시물</h3>
-      {/* ✅ nickname을 받아서 출력 (user 객체 전체 필요 없음) */}
-
       {feeds.length === 0 ? (
-        <p className="text-gray-500">게시물이 없습니다.</p>
+        <p className="text-gray-500">게시물을 작성해보세요</p>
       ) : (
         <div className="grid grid-cols-3 gap-2">
           {feeds.map((feed) => (

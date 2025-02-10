@@ -440,7 +440,10 @@ export default function WorkoutCreatePage() {
     <>
       <TopBar />
       <div className="m-5 pb-24 flex-col relative">
-        <button className="absolute right-0 bg-gray-100 rounded-md w-6 h-6" onClick={() => {}}>
+        <button
+          className="absolute right-0 bg-gray-100 rounded-md w-6 h-6"
+          onClick={() => {}}
+        >
           <img src={moreicon} alt="" />
         </button>
         {/* 날짜 */}
@@ -490,7 +493,9 @@ export default function WorkoutCreatePage() {
                 <button
                   onClick={() => setSelectedPartFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${
-                    selectedPartFilter === "" ? "bg-primary-light text-white" : ""
+                    selectedPartFilter === ""
+                      ? "bg-primary-light text-white"
+                      : ""
                   }`}
                 >
                   전체
@@ -500,7 +505,9 @@ export default function WorkoutCreatePage() {
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedPartFilter === part ? "bg-primary-light text-white" : ""
+                      selectedPartFilter === part
+                        ? "bg-primary-light text-white"
+                        : ""
                     }`}
                   >
                     {part}
@@ -513,7 +520,9 @@ export default function WorkoutCreatePage() {
                 <button
                   onClick={() => setSelectedToolFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${
-                    selectedToolFilter === "" ? "bg-primary-light text-white" : ""
+                    selectedToolFilter === ""
+                      ? "bg-primary-light text-white"
+                      : ""
                   }`}
                 >
                   전체
@@ -523,7 +532,9 @@ export default function WorkoutCreatePage() {
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedToolFilter === tool ? "bg-primary-light text-white" : ""
+                      selectedToolFilter === tool
+                        ? "bg-primary-light text-white"
+                        : ""
                     }`}
                   >
                     {tool}
@@ -711,6 +722,7 @@ export default function WorkoutCreatePage() {
           />
           <div className="flex flex-col">
             <label className="font-bold mb-2">이미지 업로드 (최대 6장)</label>
+
             <div className="flex flex-wrap gap-2 ">
               {previewUrls.map((url, idx) => (
                 <div key={idx} className="relative w-40 h-40">
