@@ -15,7 +15,7 @@ export default function TopBar() {
     navigate(url); // url로 이동
   };
   return (
-    <div className="w-full border-b z-10">
+    <div className="w-full border-b z-30">
       <div className="flex justify-between items-center px-4 py-3">
         <button
           className="text-gray-600 hover:text-blue-500"
@@ -41,11 +41,11 @@ export default function TopBar() {
         </button>
       </div>
       {isOpen && (
-        <div className="absolute right-0 w-28 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+        <div className="absolute right-0 w-30 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
           <div className="" role="menu">
             <div
               onClick={() => handleLogout(navigate)} // ✅ handleLogout 함수 실행
-              className="hover:bg-gray-100 m-1 p-1"
+              className="hover:bg-gray-100 p-2 border-b border-gray-200"
             >
               <img
                 src={SignoutIcon}
@@ -56,7 +56,7 @@ export default function TopBar() {
             </div>
             <div
               onClick={() => navigate("/login")} // ✅ handleLogout 함수 실행
-              className="hover:bg-gray-100 m-1 p-1"
+              className="hover:bg-gray-100 p-2"
             >
               <img
                 src={SignoutIcon}
