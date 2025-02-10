@@ -53,7 +53,7 @@ public class EvaluationService {
             evaluations = evaluationRepository.findByDeletedFalse(pageable);
         }
         else {
-            evaluations = evaluationRepository.findByDeletedFalseAndClosed(pageable, closed);
+            evaluations = evaluationRepository.findByDeletedFalseAndClosed(closed, pageable);
         }
         evaluations.forEach(evaluation -> {
             EvaluationFeedResponseDto responseDto = new EvaluationFeedResponseDto();
@@ -86,7 +86,7 @@ public class EvaluationService {
         if (closed == null) {
             evaluations = evaluationRepository.findByDeletedFalse(pageable); // 삭제되지 않은 모든 게시물
         } else {
-            evaluations = evaluationRepository.findByDeletedFalseAndClosed(pageable, closed); // 삭제되지 않고 투표 완료 여부 필터링
+            evaluations = evaluationRepository.findByDeletedFalseAndClosed(closed, pageable); // 삭제되지 않고 투표 완료 여부 필터링
         }
 
         return evaluations.map(this::convertToDto);

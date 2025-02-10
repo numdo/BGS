@@ -12,6 +12,6 @@ public interface EvaluationRepository extends JpaRepository<Evaluation, Integer>
     Page<Evaluation> findByDeletedFalse(Pageable pageable);
 
     // 삭제되지 않고, 투표 완료 여부 필터링하여 조회
-    Page<Evaluation> findByDeletedFalseAndClosed(Pageable pageable, boolean closed);
+    Page<Evaluation> findByDeletedFalseAndClosed(boolean close, Pageable pageable);
 }
 
