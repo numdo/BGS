@@ -1,43 +1,52 @@
-import BottomBar from "../../components/bar/BottomBar";
-import TopBar from "../../components/bar/TopBar";
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import useUserStore from "../../stores/useUserStore";
-import { getUser, deleteUser } from "../../api/User";
-import { getFollowerList, getFollowingList } from "../../api/Follow";
+import { getUser, deleteUser } from "../../api/User"; // ✅ 유저 정보 및 삭제 API
+import { getFollowerList, getFollowingList } from "../../api/Follow"; // ✅ 팔로워 & 팔로잉 목록 API
+import { getUserPostCount } from "../../api/Feed"; // ✅ 게시물 개수 가져오기 API
 import settings from "../../assets/icons/settings.svg";
-import PostsTab from "../../components/myinfo/PostsTab";
-import StatsTab from "../../components/myinfo/StatsTab";
-import MyGymTab from "../../components/myinfo/MyGymTab";
 import myinfo from "../../assets/icons/myinfo.png";
 import SignoutIcon from "../../assets/icons/signout.svg";
-import { handleLogout } from "../../api/Auth";
-import { useNavigate } from "react-router-dom";
+import { handleLogout } from "../../api/Auth"; // ✅ 로그아웃 API
+import PostsTab from "../../components/myinfo/PostsTab"; // ✅ 게시물 탭
+import StatsTab from "../../components/myinfo/StatsTab"; // ✅ 통계 탭
+import MyGymTab from "../../components/myinfo/MyGymTab"; // ✅ 마이짐 탭
+import BottomBar from "../../components/bar/BottomBar"; // ✅ 하단 네비게이션 바
+import TopBar from "../../components/bar/TopBar"; // ✅ 상단 네비게이션 바
 
 export default function MyInfoPage() {
   const navigate = useNavigate();
-  const { me, setMe } = useUserStore(); // ✅ setMe를 가져와야 함
-  const [activeTab, setActiveTab] = useState("posts");
-  const [weightData, setWeightData] = useState([]);
-  const [totalWeightData, setTotalWeightData] = useState([]);
-  const [workoutFrequency, setWorkoutFrequency] = useState([]);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [followerCount, setFollowerCount] = useState(0);
-  const [followingCount, setFollowingCount] = useState(0);
-  const dropdownRef = useRef(null);
+  const { me, setMe } = useUserStore(); // ✅ 현재 로그인한 유저 정보 (Zustand 상태 관리)
+  const [activeTab, setActiveTab] = useState("posts"); // ✅ 선택된 탭 상태
+  const [weightData, setWeightData] = useState([]); // ✅ 몸무게 변화 데이터
+  const [totalWeightData, setTotalWeightData] = useState([]); // ✅ 총 운동량 데이터
+  const [workoutFrequency, setWorkoutFrequency] = useState([]); // ✅ 운동 빈도 데이터
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // ✅ 설정 메뉴 상태 (열림/닫힘)
+  const [followerCount, setFollowerCount] = useState(0); // ✅ 팔로워 수
+  const [followingCount, setFollowingCount] = useState(0); // ✅ 팔로잉 수
+  const [postCount, setPostCount] = useState(0); // ✅ 게시물 개수
+  const dropdownRef = useRef(null); // ✅ 설정 메뉴 닫기 위한 ref
 
+  // ✅ 유저 정보 & 통계 데이터 가져오기
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const res = await getUser(); // ✅ 내 프로필 정보 가져오기
+        const res = await getUser(); // ✅ 로그인된 유저 정보 요청
         console.log("🔹 내 프로필 데이터:", res);
-        setMe(res); // ✅ setUser 대신 setMe 사용
+        setMe(res); // ✅ Zustand 상태 업데이트
 
-        // ✅ 팔로워 & 팔로잉 수 가져오기
-        const followers = await getFollowerList();
-        const followings = await getFollowingList();
-        setFollowerCount(followers.length);
-        setFollowingCount(followings.length);
+        // ✅ 팔로워 & 팔로잉 수, 게시물 개수 한 번에 요청
+        const [followers, followings, postData] = await Promise.all([
+          getFollowerList(),
+          getFollowingList(),
+          getUserPostCount(res.userId),
+        ]);
 
+        setFollowerCount(followers.length); // ✅ 팔로워 수 업데이트
+        setFollowingCount(followings.length); // ✅ 팔로잉 수 업데이트
+        setPostCount(postData ?? 0); // ✅ 게시물 수 업데이트 (undefined 방지)
+
+        // ✅ 운동 데이터 (더미 데이터 유지)
         setWeightData([
           { date: "01-01", weight: res.weight - 3 },
           { date: "01-10", weight: res.weight - 2 },
@@ -65,8 +74,9 @@ export default function MyInfoPage() {
     };
 
     fetchUserData();
-  }, [setMe]); // ✅ setUser -> setMe로 변경
+  }, [setMe]);
 
+  // ✅ 설정 메뉴 외부 클릭 시 닫기
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -80,8 +90,9 @@ export default function MyInfoPage() {
     };
   }, []);
 
-  if (!me) return <p>로딩 중...</p>; // ✅ user -> me로 변경
+  if (!me) return <p>로딩 중...</p>;
 
+  // ✅ 회원 탈퇴 기능
   const handleDeleteUser = () => {
     const isConfirmed = window.confirm("정말로 탈퇴하시겠습니까?");
     if (isConfirmed) {
@@ -97,11 +108,11 @@ export default function MyInfoPage() {
     <>
       <TopBar />
       <div className="px-6 pt-2 max-w-3xl mx-auto">
-        {/* 상단 프로필 섹션 */}
+        {/* ✅ 상단 프로필 섹션 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <img
-              src={me.profileImageUrl || myinfo} // ✅ user -> me로 변경
+              src={me.profileImageUrl || myinfo}
               alt="Profile"
               className="rounded-full h-24 w-24"
             />
@@ -129,65 +140,34 @@ export default function MyInfoPage() {
           </div>
           <button
             ref={dropdownRef}
-            onClick={() => {
-              setIsSettingsOpen(!isSettingsOpen);
-            }}
+            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
           >
             <img src={settings} alt="설정" />
           </button>
-          {isSettingsOpen && (
-            <div className="absolute right-3 top-32 w-30 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
-              <div className="" role="menu">
-                <div
-                  onClick={() => {
-                    navigate("/myinfoedit");
-                  }}
-                  className="hover:bg-gray-100 p-2"
-                >
-                  <p className="inline-block align-middle">프로필 편집</p>
-                </div>
-                <div
-                  onClick={() => handleLogout(navigate)} // ✅ handleLogout 함수 실행
-                  className="hover:bg-gray-100 p-2 border-b border-gray-200"
-                >
-                  <img
-                    src={SignoutIcon}
-                    alt="signout"
-                    className="inline-block align-middle mr-2"
-                  />
-                  <p className="inline-block align-middle">로그아웃</p>
-                </div>
-                <div
-                  onClick={() => {
-                    handleDeleteUser();
-                  }}
-                  className="text-danger hover:bg-gray-100 p-2"
-                >
-                  <p className="inline-block align-middle">회원탈퇴</p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* 탭 네비게이션 */}
+        {/* ✅ 탭 네비게이션 (게시물 수 포함) */}
         <div className="flex justify-around">
-          {["posts", "stats", "myGym"].map((tab) => (
+          {[
+            { key: "posts", label: `게시물 (${postCount})` },
+            { key: "stats", label: "통계" },
+            { key: "myGym", label: "마이짐" },
+          ].map((tab) => (
             <button
-              key={tab}
+              key={tab.key}
               className={`py-2 px-4 ${
-                activeTab === tab
+                activeTab === tab.key
                   ? "border-b-2 border-primary text-gray-800"
                   : "text-gray-500"
               }`}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => setActiveTab(tab.key)}
             >
-              {tab === "posts" ? "게시물" : tab === "stats" ? "통계" : "마이짐"}
+              {tab.label}
             </button>
           ))}
         </div>
 
-        {/* 탭 내용 렌더링 */}
+        {/* ✅ 탭 내용 렌더링 */}
         <div className="p-4">
           {activeTab === "posts" && (
             <PostsTab userId={me.userId} nickname={me.nickname} />
