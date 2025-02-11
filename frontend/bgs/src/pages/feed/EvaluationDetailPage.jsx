@@ -6,7 +6,7 @@ import Slider from "react-slick";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
 import ProfileDefaultImage from "../../assets/icons/MyInfo.png";
-import MoreIcon from "../../assets/icons/more.svg";
+import MoreIcon from "../../assets/icons/More.svg";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
