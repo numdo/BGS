@@ -124,6 +124,7 @@ public class AuthService {
         // 기타 기본값 설정 (필요 시 추가)
         user.setDeleted(false);
         user.setPassword(null);  // 소셜 로그인은 비밀번호를 사용하지 않음
+        user.setRole("USER");
         return userRepository.save(user);
     }
 

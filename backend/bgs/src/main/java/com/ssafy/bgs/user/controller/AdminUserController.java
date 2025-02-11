@@ -4,6 +4,7 @@ import com.ssafy.bgs.user.dto.request.AdminResetPasswordRequestDto;
 import com.ssafy.bgs.user.dto.request.AdminUpdateUserRequestDto;
 import com.ssafy.bgs.user.dto.response.AdminUserResponseDto;
 import com.ssafy.bgs.user.dto.response.UserResponseDto;
+import com.ssafy.bgs.user.service.AdminUserService;
 import com.ssafy.bgs.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,15 +16,15 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AdminUserController {
 
+    private final AdminUserService adminUserService;
     private final UserService userService;
-
     // 1. 회원 목록 조회 (페이징, 검색 옵션 포함)
     @GetMapping
-    public ResponseEntity<Page<UserResponseDto>> getAllUsers(
+    public ResponseEntity<Page<AdminUserResponseDto>> getAllUsers(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String keyword) {
-        Page<UserResponseDto> result = userService.adminGetAllUsers(page, pageSize, keyword);
+        Page<AdminUserResponseDto> result = adminUserService.adminGetAllUsers(page, pageSize, keyword);
         return ResponseEntity.ok(result);
     }
 
@@ -39,14 +40,14 @@ public class AdminUserController {
     public ResponseEntity<?> updateUser(
             @PathVariable Integer userId,
             @RequestBody AdminUpdateUserRequestDto requestDto) {
-        AdminUserResponseDto response = userService.adminUpdateUser(userId, requestDto);
+        AdminUserResponseDto response = adminUserService.adminUpdateUser(userId, requestDto);
         return ResponseEntity.ok(response);
     }
 
     // 4. 회원 삭제 (소프트 삭제)
     @DeleteMapping("/{userId}")
     public ResponseEntity<?> deleteUser(@PathVariable Integer userId) {
-        userService.adminDeleteUser(userId);
+        adminUserService.adminDeleteUser(userId);
         return ResponseEntity.ok("{\"message\":\"회원이 삭제되었습니다.\"}");
     }
 
@@ -55,7 +56,7 @@ public class AdminUserController {
     public ResponseEntity<?> resetPassword(
             @PathVariable Integer userId,
             @RequestBody AdminResetPasswordRequestDto requestDto) {
-        userService.adminResetPassword(userId, requestDto.getNewPassword());
+        adminUserService.adminResetPassword(userId, requestDto.getNewPassword());
         return ResponseEntity.ok("{\"message\":\"비밀번호가 재설정되었습니다.\"}");
     }
 }
