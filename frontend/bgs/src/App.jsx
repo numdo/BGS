@@ -27,6 +27,8 @@ import BgsLoginPage from "./pages/auth/BgsLoginPage";
 import ProtectedLayout from "./components/auth/ProtectedLayout";
 import AtomicPage from "./pages/admin/AtomicPage";
 import FollowerFollowingListPage from "./pages/info/FollowerFollowingListPage";
+import AdminMainPage from "./pages/admin/AdminMainPage";
+import ForbiddenPage from "./pages/error/ForbiddenPage"; // 403 페이지 추가
 
 function App() {
   return (
@@ -40,6 +42,10 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/change-password" element={<ChangePasswordPage />} />
         <Route path="/social-signup" element={<SocialSignupPage />} />
+        <Route path="/admin/*" element={<AdminMainPage />} />
+        
+        {/* 403 Forbidden 페이지 */}
+        <Route path="/403" element={<ForbiddenPage />} />
 
         {/* Protected Routes: 로그인이 되어 있어야 함 */}
         <Route element={<ProtectedRoute />}>
