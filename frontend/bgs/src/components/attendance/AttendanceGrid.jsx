@@ -74,19 +74,25 @@ const AttendanceGrid = forwardRef((props, ref) => {
         const todayStr = formatDate(new Date());
         const attendanceData = { latitude, longitude };
         try {
-          await checkAttendance(attendanceData);
+          const response = await checkAttendance(attendanceData);
+          
+          // ✅ 출석 체크 성공 시 알림 표시
+          alert("✅ 출석이 완료되었습니다!");
+  
+          // 출석 정보 상태 업데이트
           setAttendanceMap((prev) => ({ ...prev, [todayStr]: attendanceData }));
         } catch (err) {
           console.error("출석 체크 실패:", err);
-          alert("출석 체크에 실패했습니다.");
+          alert("❌ 출석 체크에 실패했습니다. 다시 시도해주세요.");
         }
       },
       (error) => {
         console.error("위치 정보를 가져오는데 실패했습니다.", error);
-        alert("위치 정보를 가져오는데 실패했습니다.");
+        alert("❌ 위치 정보를 가져오는데 실패했습니다.");
       }
     );
   };
+  
 
   useImperativeHandle(ref, () => ({
     handleCheckAttendance,

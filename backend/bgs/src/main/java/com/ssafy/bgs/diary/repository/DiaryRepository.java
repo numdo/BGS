@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -31,4 +32,6 @@ public interface DiaryRepository extends JpaRepository<Diary, Integer> {
     List<DiaryFeedResponseDto> findByUserIdAndAllowedScopeAndDeletedFalse(Integer userId, String allowedScope, Pageable pageable);
 
     List<Diary> findByUserIdAndDeletedFalse(Integer userId);
+
+    boolean existsByUserIdAndCreatedAtBetween(Integer userId, LocalDateTime startOfDay, LocalDateTime endOfDay);
 }
