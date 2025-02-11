@@ -5,7 +5,7 @@ import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
 import WorkoutCalendar from "../../components/workout/WorkoutCalendar";
 
-import MoreIcon from "../../assets/icons/More.svg";
+import MoreIcon from "../../assets/icons/more.svg";
 
 import useDiaryStore from "../../stores/useDiaryStore";
 import useUserStore from "../../stores/useUserStore";
