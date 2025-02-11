@@ -10,11 +10,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -31,38 +34,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null) {
             try {
-                // 1) 유효한 Access Token인 경우 -> 인증 처리
-                Jws<Claims> claims = jwtTokenProvider.parseToken(token, true);
-                // parseToken()에 성공 -> 만료X, 서명O
-                Integer userId = Integer.valueOf(claims.getBody().getSubject());
-                setAuthentication(userId);
+                // 토큰 파싱 (access token 여부 true)
+                Jws<Claims> claimsJws = jwtTokenProvider.parseToken(token, true);
+                Claims body = claimsJws.getBody();
+                Integer userId = Integer.valueOf(body.getSubject());
+                String role = body.get("role", String.class);
+                // role에 따라 권한 설정 (예: "ADMIN"이면 ROLE_ADMIN, 아니면 ROLE_USER)
+                setAuthentication(userId, role);
 
             } catch (ExpiredJwtException ex) {
-                // 2) Access Token 만료된 경우 -> Refresh Token 확인 후 재발급
-                Integer userId = Integer.valueOf(ex.getClaims().getSubject());
+                // Access Token 만료 처리: Refresh Token을 확인하여 재발급
+                Claims expiredClaims = ex.getClaims();
+                Integer userId = Integer.valueOf(expiredClaims.getSubject());
+                String role = expiredClaims.get("role", String.class);
+
                 String redisKey = "user:login:" + userId;
                 String storedRefreshToken = (String) redisService.getValue(redisKey);
 
                 if (storedRefreshToken != null && jwtTokenProvider.validateToken(storedRefreshToken, false)) {
-                    // ★ Refresh가 유효 -> 새 Access 발급, 응답 헤더에 넣고 200 OK
-                    String newAccessToken = jwtTokenProvider.createAccessToken(userId);
+                    // Refresh Token이 유효하면 새 Access Token 재발급 (role 정보 포함)
+                    String newAccessToken = jwtTokenProvider.createAccessToken(userId, role);
                     response.setHeader("Authorization", "Bearer " + newAccessToken);
-                    setAuthentication(userId);
+                    setAuthentication(userId, role);
                 } else {
-                    // Refresh Token도 없거나 만료 -> 정말 로그인 불가 -> 401
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     return;
                 }
             } catch (Exception e) {
-                // 토큰 자체가 잘못됨 -> 401
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
         }
-        // 여기까지 왔으면 정상. 필터 체인 진행
         filterChain.doFilter(request, response);
     }
-
     /**
      * "Authorization: Bearer <TOKEN>" 헤더에서 토큰 추출
      */
@@ -73,9 +77,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
-    private void setAuthentication(Integer userId) {
+    private void setAuthentication(Integer userId, String role) {
+        List<SimpleGrantedAuthority> authorities;
+        if ("ADMIN".equalsIgnoreCase(role)) {
+            authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        } else {
+            authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+        }
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(userId, null, null);
+                new UsernamePasswordAuthenticationToken(userId, null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
     }
 }

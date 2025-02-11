@@ -144,6 +144,34 @@ export default function MyInfoPage() {
           >
             <img src={settings} alt="설정" />
           </button>
+          {isSettingsOpen && (
+            <div className="absolute right-3 top-32 w-30 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
+              <div className="" role="menu">
+                <div
+                  onClick={() => {
+                    navigate("/myinfoedit");
+                  }}
+                  className="hover:bg-gray-100 p-2"
+                >
+                  <p className="inline-block align-middle">프로필 편집</p>
+                </div>
+                <div
+                  onClick={() => handleLogout(navigate)} // ✅ handleLogout 함수 실행
+                  className="hover:bg-gray-100 p-2 border-b border-gray-200"
+                >
+                  <p className="inline-block align-middle">로그아웃</p>
+                </div>
+                <div
+                  onClick={() => {
+                    handleDeleteUser();
+                  }}
+                  className="text-danger hover:bg-gray-100 p-2"
+                >
+                  <p className="inline-block align-middle">회원탈퇴</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ✅ 탭 네비게이션 (게시물 수 포함) */}

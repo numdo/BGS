@@ -82,6 +82,10 @@ public class User {
     @Column(name = "deleted")
     private Boolean deleted;
 
+    @ColumnDefault("USER")
+    @Column(name = "role")
+    private String role;
+
     @PrePersist
     protected void onCreate() {
         // Asia/Seoul 기준의 로컬 시간으로 설정

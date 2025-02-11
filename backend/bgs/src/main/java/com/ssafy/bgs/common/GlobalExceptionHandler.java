@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,5 +48,12 @@ public class GlobalExceptionHandler {
         errorResponse.put("error", error);
         errorResponse.put("message", message);
         return ResponseEntity.status(status).body(errorResponse);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<String> handleMaxSizeException(MaxUploadSizeExceededException ex) {
+        return ResponseEntity
+                .status(HttpStatus.PAYLOAD_TOO_LARGE) // HTTP 413 상태 코드 반환
+                .body("업로드 가능한 파일 크기를 초과하였습니다. 최대 100MB 까지 업로드 가능합니다.");
     }
 }
