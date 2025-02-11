@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { changePassword } from "../../api/User"; // ✅ API 함수 불러오기
 import { ArrowLeft } from "lucide-react";
@@ -38,9 +38,7 @@ const ChangePasswordPage = () => {
     e.preventDefault();
 
     if (!isPasswordValid()) {
-      setError(
-        "비밀번호는 10자 이상, 영문, 숫자, 특수문자를 포함해야 합니다."
-      );
+      setError("비밀번호는 10자 이상, 영문, 숫자, 특수문자를 포함해야 합니다.");
       return;
     }
 
@@ -118,8 +116,8 @@ const ChangePasswordPage = () => {
 
         {/* 안내 문구 */}
         <p className="text-gray-500 text-sm mb-6 text-center">
-          새로운 비밀번호는 10자 이상이어야 하며, 영문문, 숫자,
-          특수문자를 포함해야 합니다.
+          새로운 비밀번호는 10자 이상이어야 하며, 영문문, 숫자, 특수문자를
+          포함해야 합니다.
         </p>
 
         {/* 오류 메시지 */}

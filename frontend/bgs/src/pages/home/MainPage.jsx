@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
-import camera from "../../assets/images/camera.png";
 import arrow_forward from "../../assets/icons/arrow_forward_ios.svg";
 import AttendanceGrid from "../../components/attendance/AttendanceGrid";
 import { useNavigate } from "react-router-dom";

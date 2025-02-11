@@ -3,12 +3,7 @@ import TopBar from "../../components/bar/TopBar";
 import { useState, useEffect, useRef } from "react";
 import useUserStore from "../../stores/useUserStore";
 import { getUser, deleteUser } from "../../api/User";
-import {
-  follow,
-  unfollow,
-  getFollowerList,
-  getFollowingList,
-} from "../../api/Follow";
+import { getFollowerList, getFollowingList } from "../../api/Follow";
 import settings from "../../assets/icons/settings.svg";
 import PostsTab from "../../components/myinfo/PostsTab";
 import StatsTab from "../../components/myinfo/StatsTab";
@@ -33,7 +28,7 @@ export default function MyInfoPage() {
       try {
         const res = await getUser(); // ✅ 내 프로필 정보 가져오기
         console.log("🔹 내 프로필 데이터:", res);
-        setUser(res);
+        setMe(res);
 
         // ✅ 팔로워 & 팔로잉 수 가져오기
         const followers = await getFollowerList();
@@ -68,7 +63,7 @@ export default function MyInfoPage() {
     };
 
     fetchUserData();
-  }, [setUser]);
+  }, [setMe]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -83,7 +78,7 @@ export default function MyInfoPage() {
     };
   }, []);
 
-  if (!user) return <p>로딩 중...</p>;
+  if (!me) return <p>로딩 중...</p>;
 
   const handleDeleteUser = () => {
     const isConfirmed = window.confirm("정말로 탈퇴하시겠습니까?");
@@ -104,7 +99,7 @@ export default function MyInfoPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <img
-              src={user.profileImageUrl || DefaultProfileImage}
+              src={me.profileImageUrl || DefaultProfileImage}
               alt="Profile"
               className="rounded-full h-24 w-24"
             />
@@ -112,7 +107,7 @@ export default function MyInfoPage() {
               <h2 className="mt-4 text-2xl font-semibold text-gray-800">
                 {me.nickname}
               </h2>
-              <p className="text-gray-600 mt-2">{user.introduce}</p>
+              <p className="text-gray-600 mt-2">{me.introduce}</p>
               {/* ✅ 팔로워 & 팔로잉 수 */}
               <div className="flex space-x-4 mt-2">
                 <div

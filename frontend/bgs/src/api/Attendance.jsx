@@ -6,9 +6,13 @@ const BASE_URL = "/attendance";
 // ✅ 오늘 출석 체크 (POST /api/attendance/check)
 export async function checkAttendance(attendanceData) {
   try {
-    const response = await axiosInstance.post(`${BASE_URL}/check`, attendanceData);
+    const response = await axiosInstance.post(
+      `${BASE_URL}/check`,
+      attendanceData
+    );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -19,6 +23,7 @@ export async function getCurrentMonthAttendance() {
     const response = await axiosInstance.get(`${BASE_URL}/current-month`);
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -31,6 +36,7 @@ export async function getAttendanceByDate(date) {
     });
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -43,6 +49,7 @@ export async function getAttendanceByRange(start, end) {
     });
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }

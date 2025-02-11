@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import EmailVerification from "../../components/auth/EmailVerification";
 import SignupForm from "../../components/auth/SignupForm";
@@ -38,6 +38,7 @@ const SignupPage = () => {
       alert("인증 코드가 전송되었습니다. 이메일을 확인하세요.");
       setError("");
     } catch (err) {
+      console.error(err);
       setError("인증 코드 전송에 실패했습니다.");
     } finally {
       setLoading(false);
@@ -60,6 +61,7 @@ const SignupPage = () => {
         setError("인증 번호가 일치하지 않습니다.");
       }
     } catch (err) {
+      console.error(err);
       setError("인증 번호 검증 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
@@ -73,6 +75,7 @@ const SignupPage = () => {
       alert("회원가입이 완료되었습니다.");
       navigate("/login");
     } catch (err) {
+      console.error(err);
       setError(err.response?.data || "회원가입 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
@@ -92,9 +95,8 @@ const SignupPage = () => {
       {/* 로고 영역 */}
       <div className="flex flex-col items-center space-x-4 mb-10">
         <img src={logo_image} alt="Logo" className="h-32" />
-        <img src={name_image} alt="Name" classN ame="h-15" />
+        <img src={name_image} alt="Name" className="h-15" />
       </div>
-
 
       {/* 인증 단계와 회원가입 폼을 조건부 렌더링 */}
       {!isVerified ? (

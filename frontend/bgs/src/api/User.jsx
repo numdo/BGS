@@ -1,8 +1,6 @@
 import axiosInstance from "../utils/axiosInstance";
-
 const BASE_URL = "/users"; // 회원 관련 API 기본 경로
 const PASSWORD_CHANGE_URL = "/users/change-password"; // 비밀번호 변경 API 경로
-const PASSWORD_RESET_URL = "/users/reset-password"; // 비밀번호 재설정 API 경로
 
 // ✅ 회원 개별 조회
 export async function getUser(userId = 0) {
@@ -15,6 +13,7 @@ export async function getUser(userId = 0) {
       return response.data;
     }
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -25,6 +24,7 @@ export async function updateUser(userData) {
     const response = await axiosInstance.patch(`${BASE_URL}/me`, userData);
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -44,6 +44,7 @@ export async function changePassword(passwordData) {
     );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -56,6 +57,7 @@ export async function checkNickname(nickname) {
     );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }

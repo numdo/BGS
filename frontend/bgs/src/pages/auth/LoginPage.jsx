@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo+name.png";
 import kakaoLogo from "../../assets/images/kakao-logo.png";

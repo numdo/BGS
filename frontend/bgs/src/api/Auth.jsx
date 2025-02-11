@@ -9,6 +9,7 @@ export async function signup(userData) {
     const response = await axiosInstance.post(`${BASE_URL}/signup`, userData);
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -18,16 +19,17 @@ export async function login(credentials) {
   try {
     const response = await axiosInstance.post(`${BASE_URL}/login`, credentials);
     const accessTokenHeader = response.headers["authorization"];
-    
+
     if (accessTokenHeader) {
       const token = accessTokenHeader.startsWith("Bearer ")
         ? accessTokenHeader.slice(7)
         : accessTokenHeader;
       localStorage.setItem("accessToken", token);
     }
-    
+
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -61,6 +63,7 @@ export async function sendEmailVerify(email) {
     );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -73,33 +76,39 @@ export async function receiveEmailVerify(email, code) {
     });
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
 export async function socialSignup(socialData) {
   try {
     const accessToken = localStorage.getItem("accessToken");
-    const response = await axiosInstance.patch(`${BASE_URL}/me/social-signup`, socialData, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await axiosInstance.patch(
+      `${BASE_URL}/me/social-signup`,
+      socialData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
 
-
 // 닉네임 중복 체크 (GET /auth/nickname-check?nickname={nickname})
 export async function checkNickname(nickname) {
   try {
-    const response = await axiosInstance.get(`${BASE_URL}/nickname-check`,{
-      params: { nickname }
+    const response = await axiosInstance.get(`${BASE_URL}/nickname-check`, {
+      params: { nickname },
     });
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -108,18 +117,24 @@ export async function checkNickname(nickname) {
 // 요청 body는 { email: "..." } 형식
 export async function resetPassword(email) {
   try {
-    const response = await axiosInstance.post(`${BASE_URL}/reset-password`, { email });
+    const response = await axiosInstance.post(`${BASE_URL}/reset-password`, {
+      email,
+    });
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
 
 export async function checkEmail(email) {
   try {
-    const response = await axiosInstance.get(`${BASE_URL}/email-check/${email}`);
+    const response = await axiosInstance.get(
+      `${BASE_URL}/email-check/${email}`
+    );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }

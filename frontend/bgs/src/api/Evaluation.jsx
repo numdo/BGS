@@ -10,6 +10,7 @@ export async function getEvaluations(page = 1, pageSize = 10) {
     });
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -20,6 +21,7 @@ export async function getEvaluation(evaluationId) {
     const response = await axiosInstance.get(`${BASE_URL}/${evaluationId}`);
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -30,6 +32,7 @@ export async function createEvaluation(evaluationData) {
     const response = await axiosInstance.post(BASE_URL, evaluationData);
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -43,6 +46,7 @@ export async function updateEvaluation(evaluationId, updateData) {
     );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -53,6 +57,7 @@ export async function deleteEvaluation(evaluationId) {
     const response = await axiosInstance.delete(`${BASE_URL}/${evaluationId}`);
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -69,6 +74,7 @@ export async function vote(evaluationId, userId, approval) {
     );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }

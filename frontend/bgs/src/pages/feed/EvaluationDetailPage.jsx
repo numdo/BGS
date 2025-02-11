@@ -13,7 +13,7 @@ import "slick-carousel/slick/slick-theme.css";
 const API_URL = "/evaluations";
 
 const EvaluationDetailPage = () => {
-  const { me, setMe } = useUserStore();
+  const { me } = useUserStore();
   const { evaluationId } = useParams();
   const navigate = useNavigate();
   const [evaluation, setEvaluation] = useState(null);
@@ -97,7 +97,7 @@ const EvaluationDetailPage = () => {
     slidesToShow: 1,
     slidesToScroll: 1,
   };
-
+  const handleDeleteEvaluation = async () => {};
   return (
     <>
       <TopBar />
@@ -137,16 +137,14 @@ const EvaluationDetailPage = () => {
                   <ul>
                     <li
                       onClick={() => {
-                        navigate("/evaluationupdate");
+                        navigate(`/evaluationupdate/${evaluationId}`);
                       }}
                       className="px-4 py-2 cursor-pointer hover:bg-gray-200"
                     >
                       수정
                     </li>
                     <li
-                      onClick={() => {
-                        // 삭제 로직 추가 (필요하면)
-                      }}
+                      onClick={handleDeleteEvaluation}
                       className="px-4 py-2 cursor-pointer hover:bg-gray-200"
                     >
                       삭제

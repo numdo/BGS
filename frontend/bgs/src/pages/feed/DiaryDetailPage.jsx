@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import Slider from "react-slick";
@@ -117,9 +117,11 @@ const DiaryDetailPage = () => {
 
             {/* 메뉴바 */}
             <div className="ml-auto relative">
-              { feed.userId == userId && (<button onClick={toggleMenu} className="text-xl">
-                ⋮
-              </button>)}
+              {feed.userId == userId && (
+                <button onClick={toggleMenu} className="text-xl">
+                  ⋮
+                </button>
+              )}
 
               {/* 메뉴 */}
               {isMenuOpen && (
