@@ -14,7 +14,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     Optional<User> findBySocialId(String socialId);
 
-    User findByNickname(String nickname);
+    Page<User> findByNicknameContainingIgnoreCaseAndDeletedFalse(String nickname, Pageable pageable);
 
-    Page<User> findByNicknameContainingIgnoreCase(String nickname, Pageable pageable);
+    Page<User> findAllByDeletedFalse(Pageable pageable);
+
 }

@@ -98,13 +98,16 @@ public class User {
             this.totalWeight = BigDecimal.ZERO;
         }
         if (this.coin == null) {
-            this.coin = 0;
+            this.coin = 3;
         }
         if (this.deleted == null) {
             this.deleted = false;
         }
         if (this.strickAttendance == null) {
             this.strickAttendance = 0;
+        }
+        if (this.role == null) {
+            this.role = "USER";
         }
     }
 
