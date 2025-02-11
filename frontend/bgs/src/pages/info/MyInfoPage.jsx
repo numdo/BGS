@@ -8,7 +8,7 @@ import settings from "../../assets/icons/settings.svg";
 import PostsTab from "../../components/myinfo/PostsTab";
 import StatsTab from "../../components/myinfo/StatsTab";
 import MyGymTab from "../../components/myinfo/MyGymTab";
-import myinfo from "../../assets/icons/myinfo.png";
+import myinfo from "../../assets/icons/Myinfo.png";
 import SignoutIcon from "../../assets/icons/signout.svg";
 import { handleLogout } from "../../api/Auth";
 import { useNavigate } from "react-router-dom";
