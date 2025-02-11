@@ -1,14 +1,16 @@
 // VisitorMemo.jsx
 import { useState, useEffect } from "react";
 import VisitorMemoModal from "./VisitorMemoModal";
-import { getGuestBooks, createGuestBooks } from "../../api/Mygym"; // 실제 API 함수 import
-import useUserStore from "../../stores/useUserStore";
+import { getGuestBooks } from "../../api/Mygym";
+import { getUser } from "../../api/User";
 import myinfo from "../../assets/icons/myinfo.png";
+
 const VisitorMemo = ({ userId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [visitorMemos, setVisitorMemos] = useState([]);
+  const [lastMemoProfileUrl, setLastMemoProfileUrl] = useState(null);
 
-  // 컴포넌트가 마운트될 때 방명록 데이터를 가져옵니다.
+  // 방명록 불러오기
   useEffect(() => {
     async function fetchGuestbooks() {
       try {
@@ -22,10 +24,26 @@ const VisitorMemo = ({ userId }) => {
     fetchGuestbooks();
   }, [userId]);
 
-  // 최신 방명록을 표시 (목록이 비어있을 경우 대체 텍스트를 표시)
+  // 가장 최근 방명록
   const lastMemo = visitorMemos.length
     ? visitorMemos[visitorMemos.length - 1]
     : null;
+
+  // 최근 방명록 작성자 프로필 불러오기
+  useEffect(() => {
+    if (!lastMemo) {
+      // 방명록이 아예 없으면 null 처리
+      setLastMemoProfileUrl(null);
+      return;
+    }
+    if (lastMemo.guestId) {
+      // 작성자 ID가 있으면 해당 프로필 요청
+      getUser(lastMemo.guestId).then((res) => {
+        // 백엔드 응답에서 실제 필드명 확인: res.profileImageUrl?
+        setLastMemoProfileUrl(res.profileImageUrl || null);
+      });
+    }
+  }, [lastMemo]); // lastMemo가 바뀔 때만 실행
 
   return (
     <>
@@ -37,7 +55,7 @@ const VisitorMemo = ({ userId }) => {
           {lastMemo ? (
             <>
               <img
-                src={myinfo}
+                src={lastMemoProfileUrl || myinfo}
                 alt="프로필"
                 className="w-8 h-8 rounded-full mr-3"
               />
@@ -52,13 +70,12 @@ const VisitorMemo = ({ userId }) => {
         <p className="text-blue-500 font-bold">방명록 {visitorMemos.length}</p>
       </div>
 
-      {/* 모달 컴포넌트에 현재 방명록 목록과 이를 업데이트하는 함수 전달 */}
+      {/* 모달 컴포넌트 */}
       <VisitorMemoModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         visitorMemos={visitorMemos}
         setVisitorMemos={setVisitorMemos}
-        userProfile={myinfo}
         userId={userId}
       />
     </>

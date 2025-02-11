@@ -6,7 +6,7 @@ import useUserStore from "../../stores/useUserStore";
 import myinfo from "../../assets/icons/myinfo.png";
 import more from "../../assets/icons/more.svg";
 
-const CommentItem = React.memo(
+const CommentList = React.memo(
   ({
     memo,
     editingCommentId,
@@ -138,4 +138,4 @@ const CommentItem = React.memo(
   }
 );
 
-export default CommentItem;
+export default CommentList;
