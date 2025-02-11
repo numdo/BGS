@@ -6,7 +6,6 @@ import com.ssafy.bgs.diary.dto.response.*;
 import com.ssafy.bgs.diary.entity.Diary;
 import com.ssafy.bgs.diary.entity.Workout;
 import com.ssafy.bgs.diary.service.DiaryService;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -69,7 +68,14 @@ public class DiaryController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-
+    @GetMapping("/count")
+    public ResponseEntity<?> getDiaryCount(
+            @AuthenticationPrincipal Integer readerId,
+            @RequestParam Integer userId
+    ) {
+        long count = diaryService.getDiaryCount(readerId, userId);
+        return new ResponseEntity<>(count, HttpStatus.OK);
+    }
 
     @GetMapping("/{diaryId}")
     public ResponseEntity<DiaryResponseDto> getDiary(
@@ -113,12 +119,10 @@ public class DiaryController {
     }
 
     @GetMapping("/{diaryId}/comments")
-    public ResponseEntity<Page<CommentResponseDto>> getCommentList(
-            @PathVariable Integer diaryId,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int pageSize
+    public ResponseEntity<?> getCommentList(
+            @PathVariable Integer diaryId
     ) {
-        Page<CommentResponseDto> commentList = diaryService.getCommentList(diaryId , page, pageSize);
+        List<CommentResponseDto> commentList = diaryService.getCommentList(diaryId);
 
         return new ResponseEntity<>(commentList, HttpStatus.OK);
     }

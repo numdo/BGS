@@ -17,8 +17,8 @@ const CommentList = ({ diaryId }) => {
             pageSize: 100,
           }
         );
-        console.log(response.data.content);
-        setComments(response.data.content);
+        console.log(response.data);
+        setComments(response.data);
       } catch (error) {
         console.error("댓글 불러오기 오류:", error);
       }
