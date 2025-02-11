@@ -1,14 +1,13 @@
 // src/stores/useMyGymStore.jsx
-import { create } from 'zustand'
-import axios from 'axios'
+import { create } from "zustand";
 
 const useMyGymStore = create((set) => ({
   myGym: {
-    places:[],
-    backgroundColor:"",
-    wallColor:"",
-    userId:"",
-    nickname:"",
+    places: [],
+    backgroundColor: "",
+    wallColor: "",
+    userId: "",
+    nickname: "",
   },
   setMyGym: (MyGym) => set({ myGym: MyGym }),
 }));
