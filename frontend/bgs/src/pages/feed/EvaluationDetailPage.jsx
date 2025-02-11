@@ -5,7 +5,7 @@ import axiosInstance from "../../utils/axiosInstance";
 import Slider from "react-slick";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
-import ProfileDefaultImage from "../../assets/icons/MyInfo.png";
+import ProfileDefaultImage from "../../assets/icons/myinfo.png";
 import MoreIcon from "../../assets/icons/more.svg";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";

@@ -1,11 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import ArrowBackLogo from "../../assets/icons/ArrowBack.png";
-import Favicon from "../../assets/images/Favicon.png";
-import MoreIcon from "../../assets/icons/More.svg";
-import SignoutIcon from "../../assets/icons/Signout.svg";
+import arrow_back from "../../assets/icons/arrow_back.png";
+import favicon from "../../assets/images/favicon.png";
 export default function TopBar() {
-  const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef({});
   const navigate = useNavigate();
   const handleNavigation = (url) => {
@@ -32,14 +29,14 @@ export default function TopBar() {
             navigate(-1);
           }}
         >
-          <img src={ArrowBackLogo} alt="Home" className="w-6 h-6" />
+          <img src={arrow_back} alt="Home" className="w-6 h-6" />
         </button>
 
         <button
           onClick={() => handleNavigation("/")}
           className="text-gray-600 hover:text-blue-500"
         >
-          <img src={Favicon} alt="Home" className="w-6 h-6" />
+          <img src={favicon} alt="Home" className="w-6 h-6" />
         </button>
         <div></div>
       </div>

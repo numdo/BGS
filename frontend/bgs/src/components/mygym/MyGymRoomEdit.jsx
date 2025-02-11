@@ -2,13 +2,13 @@
 import { useRef, useState, useEffect } from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
 import removeItemPng from "../../assets/icons/remove_item.png";
-import Flip from "../../assets/icons/Flip.png";
+import flip from "../../assets/icons/flip.png";
 
 const polygonRatios = [
-  [0.0, 0.60],
-  [0.5, 0.40],
-  [1.0, 0.60],
-  [0.5, 0.80],
+  [0.0, 0.6],
+  [0.5, 0.4],
+  [1.0, 0.6],
+  [0.5, 0.8],
   [1.0, 1.0],
 ];
 
@@ -19,8 +19,7 @@ function pointInPolygon(px, py, polygon) {
     const [xi, yi] = polygon[i];
     const [xj, yj] = polygon[j];
     const intersect =
-      yi > py !== yj > py &&
-      px < ((xj - xi) * (py - yi)) / (yj - yi) + xi;
+      yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi;
     if (intersect) isInside = !isInside;
   }
   return isInside;
@@ -164,8 +163,7 @@ const MyGymRoomEdit = () => {
             position: "absolute",
             width: "100%",
             height: "100%",
-            clipPath:
-              "polygon(0% 60%, 50% 40%, 100% 60%, 50% 80%, 100% 100%)",
+            clipPath: "polygon(0% 60%, 50% 40%, 100% 60%, 50% 80%, 100% 100%)",
             backgroundColor: "#999999",
             zIndex: 0,
           }}
@@ -208,13 +206,17 @@ const MyGymRoomEdit = () => {
                     absolute w-6 h-6 cursor-pointer
                     -top-2 -right-2
                     transition-all duration-300
-                    ${selectedItemId === item.itemId ? "opacity-100 scale-100" : "opacity-0 scale-0"}
+                    ${
+                      selectedItemId === item.itemId
+                        ? "opacity-100 scale-100"
+                        : "opacity-0 scale-0"
+                    }
                   `}
                 />
 
                 {/* 좌우 반전 아이콘 */}
                 <img
-                  src={Flip}
+                  src={flip}
                   alt="Flip"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -224,7 +226,11 @@ const MyGymRoomEdit = () => {
                     absolute w-6 h-6 cursor-pointer
                     -top-2 left-0
                     transition-all duration-300
-                    ${selectedItemId === item.itemId ? "opacity-100 scale-100" : "opacity-0 scale-0"}
+                    ${
+                      selectedItemId === item.itemId
+                        ? "opacity-100 scale-100"
+                        : "opacity-0 scale-0"
+                    }
                   `}
                   style={{ transform: "translateX(-10%)" }}
                 />

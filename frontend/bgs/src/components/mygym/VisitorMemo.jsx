@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import VisitorMemoModal from "./VisitorMemoModal";
 import { getGuestBooks, createGuestBooks } from "../../api/Mygym"; // 실제 API 함수 import
 import useUserStore from "../../stores/useUserStore";
-import ProfileDefaultImage from "../../assets/icons/MyInfo.png";
+import myinfo from "../../assets/icons/myinfo.png";
 const VisitorMemo = ({ userId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [visitorMemos, setVisitorMemos] = useState([]);
@@ -14,7 +14,7 @@ const VisitorMemo = ({ userId }) => {
       try {
         const data = await getGuestBooks(userId);
         // 삭제되지 않은 방명록만 필터링해서 저장
-        setVisitorMemos(data.content.filter(memo => !memo.deleted));
+        setVisitorMemos(data.content.filter((memo) => !memo.deleted));
       } catch (error) {
         console.error("방명록 데이터를 불러오는데 실패했습니다:", error);
       }
@@ -26,7 +26,6 @@ const VisitorMemo = ({ userId }) => {
   const lastMemo = visitorMemos.length
     ? visitorMemos[visitorMemos.length - 1]
     : null;
-  
 
   return (
     <>
@@ -38,7 +37,7 @@ const VisitorMemo = ({ userId }) => {
           {lastMemo ? (
             <>
               <img
-                src={ProfileDefaultImage}
+                src={myinfo}
                 alt="프로필"
                 className="w-8 h-8 rounded-full mr-3"
               />
@@ -59,7 +58,7 @@ const VisitorMemo = ({ userId }) => {
         onClose={() => setIsOpen(false)}
         visitorMemos={visitorMemos}
         setVisitorMemos={setVisitorMemos}
-        userProfile={ProfileDefaultImage}
+        userProfile={myinfo}
         userId={userId}
       />
     </>
