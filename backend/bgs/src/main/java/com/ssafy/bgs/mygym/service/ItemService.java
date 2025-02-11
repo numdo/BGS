@@ -36,10 +36,21 @@ public class ItemService {
         this.userItemRepository = userItemRepository;
     }
 
-    public List<ItemResponseDto> getItemList() {
+    public List<ItemResponseDto> getItemList(Integer userId) {
         List<ItemResponseDto> itemList = new ArrayList<>();
 
-        itemRepository.findAll().forEach(item -> {
+        // 유저 없음
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
+        // 권한에 따른 아이템 조회
+        List<Item> items;
+        if (user.getRole().equals("ADMIN"))
+            items = itemRepository.findAll();
+        else
+            items = itemRepository.findByUsableTrue();
+
+        items.forEach(item -> {
+            // 아이템 정보 조회
             ItemResponseDto itemResponseDto = new ItemResponseDto();
             itemResponseDto.setItemId(item.getItemId());
             itemResponseDto.setItemName(item.getItemName());
@@ -48,6 +59,10 @@ public class ItemService {
             itemResponseDto.setPrice(item.getPrice());
             itemResponseDto.setUsable(item.getUsable());
 
+            // 아이템 보유 여부 조회
+            itemResponseDto.setOwned(userItemRepository.existsById(new UserItemId(userId, item.getItemId())));
+
+            // 사진 조회
             ImageResponseDto image = imageService.getImage("item", item.getItemId());
             itemResponseDto.setImageUrl(imageService.getS3Url(image.getUrl()));
 
