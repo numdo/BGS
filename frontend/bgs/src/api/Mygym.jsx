@@ -73,8 +73,6 @@ export async function getMygym(userId) {
 //       }
 //     ]
 // }
-// 마이짐정보 아이템,배경색,polygon색, PUT요청 서버에 업데이트,
-// 업데이트 전, handleFinishEdit에서 불필요한 필드를 제거한 후 객체 전송
 export async function updateMygym(userId, object) {
   try {
     const token = localStorage.getItem("accessToken");
@@ -97,24 +95,24 @@ export async function updateMygym(userId, object) {
 }
 
 // 방명록 목록 조회
-export async function getGuestBooks(userId) {
+export async function getGuestBooks(userId, page = 0, pageSize = 10) {
   try {
     const token = localStorage.getItem("accessToken");
-    // 정렬 조건 추가: 최신 항목부터 조회
     const response = await axios.get(
-      `${BASE_URL}api/mygyms/${userId}/guestbooks?page=1&pageSize=10&sort=createdAt,desc`,
+      `${BASE_URL}api/mygyms/${userId}/guestbooks?page=${page + 1}&pageSize=${pageSize}&sort=createdAt,desc`,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`
+        }
       }
     );
     return response.data;
   } catch (error) {
-    console.error(error);
+    console.error("getGuestBooks 오류:", error);
     throw error;
   }
 }
+
 
 // 방명록 추가
 export async function createGuestBooks(userId, object) {
@@ -129,8 +127,6 @@ export async function createGuestBooks(userId, object) {
         },
       }
     );
-    // 만약 백엔드가 생성된 방명록 객체를 반환하지 않는다면,
-    // 새로 추가한 방명록 정보를 별도로 구성해서 반환해야 할 수도 있습니다.
     return response.data;
   } catch (error) {
     console.error(error);
@@ -157,7 +153,7 @@ export async function deleteGuestBook(ownerId, guestbookId) {
   }
 }
 
-// 방명록 업데이트 (PATCH) - 삭제 처리를 위해 deleted: true 등을 보낼 수 있음
+// 방명록 업데이트 (PATCH)
 export async function updateGuestBook(userId, guestbookId, payload) {
   try {
     const token = localStorage.getItem("accessToken");
