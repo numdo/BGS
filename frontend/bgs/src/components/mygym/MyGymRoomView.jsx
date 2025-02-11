@@ -1,10 +1,12 @@
 // src/components/mygym/MyGymRoomView.jsx
 import { useNavigate } from "react-router-dom";
 import useMyGymStore from "../../stores/useMyGymStore";
+import useUserStore from "../../stores/useUserStore";
 
 const MyGymRoomView = ({ userId }) => {
   const navigate = useNavigate();
   const { myGym } = useMyGymStore();
+  const { user } = useUserStore();
 
   // deleted가 false인 아이템만 표시
   const visibleItems = myGym.places.filter((it) => !it.deleted);
@@ -30,6 +32,9 @@ const MyGymRoomView = ({ userId }) => {
   };
 
   const handleItemClick = (item) => {
+    if(user.userId !== userId) {
+      return ;
+    }
     if (workoutMapping[item.itemId]) {
       navigate("/workoutcreate", {
         state: {
