@@ -7,7 +7,7 @@ import { follow, unfollow, getFollowingList } from "../../api/Follow";
 import PostsTab from "../../components/myinfo/PostsTab";
 import StatsTab from "../../components/myinfo/StatsTab";
 import MyGymTab from "../../components/myinfo/MyGymTab";
-import DefaultProfileImage from "../../assets/icons/MyInfo.png";
+import DefaultProfileImage from "../../assets/icons/myinfo.png";
 
 export default function UserInfoPage() {
   const { userId } = useParams(); // URL에서 userId 가져오기

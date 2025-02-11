@@ -9,7 +9,7 @@ import PostsTab from "../../components/myinfo/PostsTab";
 import StatsTab from "../../components/myinfo/StatsTab";
 import MyGymTab from "../../components/myinfo/MyGymTab";
 import DefaultProfileImage from "../../assets/icons/person.svg";
-import SignoutIcon from "../../assets/icons/Signout.svg";
+import SignoutIcon from "../../assets/icons/signout.svg";
 import { handleLogout } from "../../api/Auth";
 import { useNavigate } from "react-router-dom";
 

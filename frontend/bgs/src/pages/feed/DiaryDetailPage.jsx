@@ -6,7 +6,7 @@ import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
 import CommentList from "../../components/feed/CommentList";
 import CommentInput from "../../components/feed/CommentInput";
-import FeedDefalutImage from "../../assets/images/feeddefaultimage.png";
+import FeedDefalutImage from "../../assets/images/FeedDefaultImage.png";
 import ProfileDefaultImage from "../../assets/icons/myinfo.png";
 import fire from "../../assets/icons/fire.svg";
 import fire_colored from "../../assets/icons/fire_colored.svg";

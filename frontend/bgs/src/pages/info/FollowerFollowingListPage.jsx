@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { getFollowerList, getFollowingList } from "../../api/Follow";
-import DefaultProfileImage from "../../assets/icons/MyInfo.png";
+import DefaultProfileImage from "../../assets/icons/myinfo.png";
 import { useNavigate, useParams } from "react-router-dom";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
