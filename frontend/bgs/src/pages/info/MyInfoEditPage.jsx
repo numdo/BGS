@@ -27,7 +27,7 @@ export default function MyInfoEditPage() {
     e.preventDefault();
     console.log("Form submitted:", formData);
     updateUser(formData);
-    alert("회원정보 수정 성공했습니다 ");
+    alert("회원정보 수정 성공했습니다");
   };
   const handleImageChange = async (e) => {
     const selectedFile = e.target.files[0];
