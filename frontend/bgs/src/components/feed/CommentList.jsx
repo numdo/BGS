@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
-import person from "../../assets/icons/person.svg";
+import person from "../../assets/icons/Person.svg";
 const API_URL = "/diaries";
 
 const CommentList = ({ diaryId }) => {
