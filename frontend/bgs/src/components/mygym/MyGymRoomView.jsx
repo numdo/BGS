@@ -1,11 +1,47 @@
 // src/components/mygym/MyGymRoomView.jsx
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import useMyGymStore from "../../stores/useMyGymStore";
 
-const MyGymRoomView = ({userId}) => {
+const MyGymRoomView = ({ userId }) => {
+  const navigate = useNavigate();
   const { myGym } = useMyGymStore();
+
   // deleted가 false인 아이템만 표시
   const visibleItems = myGym.places.filter((it) => !it.deleted);
+
+  // 아이템 id  workoutId 매핑
+  const workoutMapping = {
+    3: 1,    // workoutId 1
+    4: 125,  // workoutId 125
+    5: 85,   // workoutId 85
+    6: 358,  // workoutId 358
+    7: 383,  // workoutId 383
+    8: 425,  // workoutId 425
+  };
+
+  // 아이템 id 운동명 매핑
+  const searchMapping = {
+    3: "벤치프레스",
+    4: "랫풀다운",
+    5: "데드리프트",
+    6: "싸이클",
+    7: "러닝",
+    8: "덤벨",
+  };
+
+  const handleItemClick = (item) => {
+    if (workoutMapping[item.itemId]) {
+      navigate("/workoutcreate", {
+        state: {
+          openExerciseModal: true,
+          preSelectedWorkoutId: workoutMapping[item.itemId],
+          searchQuery: searchMapping[item.itemId],
+        },
+      });
+    }
+  };
+
   return (
     <div className="relative flex flex-col items-center">
       {/* 실제 방 컨테이너 */}
@@ -36,20 +72,18 @@ const MyGymRoomView = ({userId}) => {
         />
         {/* 아이템 렌더링 */}
         {visibleItems.map((item) => {
-          // 백엔드의 rotated 필드를 사용하여 좌우 반전 적용
           const isRotated = item.rotated || false;
           return (
             <div
               key={item.itemId}
               className="absolute"
               style={{ top: item.y, left: item.x, zIndex: 2 }}
+              onClick={() => handleItemClick(item)}
             >
               <div className="relative w-16 h-16">
                 <div
                   className="absolute inset-0"
-                  style={{
-                    transform: isRotated ? "scaleX(-1)" : "scaleX(1)",
-                  }}
+                  style={{ transform: isRotated ? "scaleX(-1)" : "scaleX(1)" }}
                 >
                   <img
                     src={item.image.url}
