@@ -22,6 +22,7 @@ export async function uploadProfileImage(profileImage) {
 
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }

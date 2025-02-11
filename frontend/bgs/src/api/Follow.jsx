@@ -10,6 +10,7 @@ export async function follow(userId) {
     );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -22,6 +23,7 @@ export async function unfollow(userId) {
     );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -32,6 +34,7 @@ export async function getFollowingList() {
     const response = await axiosInstance.get(`${BASE_URL}/following`);
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -42,6 +45,7 @@ export async function getFollowerList() {
     const response = await axiosInstance.get(`${BASE_URL}/follower`);
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }

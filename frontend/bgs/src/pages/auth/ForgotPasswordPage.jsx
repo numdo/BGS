@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { resetPassword } from "../../api/Auth"; // ✅ API 함수 불러오기
 import { ArrowLeft } from "lucide-react";
@@ -55,9 +55,7 @@ const ForgotPasswordPage = () => {
       </div>
 
       {/* ✅ 제목 */}
-      <h2 className="text-3xl font-bold text-gray-800 mb-6">
-        비밀번호 재설정
-      </h2>
+      <h2 className="text-3xl font-bold text-gray-800 mb-6">비밀번호 재설정</h2>
 
       {/* ✅ 안내 문구 */}
       <p className="text-gray-500 text-sm mb-12 text-center">

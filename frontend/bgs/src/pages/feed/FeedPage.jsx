@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import FeedItem from "../../components/feed/FeedItem";

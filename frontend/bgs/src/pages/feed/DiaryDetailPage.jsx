@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import Slider from "react-slick";
@@ -8,6 +8,10 @@ import CommentList from "../../components/feed/CommentList";
 import CommentInput from "../../components/feed/CommentInput";
 import FeedDefalutImage from "../../assets/images/FeedDefaultImage.png";
 import ProfileDefaultImage from "../../assets/icons/MyInfo.png";
+import fire from "../../assets/icons/fire.svg";
+import fire_colored from "../../assets/icons/fire_colored.svg";
+import chat from "../../assets/icons/chat.svg";
+import fitness_center from "../../assets/icons/fitness_center.svg";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -21,6 +25,7 @@ const DiaryDetailPage = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [likedCount, setLikedCount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCommentsOpen, setIsCommentsOpen] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -108,18 +113,23 @@ const DiaryDetailPage = () => {
               className="w-10 h-10 rounded-full cursor-pointer"
               onClick={handleProfileClick}
             />
-            <p
-              className="ml-2 font-bold cursor-pointer"
-              onClick={handleProfileClick}
-            >
-              {feed.writer}
-            </p>
+            <div className="p-2">
+              <p
+                className="ml-2 font-bold cursor-pointer"
+                onClick={handleProfileClick}
+              >
+                {feed.writer}
+              </p>
+              <p className="text-sm text-gray-500">{feed.workoutDate}</p>
+            </div>
 
             {/* 메뉴바 */}
             <div className="ml-auto relative">
-              { feed.userId == userId && (<button onClick={toggleMenu} className="text-xl">
-                ⋮
-              </button>)}
+              {feed.userId == userId && (
+                <button onClick={toggleMenu} className="text-xl">
+                  ⋮
+                </button>
+              )}
 
               {/* 메뉴 */}
               {isMenuOpen && (
@@ -168,20 +178,39 @@ const DiaryDetailPage = () => {
           {/* 게시글 정보 */}
           <div className="mt-4">
             <p className="text-lg font-bold">{feed.content}</p>
-            <p className="text-sm text-gray-500">{feed.workoutDate}</p>
-            <p
-              className="mt-2 text-sm text-gray-700 cursor-pointer"
-              onClick={onLikeToggle}
-            >
-              {likedCount} {isLiked ? "❤️" : "🤍"}
-            </p>
+            <p>{likedCount}번의 응원을 받았습니다</p>
+            <div className="flex justify-around m-2">
+              <div>
+                <p className="text-gray-700 cursor-pointer">
+                  {isLiked ? (
+                    <img onClick={onLikeToggle} src={fire_colored} alt="" />
+                  ) : (
+                    <img onClick={onLikeToggle} src={fire} alt="" />
+                  )}
+                </p>
+              </div>
+              <div>
+                <img
+                  onClick={() => {
+                    setIsCommentsOpen(!isCommentsOpen);
+                  }}
+                  src={chat}
+                  alt=""
+                />
+              </div>
+              <div>
+                <img src={fitness_center} alt="" />
+              </div>
+            </div>
           </div>
 
           {/* 댓글 입력창 & 댓글 목록 */}
-          <div className="mt-6">
-            <CommentInput diaryId={diaryId} onCommentAdded={() => {}} />
-            <CommentList diaryId={diaryId} />
-          </div>
+          {isCommentsOpen && (
+            <div className="mt-6">
+              <CommentInput diaryId={diaryId} onCommentAdded={() => {}} />
+              <CommentList diaryId={diaryId} />
+            </div>
+          )}
         </div>
 
         <BottomBar />
