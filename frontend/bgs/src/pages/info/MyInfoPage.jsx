@@ -3,12 +3,7 @@ import TopBar from "../../components/bar/TopBar";
 import { useState, useEffect, useRef } from "react";
 import useUserStore from "../../stores/useUserStore";
 import { getUser, deleteUser } from "../../api/User";
-import {
-  follow,
-  unfollow,
-  getFollowerList,
-  getFollowingList,
-} from "../../api/Follow";
+import { getFollowerList, getFollowingList } from "../../api/Follow";
 import settings from "../../assets/icons/settings.svg";
 import PostsTab from "../../components/myinfo/PostsTab";
 import StatsTab from "../../components/myinfo/StatsTab";
@@ -18,14 +13,14 @@ import { useNavigate } from "react-router-dom";
 
 export default function MyInfoPage() {
   const navigate = useNavigate();
-  const { me, setMe } = useUserStore();
+  const { me, setMe } = useUserStore(); // ✅ setMe를 가져와야 함
   const [activeTab, setActiveTab] = useState("posts");
   const [weightData, setWeightData] = useState([]);
   const [totalWeightData, setTotalWeightData] = useState([]);
   const [workoutFrequency, setWorkoutFrequency] = useState([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [followerCount, setFollowerCount] = useState(0); // ✅ 팔로워 수
-  const [followingCount, setFollowingCount] = useState(0); // ✅ 팔로잉 수
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -33,7 +28,7 @@ export default function MyInfoPage() {
       try {
         const res = await getUser(); // ✅ 내 프로필 정보 가져오기
         console.log("🔹 내 프로필 데이터:", res);
-        setUser(res);
+        setMe(res); // ✅ setUser 대신 setMe 사용
 
         // ✅ 팔로워 & 팔로잉 수 가져오기
         const followers = await getFollowerList();
@@ -68,7 +63,7 @@ export default function MyInfoPage() {
     };
 
     fetchUserData();
-  }, [setUser]);
+  }, [setMe]); // ✅ setUser -> setMe로 변경
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -83,7 +78,7 @@ export default function MyInfoPage() {
     };
   }, []);
 
-  if (!user) return <p>로딩 중...</p>;
+  if (!me) return <p>로딩 중...</p>; // ✅ user -> me로 변경
 
   const handleDeleteUser = () => {
     const isConfirmed = window.confirm("정말로 탈퇴하시겠습니까?");
@@ -104,7 +99,7 @@ export default function MyInfoPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <img
-              src={user.profileImageUrl || DefaultProfileImage}
+              src={me.profileImageUrl || DefaultProfileImage} // ✅ user -> me로 변경
               alt="Profile"
               className="rounded-full h-24 w-24"
             />
@@ -112,7 +107,7 @@ export default function MyInfoPage() {
               <h2 className="mt-4 text-2xl font-semibold text-gray-800">
                 {me.nickname}
               </h2>
-              <p className="text-gray-600 mt-2">{user.introduce}</p>
+              <p className="text-gray-600 mt-2">{me.introduce}</p>
               {/* ✅ 팔로워 & 팔로잉 수 */}
               <div className="flex space-x-4 mt-2">
                 <div
@@ -136,7 +131,7 @@ export default function MyInfoPage() {
               setIsSettingsOpen(!isSettingsOpen);
             }}
           >
-            <img src={settings} alt="" />
+            <img src={settings} alt="설정" />
           </button>
           {isSettingsOpen && (
             <div className="absolute right-3 top-32 w-30 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
@@ -152,7 +147,7 @@ export default function MyInfoPage() {
                 <div
                   onClick={() => {
                     handleDeleteUser();
-                  }} // ✅ handleLogout 함수 실행
+                  }}
                   className="text-danger hover:bg-gray-100 p-2"
                 >
                   <p className="inline-block align-middle">회원탈퇴</p>
