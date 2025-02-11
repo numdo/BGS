@@ -8,7 +8,7 @@ import settings from "../../assets/icons/settings.svg";
 import PostsTab from "../../components/myinfo/PostsTab";
 import StatsTab from "../../components/myinfo/StatsTab";
 import MyGymTab from "../../components/myinfo/MyGymTab";
-import DefaultProfileImage from "../../assets/icons/myinfo.png";
+import myinfo from "../../assets/icons/myinfo.png";
 import SignoutIcon from "../../assets/icons/signout.svg";
 import { handleLogout } from "../../api/Auth";
 import { useNavigate } from "react-router-dom";
@@ -101,7 +101,7 @@ export default function MyInfoPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <img
-              src={me.profileImageUrl || DefaultProfileImage} // ✅ user -> me로 변경
+              src={me.profileImageUrl || myinfo} // ✅ user -> me로 변경
               alt="Profile"
               className="rounded-full h-24 w-24"
             />
