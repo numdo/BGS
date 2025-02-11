@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import DefaultProfileImage from "../../assets/icons/MyInfo.png";
+import DefaultProfileImage from "../../assets/icons/myinfo.png";
 
 export default function UserItem({ user }) {
   const navigate = useNavigate();
