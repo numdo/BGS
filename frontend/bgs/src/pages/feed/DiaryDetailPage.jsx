@@ -26,7 +26,7 @@ const DiaryDetailPage = () => {
   const [likedCount, setLikedCount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(true);
-
+  const [refreshKey, setRefreshKey] = useState(0);
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (token) {
@@ -207,8 +207,13 @@ const DiaryDetailPage = () => {
           {/* 댓글 입력창 & 댓글 목록 */}
           {isCommentsOpen && (
             <div className="mt-6">
-              <CommentInput diaryId={diaryId} onCommentAdded={() => {}} />
-              <CommentList diaryId={diaryId} />
+              <CommentInput
+                diaryId={diaryId}
+                onCommentAdded={() => {
+                  setRefreshKey((prev) => prev + 1);
+                }}
+              />
+              <CommentList key={refreshKey} diaryId={diaryId} />
             </div>
           )}
         </div>
