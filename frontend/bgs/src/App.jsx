@@ -28,6 +28,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import BgsLoginPage from "./pages/auth/BgsLoginPage";
 import ProtectedLayout from "./components/auth/ProtectedLayout";
 import AtomicPage from "./pages/admin/AtomicPage";
+import FollowerFollowingListPage from "./pages/info/FollowerFollowingListPage";
 
 function App() {
   return (
@@ -58,6 +59,10 @@ function App() {
             <Route path="/myinfo" element={<MyInfoPage />} />
             <Route path="/myinfoedit" element={<MyInfoEditPage />} />
             <Route path="/profile/:userId" element={<UserInfoPage />} />
+            <Route
+              path="/follow/:type"
+              element={<FollowerFollowingListPage />}
+            />
             <Route path="/workout" element={<WorkoutPage />} />
             <Route path="/workoutdiary" element={<WorkoutDiaryPage />} />
             <Route path="/workoutcreate" element={<WorkoutCreatePage />} />
