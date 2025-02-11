@@ -5,8 +5,8 @@ import axiosInstance from "../../utils/axiosInstance";
 import Slider from "react-slick";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
-import ProfileDefaultImage from "../../assets/icons/MyInfo.png";
-import MoreIcon from "../../assets/icons/More.svg";
+import ProfileDefaultImage from "../../assets/icons/myinfo.png";
+import MoreIcon from "../../assets/icons/more.svg";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -161,7 +161,9 @@ const EvaluationDetailPage = () => {
               evaluation.imageUrls.map((media, index) => (
                 <div key={index} className="w-full">
                   {/* 확장자를 통해 이미지와 동영상을 구분 */}
-                  {media.endsWith(".mp4") || media.endsWith(".webm") || media.endsWith(".avi") ? (
+                  {media.endsWith(".mp4") ||
+                  media.endsWith(".webm") ||
+                  media.endsWith(".avi") ? (
                     <video controls className="w-full rounded-md">
                       <source src={media} type="video/mp4" />
                       브라우저가 비디오 태그를 지원하지 않습니다.

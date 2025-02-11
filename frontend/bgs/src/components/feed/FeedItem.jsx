@@ -11,7 +11,9 @@ const FeedItem = ({ feed, onClick }) => {
   const handleMouseEnter = () => {
     setHovered(true);
     if (videoRef.current) {
-      videoRef.current.play().catch((err) => console.error("Video play error:", err));
+      videoRef.current
+        .play()
+        .catch((err) => console.error("Video play error:", err));
     }
   };
 
@@ -24,8 +26,8 @@ const FeedItem = ({ feed, onClick }) => {
   };
 
   return (
-    <div 
-      className="relative cursor-pointer" 
+    <div
+      className="relative cursor-pointer"
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -50,8 +52,10 @@ const FeedItem = ({ feed, onClick }) => {
       )}
 
       {/* 기존 Hover 효과 포함 */}
-      <div 
-        className={`absolute inset-0 bg-black bg-opacity-20 transition-opacity ${hovered ? 'opacity-100' : 'opacity-0'}`}
+      <div
+        className={`absolute inset-0 bg-black bg-opacity-20 transition-opacity ${
+          hovered ? "opacity-100" : "opacity-0"
+        }`}
       ></div>
 
       {/* 좋아요 & 댓글 정보 */}

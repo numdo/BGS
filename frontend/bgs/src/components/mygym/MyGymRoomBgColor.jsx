@@ -1,10 +1,16 @@
-import React from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
 
-const colors = ["#FFFFFF", "#484547", "#FFEB00", "#79B465", "#005AFF", "#9E3AC3"];
+const colors = [
+  "#FFFFFF",
+  "#484547",
+  "#FFEB00",
+  "#79B465",
+  "#005AFF",
+  "#9E3AC3",
+];
 
 const BackGroundColorButton = ({ setBgColor }) => {
-  const { myGym, setMyGym } = useMyGymStore()
+  const { myGym, setMyGym } = useMyGymStore();
   return (
     <div className="flex gap-2">
       {colors.map((color) => (

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getFeeds } from "../../api/Feed";
 import FeedItem from "../../components/feed/FeedItem";
-import FeedDefaultImage from "../../assets/images/FeedDefaultImage.png"; // 기본 이미지
+import FeedDefaultImage from "../../assets/images/feeddefaultimage.png"; // 기본 이미지
 
 const PostsTab = ({ userId, nickname }) => {
   // ✅ userId와 nickname만 props로 받음

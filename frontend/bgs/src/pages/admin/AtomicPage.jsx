@@ -1,6 +1,6 @@
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
-import moreicon from "../../assets/icons/More.svg";
+import moreicon from "../../assets/icons/more.svg";
 
 export default function WorkoutRealtimePage() {
   return (

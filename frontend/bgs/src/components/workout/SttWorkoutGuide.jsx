@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircleIcon, XMarkIcon, MicrophoneIcon } from "@heroicons/react/24/solid";
+import {
+  CheckCircleIcon,
+  XMarkIcon,
+  MicrophoneIcon,
+} from "@heroicons/react/24/solid";
 import { XCircleIcon } from "lucide-react";
-
 
 export default function SttWorkoutGuide({ onCancel, onStart }) {
   const [dontShowAgain, setDontShowAgain] = useState(false);
@@ -10,15 +13,15 @@ export default function SttWorkoutGuide({ onCancel, onStart }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       {/* 애니메이션 효과 적용 */}
-      <motion.div 
-        initial={{ opacity: 0, y: 50 }} 
-        animate={{ opacity: 1, y: 0 }} 
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -50 }}
         className="bg-white p-6 rounded-xl shadow-xl max-w-md w-full relative"
       >
         {/* 닫기 버튼 */}
-        <button 
-          onClick={() => onCancel()} 
+        <button
+          onClick={() => onCancel()}
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
         >
           <XMarkIcon className="w-5 h-5" />
@@ -39,23 +42,27 @@ export default function SttWorkoutGuide({ onCancel, onStart }) {
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <CheckCircleIcon className="w-5 h-5 text-green-500" />
-              <span className="text-gray-700">"벤치프레스 첫세트 100kg 5번, 두번째세트 20kg 5번 했어"</span>
+              <span className="text-gray-700">
+                "벤치프레스 첫세트 100kg 5번, 두번째세트 20kg 5번 했어"
+              </span>
             </div>
             <div className="flex items-center space-x-2">
               <CheckCircleIcon className="w-5 h-5 text-green-500" />
               <span className="text-gray-700">"스쿼트 100kg 5회"</span>
             </div>
-            <p className="text-gray-800 font-semibold mb-2">🎙 이렇게 하면 적용되지 않아요!</p>
+            <p className="text-gray-800 font-semibold mb-2">
+              🎙 이렇게 하면 적용되지 않아요!
+            </p>
             <div className="flex items-center space-x-2">
-            <XCircleIcon className="w-5 h-5 text-red-500" />
-            <span className="text-gray-700">"깐따비야 라라 동해물과"</span>
+              <XCircleIcon className="w-5 h-5 text-red-500" />
+              <span className="text-gray-700">"깐따비야 라라 동해물과"</span>
             </div>
           </div>
         </div>
 
         {/* 다시 보지 않기 체크박스 */}
         <label className="mt-4 flex items-center cursor-pointer">
-          <input 
+          <input
             type="checkbox"
             checked={dontShowAgain}
             onChange={(e) => setDontShowAgain(e.target.checked)}
@@ -66,13 +73,13 @@ export default function SttWorkoutGuide({ onCancel, onStart }) {
 
         {/* 버튼 영역 */}
         <div className="mt-4 flex justify-end space-x-3">
-          <button 
-            onClick={() => onCancel()} 
+          <button
+            onClick={() => onCancel()}
             className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
           >
             취소
           </button>
-          <button 
+          <button
             onClick={() => onStart(dontShowAgain)}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
           >

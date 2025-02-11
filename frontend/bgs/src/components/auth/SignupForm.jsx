@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { checkNickname } from "../../api/Auth"; // 닉네임 체크 API 임포트
 
 const SignupForm = ({ email, onSubmit, loading, error }) => {
