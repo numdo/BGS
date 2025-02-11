@@ -65,12 +65,12 @@ const MyGymItem = () => {
 
   return (
     <div
-      className={`fixed bottom-12 left-0 w-full bg-sky-100 rounded-t-3xl shadow-lg transition-transform duration-500 ${isOpen ? "translate-y-0" : "translate-y-[70%]"
+      className={`fixed bottom-12 left-0 w-full bg-white rounded-t-3xl shadow-lg transition-transform duration-500 ${isOpen ? "translate-y-0" : "translate-y-[70%]"
         }`}
     >
       <button
         onClick={toggleBox}
-        className="w-full py-3 bg-sky-100 text-gray-800 font-bold rounded-t-3xl"
+        className="w-full py-3 bg-white text-gray-800 font-bold rounded-t-3xl"
       >
         ㅡ
       </button>
