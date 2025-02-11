@@ -158,16 +158,27 @@ const EvaluationDetailPage = () => {
           {/* 이미지 캐러셀 */}
           <Slider {...settings}>
             {evaluation.imageUrls.length > 0 ? (
-              evaluation.imageUrls.map((img, index) => (
-                <img
-                  key={index}
-                  src={img}
-                  alt="게시글 이미지"
-                  className="w-full rounded-md"
-                />
+              evaluation.imageUrls.map((media, index) => (
+                <div key={index} className="w-full">
+                  {/* 확장자를 통해 이미지와 동영상을 구분 */}
+                  {media.endsWith(".mp4") ||
+                  media.endsWith(".webm") ||
+                  media.endsWith(".avi") ? (
+                    <video controls className="w-full rounded-md">
+                      <source src={media} type="video/mp4" />
+                      브라우저가 비디오 태그를 지원하지 않습니다.
+                    </video>
+                  ) : (
+                    <img
+                      src={media}
+                      alt="게시글 미디어"
+                      className="w-full rounded-md"
+                    />
+                  )}
+                </div>
               ))
             ) : (
-              <p>이미지가 없습니다.</p>
+              <p>미디어가 없습니다.</p>
             )}
           </Slider>
 
