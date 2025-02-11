@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function MyInfoPage() {
   const navigate = useNavigate();
-  const { user, setUser } = useUserStore();
+  const { me, setMe } = useUserStore();
   const [activeTab, setActiveTab] = useState("posts");
   const [weightData, setWeightData] = useState([]);
   const [totalWeightData, setTotalWeightData] = useState([]);
@@ -77,9 +77,9 @@ export default function MyInfoPage() {
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("click", handleClickOutside);
     };
   }, []);
 
@@ -110,7 +110,7 @@ export default function MyInfoPage() {
             />
             <div className="ml-6">
               <h2 className="mt-4 text-2xl font-semibold text-gray-800">
-                {user.nickname}
+                {me.nickname}
               </h2>
               <p className="text-gray-600 mt-2">{user.introduce}</p>
               {/* ✅ 팔로워 & 팔로잉 수 */}
@@ -139,10 +139,20 @@ export default function MyInfoPage() {
             <img src={settings} alt="" />
           </button>
           {isSettingsOpen && (
-            <div className="absolute right-0 top-36 w-30 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
+            <div className="absolute right-3 top-32 w-30 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
               <div className="" role="menu">
                 <div
-                  onClick={handleDeleteUser}
+                  onClick={() => {
+                    navigate("/myinfoedit");
+                  }}
+                  className="hover:bg-gray-100 p-2"
+                >
+                  <p className="inline-block align-middle">프로필 편집</p>
+                </div>
+                <div
+                  onClick={() => {
+                    handleDeleteUser();
+                  }} // ✅ handleLogout 함수 실행
                   className="text-danger hover:bg-gray-100 p-2"
                 >
                   <p className="inline-block align-middle">회원탈퇴</p>
@@ -172,7 +182,7 @@ export default function MyInfoPage() {
         {/* 탭 내용 렌더링 */}
         <div className="p-4">
           {activeTab === "posts" && (
-            <PostsTab userId={user.userId} nickname={user.nickname} />
+            <PostsTab userId={me.userId} nickname={me.nickname} />
           )}
           {activeTab === "stats" && (
             <StatsTab
@@ -181,7 +191,7 @@ export default function MyInfoPage() {
               workoutFrequency={workoutFrequency}
             />
           )}
-          {activeTab === "myGym" && <MyGymTab friendId={user.userId} />}
+          {activeTab === "myGym" && <MyGymTab friendId={me.userId} />}
         </div>
       </div>
 

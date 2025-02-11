@@ -127,7 +127,7 @@ const DiaryDetailPage = () => {
                   <ul>
                     <li
                       onClick={() => {
-                        navigate("/workoutupdate"); // 수정 페이지로 이동
+                        navigate(`/workoutupdate/${diaryId}`); // 수정 페이지로 이동
                       }}
                       className="px-4 py-2 cursor-pointer hover:bg-gray-200"
                     >

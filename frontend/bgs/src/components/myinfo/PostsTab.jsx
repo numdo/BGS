@@ -31,7 +31,7 @@ const PostsTab = ({ userId, nickname }) => {
   }, [userId]); // ✅ userId가 변경될 때만 실행
 
   const handleImageClick = (id) => {
-    navigate(`/feed/${id}`);
+    navigate(`/feeds/diary/${id}`);
   };
 
   return (

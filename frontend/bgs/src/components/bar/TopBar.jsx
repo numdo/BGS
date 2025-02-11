@@ -54,7 +54,7 @@ export default function TopBar() {
         </button>
       </div>
       {isOpen && (
-        <div className="absolute right-0 w-30 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
+        <div className="absolute right-3 w-30 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
           <div className="" role="menu">
             <div
               onClick={() => handleLogout(navigate)} // ✅ handleLogout 함수 실행

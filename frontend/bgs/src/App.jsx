@@ -10,11 +10,14 @@ import SocialSignupPage from "./pages/auth/SocialSignupPage";
 import MainPage from "./pages/home/MainPage";
 import MyGymPage from "./pages/mygym/MyGymPage";
 import MyInfoPage from "./pages/info/MyInfoPage";
+import MyInfoEditPage from "./pages/info/MyInfoEditPage";
 import WorkoutPage from "./pages/workout/WorkoutPage";
 import WorkoutDiaryPage from "./pages/workout/WorkoutDiaryPage";
 import WorkoutCreatePage from "./pages/workout/WorkoutCreatePage";
 import WorkoutUpdatePage from "./pages/workout/WorkoutUpdatePage";
 import WorkoutRealtimePage from "./pages/workout/WorkoutRealtimePage";
+import EvaluationCreatePage from "./pages/evaluation/EvaluationCreatePage";
+import EvaluationUpdatePage from "./pages/evaluation/EvaluationUpdatePage";
 import FeedPage from "./pages/feed/FeedPage";
 import DiaryDetailPage from "./pages/feed/DiaryDetailPage";
 import EvaluationDetailPage from "./pages/feed/EvaluationDetailPage";
@@ -54,6 +57,7 @@ function App() {
               element={<EvaluationDetailPage />}
             />
             <Route path="/myinfo" element={<MyInfoPage />} />
+            <Route path="/myinfoedit" element={<MyInfoEditPage />} />
             <Route path="/profile/:userId" element={<UserInfoPage />} />
             <Route
               path="/follow/:type"
@@ -67,6 +71,8 @@ function App() {
               element={<WorkoutUpdatePage />}
             />
             <Route path="/workoutrealtime" element={<WorkoutRealtimePage />} />
+            <Route path="/evaluationcreate" element={<EvaluationCreatePage />} />
+            <Route path="/evaluationupdate/:evaluationId" element={<EvaluationUpdatePage />} />
             <Route path="/atomic" element={<AtomicPage />} />
           </Route>
         </Route>

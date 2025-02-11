@@ -17,10 +17,10 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid Request", e.getMessage());
     }
 
-    // 401 UNAUTHORIZED (접근 권한 없음)
+    // 403 FORBIDDEN (접근 권한 없음)
     @ExceptionHandler(UnauthorizedAccessException.class)
     public ResponseEntity<Map<String, String>> handleUnauthorized(UnauthorizedAccessException e) {
-        return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", e.getMessage());
+        return buildErrorResponse(HttpStatus.FORBIDDEN, "Forbidden", e.getMessage());
     }
 
     // 404 Not Found (존재하지 않는 리소스)
