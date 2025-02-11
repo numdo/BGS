@@ -150,11 +150,6 @@ export default function MyInfoPage() {
                   onClick={() => handleLogout(navigate)} // ✅ handleLogout 함수 실행
                   className="hover:bg-gray-100 p-2 border-b border-gray-200"
                 >
-                  <img
-                    src={SignoutIcon}
-                    alt="signout"
-                    className="inline-block align-middle mr-2"
-                  />
                   <p className="inline-block align-middle">로그아웃</p>
                 </div>
                 <div
