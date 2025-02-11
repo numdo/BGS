@@ -2,6 +2,20 @@ import axiosInstance from "../utils/axiosInstance";
 
 const BASE_URL = "/diaries";
 
+// ✅ 특정 유저의 게시물 개수 가져오기
+export async function getUserPostCount(userId) {
+  try {
+    const response = await axiosInstance.get(`${BASE_URL}/count`, {
+      params: { userId }, // 특정 유저 ID를 기준으로 게시물 조회
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return 0;
+  }
+}
+
 // ✅ 피드 목록 조회 (페이지네이션, userId 포함 가능)
 export async function getFeeds(userId = "", page = 1, pageSize = 9) {
   try {
