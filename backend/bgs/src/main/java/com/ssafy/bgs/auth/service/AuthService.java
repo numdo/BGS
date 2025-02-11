@@ -103,7 +103,7 @@ public class AuthService {
 
         String token;
         if (profileComplete) {
-            token = jwtTokenProvider.createAccessToken(user.getId());
+            token = jwtTokenProvider.createAccessToken(user.getId(),"USER");
         } else {
             token = jwtTokenProvider.createTemporaryAccessToken(user.getId());
         }
@@ -226,11 +226,13 @@ public class AuthService {
         // 변경 사항 저장
         userRepository.save(user);
         // 정식 accessToken 재발급
-        String fullAccessToken = jwtTokenProvider.createAccessToken(user.getId());
+        String fullAccessToken = jwtTokenProvider.createAccessToken(user.getId(),"USER");
         String refreshToken = jwtTokenProvider.createReFreshToken(user.getId());
 
         String redisKey = "user:login:" + user.getId();
         redisService.setValue(redisKey, refreshToken, 1440);
+        String cacheKey = "user:info" + userId;
+        redisService.deleteValue(cacheKey);
 
         // 업데이트된 정보를 UserResponseDto에 정식 토큰과 함께 변환하여 반환 (UserResponseDto에 accessToken 필드 추가 필요)
         return SocialUserResponseDto.builder()
@@ -298,7 +300,11 @@ public class AuthService {
                 throw new IllegalArgumentException("비밀번호가 틀립니다.");
             }
         }
-        String accessToken = jwtTokenProvider.createAccessToken(user.getId());
+        String role = "USER";
+        if (user.getRole() != null && user.getRole().equalsIgnoreCase("ADMIN")) {
+            role = "ADMIN";
+        }
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId(),role);
         String refreshToken = jwtTokenProvider.createReFreshToken(user.getId());
 
         // Redis에 refresh 토큰 저장 (예: 1440분 동안 유효)
@@ -314,6 +320,8 @@ public class AuthService {
     public void logout(Integer userId) {
         String redisKey = "user:login:" + userId;
         redisService.deleteValue(redisKey);
+        String cacheKey = "user:info" + userId;
+        redisService.deleteValue(cacheKey);
     }
     /**
      * 비밀번호 재설정

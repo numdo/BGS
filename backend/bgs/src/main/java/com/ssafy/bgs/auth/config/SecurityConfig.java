@@ -55,6 +55,7 @@ public class SecurityConfig {
                         "/profile/**",
                         "/api/ai-diary/**"
                 ).permitAll()
+                .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")  // 관리자만 접근
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
         );
