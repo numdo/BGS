@@ -31,4 +31,8 @@ public interface DiaryRepository extends JpaRepository<Diary, Integer> {
     List<DiaryFeedResponseDto> findByUserIdAndAllowedScopeAndDeletedFalse(Integer userId, String allowedScope, Pageable pageable);
 
     List<Diary> findByUserIdAndDeletedFalse(Integer userId);
+
+    long countByUserIdAndDeletedFalse(Integer userId);
+
+    Long countByUserIdAndAllowedScopeAndDeletedFalse(Integer userId, String allowedScope);
 }
