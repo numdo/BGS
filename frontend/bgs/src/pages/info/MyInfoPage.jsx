@@ -9,6 +9,8 @@ import PostsTab from "../../components/myinfo/PostsTab";
 import StatsTab from "../../components/myinfo/StatsTab";
 import MyGymTab from "../../components/myinfo/MyGymTab";
 import DefaultProfileImage from "../../assets/icons/MyInfo.png";
+import SignoutIcon from "../../assets/icons/Signout.svg";
+import { handleLogout } from "../../api/Auth";
 import { useNavigate } from "react-router-dom";
 
 export default function MyInfoPage() {
@@ -143,6 +145,17 @@ export default function MyInfoPage() {
                   className="hover:bg-gray-100 p-2"
                 >
                   <p className="inline-block align-middle">프로필 편집</p>
+                </div>
+                <div
+                  onClick={() => handleLogout(navigate)} // ✅ handleLogout 함수 실행
+                  className="hover:bg-gray-100 p-2 border-b border-gray-200"
+                >
+                  <img
+                    src={SignoutIcon}
+                    alt="signout"
+                    className="inline-block align-middle mr-2"
+                  />
+                  <p className="inline-block align-middle">로그아웃</p>
                 </div>
                 <div
                   onClick={() => {

@@ -33,7 +33,10 @@ const CommentInput = ({ diaryId, onCommentAdded }) => {
         placeholder="댓글을 입력하세요..."
         className="flex-1 px-3 py-2 border rounded-md"
       />
-      <button type="submit" className="ml-2 px-4 py-2 bg-blue-500 text-white rounded-md">
+      <button
+        type="submit"
+        className="ml-2 px-4 py-2 bg-primary text-white rounded-md"
+      >
         등록
       </button>
     </form>
