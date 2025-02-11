@@ -18,7 +18,7 @@ public class CoinHistory {
     @Column
     private Integer userId;
     @Column
-    private Integer coin;
+    private Integer amount;
     @Column
     private String usageType;
     @Column
