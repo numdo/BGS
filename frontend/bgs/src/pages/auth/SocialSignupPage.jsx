@@ -1,5 +1,5 @@
 // src/pages/auth/SocialSignupPage.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUser } from "../../api/User";
 import SocialSignupForm from "../../components/auth/SocialSignupForm";

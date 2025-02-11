@@ -1,6 +1,4 @@
-import React from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
-
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import KakaoRedirectPage from "./pages/auth/KakaoRedirectPage";
@@ -71,8 +69,14 @@ function App() {
               element={<WorkoutUpdatePage />}
             />
             <Route path="/workoutrealtime" element={<WorkoutRealtimePage />} />
-            <Route path="/evaluationcreate" element={<EvaluationCreatePage />} />
-            <Route path="/evaluationupdate/:evaluationId" element={<EvaluationUpdatePage />} />
+            <Route
+              path="/evaluationcreate"
+              element={<EvaluationCreatePage />}
+            />
+            <Route
+              path="/evaluationupdate/:evaluationId"
+              element={<EvaluationUpdatePage />}
+            />
             <Route path="/atomic" element={<AtomicPage />} />
           </Route>
         </Route>

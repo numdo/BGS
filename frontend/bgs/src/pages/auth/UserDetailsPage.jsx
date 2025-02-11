@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { signup } from "../../api/Auth"; // ✅ API 함수 불러오기
 import logo_image from "../../assets/images/logo_image.png";

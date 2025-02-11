@@ -10,6 +10,7 @@ export async function getFeeds(userId = "", page = 1, pageSize = 9) {
     });
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -26,6 +27,7 @@ export async function likeDiary(diaryId, userId) {
     );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -42,6 +44,7 @@ export async function unlikeDiary(diaryId, userId) {
     );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -55,6 +58,7 @@ export async function createComment(diaryId, commentData) {
     );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -65,6 +69,7 @@ export async function getComments(diaryId) {
     const response = await axiosInstance.get(`${BASE_URL}/${diaryId}/comments`);
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -81,6 +86,7 @@ export async function updateComment(diaryId, commentId, content) {
     );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -93,6 +99,7 @@ export async function deleteComment(diaryId, commentId) {
     );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }

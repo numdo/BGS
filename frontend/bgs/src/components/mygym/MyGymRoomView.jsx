@@ -1,5 +1,4 @@
 // src/components/mygym/MyGymRoomView.jsx
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import useMyGymStore from "../../stores/useMyGymStore";
 
@@ -12,12 +11,12 @@ const MyGymRoomView = ({ userId }) => {
 
   // 아이템 id  workoutId 매핑
   const workoutMapping = {
-    3: 1,    // workoutId 1
-    4: 125,  // workoutId 125
-    5: 85,   // workoutId 85
-    6: 358,  // workoutId 358
-    7: 383,  // workoutId 383
-    8: 425,  // workoutId 425
+    3: 1, // workoutId 1
+    4: 125, // workoutId 125
+    5: 85, // workoutId 85
+    6: 358, // workoutId 358
+    7: 383, // workoutId 383
+    8: 425, // workoutId 425
   };
 
   // 아이템 id 운동명 매핑
@@ -64,8 +63,7 @@ const MyGymRoomView = ({ userId }) => {
             position: "absolute",
             width: "100%",
             height: "100%",
-            clipPath:
-              "polygon(0% 60%, 50% 40%, 100% 60%, 50% 80%, 100% 100%)",
+            clipPath: "polygon(0% 60%, 50% 40%, 100% 60%, 50% 80%, 100% 100%)",
             backgroundColor: "#999999",
             zIndex: 0,
           }}

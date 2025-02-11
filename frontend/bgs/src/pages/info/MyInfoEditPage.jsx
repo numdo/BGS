@@ -6,7 +6,6 @@ import axiosInstance from "../../utils/axiosInstance";
 export default function MyInfoEditPage() {
   const { me } = useUserStore();
   const fileInputRef = useRef(null);
-  const [file, setFile] = useState();
   const [previewUrl, setPreviewUrl] = useState();
   const [formData, setFormData] = useState({
     nickname: me.nickname || "",
@@ -44,7 +43,6 @@ export default function MyInfoEditPage() {
       headers: { "Content-Type": "multipart/form-data" },
       withCredentials: true,
     });
-    setFile(selectedFile);
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }

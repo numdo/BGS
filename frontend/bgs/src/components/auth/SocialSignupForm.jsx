@@ -1,5 +1,5 @@
 // src/components/auth/SocialSignupForm.jsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { socialSignup } from "../../api/Auth";
 import { checkNickname } from "../../api/User";

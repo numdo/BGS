@@ -7,7 +7,7 @@ import TopBar from "../../components/bar/TopBar";
 import addlogo from "../../assets/icons/add.svg";
 import miclogo from "../../assets/icons/mic.svg";
 import deletelogo from "../../assets/icons/delete.svg";
-import moreicon from "../../assets/icons/More.svg";
+import moreicon from "../../assets/icons/more.svg";
 import SttWorkoutGuide from "../../components/workout/SttWorkoutGuide";
 
 export default function WorkoutCreatePage() {
@@ -270,7 +270,9 @@ export default function WorkoutCreatePage() {
         audioChunksRef.current.push(event.data);
       };
       recorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
         const duration = Date.now() - recordStartTime;
         if (duration < 2000 || audioBlob.size < 5000) {
           alert("녹음이 너무 짧습니다. 다시 시도해주세요.");
@@ -280,10 +282,14 @@ export default function WorkoutCreatePage() {
         try {
           const formData = new FormData();
           formData.append("audioFile", audioBlob);
-          const response = await axiosInstance.post("/ai-diary/auto", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-            withCredentials: true,
-          });
+          const response = await axiosInstance.post(
+            "/ai-diary/auto",
+            formData,
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+              withCredentials: true,
+            }
+          );
           console.log("STT 응답 데이터:", response.data);
           if (response.data.invalidInput) {
             alert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
@@ -293,7 +299,9 @@ export default function WorkoutCreatePage() {
             setDiary((prevDiary) => {
               const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
               response.data.diaryWorkouts.forEach((dw) => {
-                if (!newDiaryWorkouts.some((x) => x.workoutId === dw.workoutId)) {
+                if (
+                  !newDiaryWorkouts.some((x) => x.workoutId === dw.workoutId)
+                ) {
                   newDiaryWorkouts.push(dw);
                 }
               });
@@ -461,7 +469,10 @@ export default function WorkoutCreatePage() {
     <>
       <TopBar />
       <div className="m-5 pb-24 flex-col relative">
-        <button className="absolute right-0 bg-gray-100 rounded-md w-6 h-6" onClick={() => {}}>
+        <button
+          className="absolute right-0 bg-gray-100 rounded-md w-6 h-6"
+          onClick={() => {}}
+        >
           <img src={moreicon} alt="" />
         </button>
         {/* 날짜 */}
@@ -471,7 +482,9 @@ export default function WorkoutCreatePage() {
             type="date"
             id="date"
             value={diary.workoutDate}
-            onChange={(e) => setDiary({ ...diary, workoutDate: e.target.value })}
+            onChange={(e) =>
+              setDiary({ ...diary, workoutDate: e.target.value })
+            }
           />
         </div>
         {/* 상단 버튼들 */}
@@ -498,7 +511,10 @@ export default function WorkoutCreatePage() {
         </button>
         {/* STT 가이드 모달 */}
         {showSttGuide && (
-          <SttWorkoutGuide onCancel={handleSttGuideCancel} onStart={handleSttGuideStart} />
+          <SttWorkoutGuide
+            onCancel={handleSttGuideCancel}
+            onStart={handleSttGuideStart}
+          />
         )}
         {/* 운동 추가 모달 */}
         {isExerciseModalOpen && (
@@ -511,7 +527,9 @@ export default function WorkoutCreatePage() {
                 <button
                   onClick={() => setSelectedPartFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${
-                    selectedPartFilter === "" ? "bg-primary-light text-white" : ""
+                    selectedPartFilter === ""
+                      ? "bg-primary-light text-white"
+                      : ""
                   }`}
                 >
                   전체
@@ -521,7 +539,9 @@ export default function WorkoutCreatePage() {
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedPartFilter === part ? "bg-primary-light text-white" : ""
+                      selectedPartFilter === part
+                        ? "bg-primary-light text-white"
+                        : ""
                     }`}
                   >
                     {part}
@@ -534,7 +554,9 @@ export default function WorkoutCreatePage() {
                 <button
                   onClick={() => setSelectedToolFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${
-                    selectedToolFilter === "" ? "bg-primary-light text-white" : ""
+                    selectedToolFilter === ""
+                      ? "bg-primary-light text-white"
+                      : ""
                   }`}
                 >
                   전체
@@ -544,7 +566,9 @@ export default function WorkoutCreatePage() {
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedToolFilter === tool ? "bg-primary-light text-white" : ""
+                      selectedToolFilter === tool
+                        ? "bg-primary-light text-white"
+                        : ""
                     }`}
                   >
                     {tool}
@@ -675,14 +699,22 @@ export default function WorkoutCreatePage() {
                 </div>
               </div>
               {workout.sets.map((set, setIndex) => (
-                <div key={`set-${wIndex}-${setIndex}`} className="flex items-center space-x-4 mt-2">
+                <div
+                  key={`set-${wIndex}-${setIndex}`}
+                  className="flex items-center space-x-4 mt-2"
+                >
                   <div>
                     <label className="mr-1">무게:</label>
                     <input
                       type="number"
                       value={set.weight}
                       onChange={(e) =>
-                        handleWorkoutSetChange(wIndex, setIndex, "weight", e.target.value)
+                        handleWorkoutSetChange(
+                          wIndex,
+                          setIndex,
+                          "weight",
+                          e.target.value
+                        )
                       }
                       className="w-20 p-1 border rounded"
                     />
@@ -693,7 +725,12 @@ export default function WorkoutCreatePage() {
                       type="number"
                       value={set.repetition}
                       onChange={(e) =>
-                        handleWorkoutSetChange(wIndex, setIndex, "repetition", e.target.value)
+                        handleWorkoutSetChange(
+                          wIndex,
+                          setIndex,
+                          "repetition",
+                          e.target.value
+                        )
                       }
                       className="w-20 p-1 border rounded"
                     />
@@ -704,7 +741,12 @@ export default function WorkoutCreatePage() {
                       type="number"
                       value={set.workoutTime}
                       onChange={(e) =>
-                        handleWorkoutSetChange(wIndex, setIndex, "workoutTime", e.target.value)
+                        handleWorkoutSetChange(
+                          wIndex,
+                          setIndex,
+                          "workoutTime",
+                          e.target.value
+                        )
                       }
                       className="w-20 p-1 border rounded"
                     />
@@ -784,7 +826,10 @@ export default function WorkoutCreatePage() {
         </div>
         <div className="mt-2">
           {diary.hashtags.map((tag) => (
-            <span key={tag} className="p-1 bg-gray-200 rounded-full text-sm mr-2">
+            <span
+              key={tag}
+              className="p-1 bg-gray-200 rounded-full text-sm mr-2"
+            >
               #{tag}
             </span>
           ))}

@@ -15,26 +15,38 @@ export default function EvaluationCreatePage() {
   const [previewUrls, setPreviewUrls] = useState([]); // 미리보기 URL
   const fileInputRef = useRef(null);
 
-  // 이미지 업로드
-  const handleImageChange = (e) => {
+  // 파일 업로드 (이미지 & 동영상)
+  const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-    const maxAllowedSize = 1 * 1024 * 1024;
+    const maxAllowedSize = 20 * 1024 * 1024; // 최대 20MB 제한
+
     for (let file of selectedFiles) {
       if (file.size > maxAllowedSize) {
         alert(`파일이 너무 큽니다: ${file.name}`);
         return;
       }
     }
+
     if (selectedFiles.length + files.length > 6) {
-      alert("이미지는 최대 6장까지 업로드할 수 있습니다.");
+      alert("이미지 또는 동영상은 최대 6개까지 업로드할 수 있습니다.");
       return;
     }
+
     setFiles((prev) => [...prev, ...selectedFiles]);
-    const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
+
+    const newPreviews = selectedFiles.map((file) => {
+      if (file.type.startsWith("video/")) {
+        return URL.createObjectURL(file); // 동영상 URL
+      } else if (file.type.startsWith("image/")) {
+        return URL.createObjectURL(file); // 이미지 URL
+      }
+      return null;
+    });
+
     setPreviewUrls((prev) => [...prev, ...newPreviews]);
   };
 
-  const handleRemoveImage = (index) => {
+  const handleRemoveFile = (index) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
     setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
@@ -42,19 +54,14 @@ export default function EvaluationCreatePage() {
   // 숫자 및 소수점 1자리까지 입력 검증
   const handleWeightChange = (e) => {
     let value = e.target.value;
-
-    // 숫자와 소수점만 입력 가능
     if (!/^\d*\.?\d*$/.test(value)) return;
 
-    // 소수점 이하 1자리까지만 허용
     if (value.includes(".")) {
       const parts = value.split(".");
       if (parts[1].length > 1) return;
     }
 
-    // 최대 999.9까지 입력 가능
     if (parseFloat(value) > 999.9) return;
-
     setWeight(value);
   };
 
@@ -66,27 +73,21 @@ export default function EvaluationCreatePage() {
       navigate("/login");
       return;
     }
-  
-    // weight 값이 없으면 요청 불가
+
     if (!weight) {
       alert("중량(kg)을 입력하세요.");
       return;
     }
-  
-    // 요청 데이터 생성
-    const data = {
-      workoutType,
-      content,
-      weight,
-    };
-  
+
+    const data = { workoutType, content, weight };
+
     const formData = new FormData();
     formData.append(
       "data",
       new Blob([JSON.stringify(data)], { type: "application/json" })
     );
     files.forEach((f) => formData.append("images", f));
-  
+
     try {
       await axiosInstance.post("/evaluations", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -96,7 +97,7 @@ export default function EvaluationCreatePage() {
       navigate("/workout");
     } catch (error) {
       console.error("❌ 저장 오류:", error);
-      if (error.response && error.response.status === 401) {
+      if (error.response?.status === 401) {
         alert("로그인이 필요합니다.");
         navigate("/login");
       } else {
@@ -104,13 +105,11 @@ export default function EvaluationCreatePage() {
       }
     }
   };
-  
 
   return (
     <>
       <TopBar />
       <div className="m-5 pb-24 flex-col relative">
-        {/* 운동 종류 선택 */}
         <div className="mt-4">
           <label htmlFor="workoutType">운동 종류 </label>
           <select
@@ -125,7 +124,6 @@ export default function EvaluationCreatePage() {
           </select>
         </div>
 
-        {/* 중량 입력 */}
         <div className="mt-4">
           <label htmlFor="weight">중량 (kg)</label>
           <input
@@ -138,29 +136,36 @@ export default function EvaluationCreatePage() {
           />
         </div>
 
-        {/* 이미지 업로드 섹션 */}
+        {/* 파일 업로드 (이미지 & 동영상) */}
         <div className="mt-4">
           <input
             type="file"
-            accept="image/*"
+            accept="image/*, video/mp4"
             multiple
-            onChange={handleImageChange}
+            onChange={handleFileChange}
             ref={fileInputRef}
             style={{ display: "none" }}
           />
           <div className="flex flex-col">
-            <label className="font-bold mb-2">이미지 업로드 (최대 6장)</label>
+            <label className="font-bold mb-2">이미지 / 동영상 업로드 (최대 6개)</label>
 
-            <div className="flex flex-wrap gap-2 ">
+            <div className="flex flex-wrap gap-2">
               {previewUrls.map((url, idx) => (
                 <div key={idx} className="relative w-40 h-40">
-                  <img
-                    src={url}
-                    alt="preview"
-                    className="w-full h-full object-cover rounded-md shadow-md"
-                  />
+                  {files[idx].type.startsWith("video/") ? (
+                    <video
+                      src={url}
+                      className="w-full h-full object-cover rounded-md shadow-md"
+                    />
+                  ) : (
+                    <img
+                      src={url}
+                      alt="preview"
+                      className="w-full h-full object-cover rounded-md shadow-md"
+                    />
+                  )}
                   <button
-                    onClick={() => handleRemoveImage(idx)}
+                    onClick={() => handleRemoveFile(idx)}
                     className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded"
                   >
                     X
@@ -173,14 +178,13 @@ export default function EvaluationCreatePage() {
                   className="w-40 h-40 bg-gray-200 rounded-md flex items-center justify-center cursor-pointer"
                   onClick={() => fileInputRef.current.click()}
                 >
-                  <img src={addlogo} alt="" />
+                  <img src={addlogo} alt="추가 아이콘" />
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* 운동일지 내용 */}
         <textarea
           className="w-full h-24 mt-4 p-2 border rounded"
           value={content}
@@ -188,7 +192,6 @@ export default function EvaluationCreatePage() {
           placeholder="운동일지 내용을 입력하세요."
         />
 
-        {/* 저장 버튼 */}
         <button
           onClick={handleEvaluationSubmit}
           className="w-full mt-4 p-2 bg-primary text-white rounded"

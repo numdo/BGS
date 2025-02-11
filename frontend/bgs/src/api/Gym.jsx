@@ -11,6 +11,7 @@ export async function getGyms(page = 0, size = 10) {
     });
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -21,6 +22,7 @@ export async function createGym(gymData) {
     const response = await axiosInstance.post(BASE_URL, gymData);
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -31,6 +33,7 @@ export async function getMachines() {
     const response = await axiosInstance.get(MACHINE_BASE_URL);
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -43,6 +46,7 @@ export async function createGymMachine(gymId, machineId) {
     );
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -53,6 +57,7 @@ export async function getGymMachines(gymId) {
     const response = await axiosInstance.get(`${BASE_URL}/${gymId}/machines`);
     return response.data;
   } catch (error) {
+    console.error(error);
     throw error;
   }
 }

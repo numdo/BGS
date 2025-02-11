@@ -1,12 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import ArrowBackLogo from "../../assets/icons/ArrowBack.png";
-import Favicon from "../../assets/images/Favicon.png";
-import MoreIcon from "../../assets/icons/More.svg";
-import SignoutIcon from "../../assets/icons/Signout.svg";
-import { handleLogout } from "../../api/Auth";
+import arrow_back from "../../assets/icons/arrow_back.png";
+import favicon from "../../assets/images/favicon.png";
 export default function TopBar() {
-  const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef({});
   const navigate = useNavigate();
   const handleNavigation = (url) => {
@@ -33,54 +29,17 @@ export default function TopBar() {
             navigate(-1);
           }}
         >
-          <img src={ArrowBackLogo} alt="Home" className="w-6 h-6" />
+          <img src={arrow_back} alt="Home" className="w-6 h-6" />
         </button>
 
         <button
           onClick={() => handleNavigation("/")}
           className="text-gray-600 hover:text-blue-500"
         >
-          <img src={Favicon} alt="Home" className="w-6 h-6" />
+          <img src={favicon} alt="Home" className="w-6 h-6" />
         </button>
-
-        <button
-          ref={dropdownRef}
-          className="text-gray-600 hover:text-blue-500"
-          onClick={() => {
-            setIsOpen(!isOpen);
-          }}
-        >
-          <img src={MoreIcon} alt="Home" className="w-6 h-6" />
-        </button>
+        <div></div>
       </div>
-      {isOpen && (
-        <div className="absolute right-3 w-30 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
-          <div className="" role="menu">
-            <div
-              onClick={() => handleLogout(navigate)} // ✅ handleLogout 함수 실행
-              className="hover:bg-gray-100 p-2 border-b border-gray-200"
-            >
-              <img
-                src={SignoutIcon}
-                alt="signout"
-                className="inline-block align-middle mr-2"
-              />
-              <p className="inline-block align-middle">로그아웃</p>
-            </div>
-            <div
-              onClick={() => navigate("/login")} // ✅ handleLogout 함수 실행
-              className="hover:bg-gray-100 p-2"
-            >
-              <img
-                src={SignoutIcon}
-                alt="signout"
-                className="inline-block align-middle mr-2"
-              />
-              <p className="inline-block align-middle">로그인</p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
