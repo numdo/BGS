@@ -82,6 +82,10 @@ public class User {
     @Column(name = "deleted")
     private Boolean deleted;
 
+    @ColumnDefault("USER")
+    @Column(name = "role")
+    private String role;
+
     @PrePersist
     protected void onCreate() {
         // Asia/Seoul 기준의 로컬 시간으로 설정
@@ -94,13 +98,16 @@ public class User {
             this.totalWeight = BigDecimal.ZERO;
         }
         if (this.coin == null) {
-            this.coin = 0;
+            this.coin = 3;
         }
         if (this.deleted == null) {
             this.deleted = false;
         }
         if (this.strickAttendance == null) {
             this.strickAttendance = 0;
+        }
+        if (this.role == null) {
+            this.role = "USER";
         }
     }
 

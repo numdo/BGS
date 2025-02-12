@@ -8,7 +8,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "items", schema = "bgs")
+@Table(name = "user_items", schema = "bgs")
 @Getter
 @Setter
 public class UserItem {

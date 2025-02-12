@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 public class CoinHistory {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer coinHistoryId;
 
     @Column

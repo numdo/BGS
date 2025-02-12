@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.security.Key;
 import java.util.Date;
 
@@ -44,8 +44,10 @@ public class JwtTokenProvider {
      * @param userId
      * @return
      */
-    public String createAccessToken(Integer userId) {
+    public String createAccessToken(Integer userId, String role) {
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
+        // role 클레임 추가
+        claims.put("role", role);
 
         Date now = new Date();
         Date validity = new Date(now.getTime() + accessTokenValidityInMilliseconds);

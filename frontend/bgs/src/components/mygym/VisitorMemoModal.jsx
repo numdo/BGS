@@ -13,9 +13,37 @@ const VisitorMemoModal = ({ isOpen, onClose, visitorMemos, setVisitorMemos, user
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingContent, setEditingContent] = useState("");
 
+  // 페이징 상태 관리
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
   }, [isOpen]);
+
+  // 페이지 번호에 따른 댓글 로드 함수
+  const loadComments = useCallback(async (page = 0) => {
+    try {
+      const data = await getGuestBooks(userId, page, 10); // 10개씩 불러옴
+      const freshMemos = data.content.filter((memo) => !memo.deleted);
+      if (page === 0) {
+        setVisitorMemos(freshMemos);
+      } else {
+        setVisitorMemos((prev) => [...prev, ...freshMemos]);
+      }
+      setCurrentPage(data.number);
+      setTotalPages(data.totalPages);
+    } catch (error) {
+      console.error("댓글 불러오기 실패:", error);
+    }
+  }, [userId, setVisitorMemos]);
+
+  // 모달이 열릴 때 첫 페이지 댓글 로드
+  useEffect(() => {
+    if (isOpen) {
+      loadComments(0);
+    }
+  }, [isOpen, loadComments]);
 
   // 새 댓글 추가 핸들러
   const handleAddComment = useCallback(async () => {
@@ -23,25 +51,24 @@ const VisitorMemoModal = ({ isOpen, onClose, visitorMemos, setVisitorMemos, user
     try {
       const payload = { content: newComment };
       await createGuestBooks(userId, payload);
-      const updatedData = await getGuestBooks(userId);
-      const freshMemos = updatedData.content.filter((memo) => !memo.deleted);
-      setVisitorMemos(freshMemos);
+      // 댓글 추가 후 첫 페이지를 다시 로드하여 최신 댓글 확인
+      loadComments(0);
       setNewComment("");
     } catch (error) {
       console.error("댓글 추가 실패:", error);
     }
-  }, [newComment, userId, setVisitorMemos]);
+  }, [newComment, userId, loadComments]);
 
   // 댓글 삭제 핸들러
   const handleDeleteMemo = useCallback(async (guestbookId) => {
     try {
       await deleteGuestBook(userId, guestbookId);
-      const updatedMemos = visitorMemos.filter((memo) => memo.guestbookId !== guestbookId);
-      setVisitorMemos(updatedMemos);
+      // 삭제 후 첫 페이지 다시 로드
+      loadComments(0);
     } catch (error) {
       console.error("댓글 삭제 실패:", error);
     }
-  }, [userId, visitorMemos, setVisitorMemos]);
+  }, [userId, loadComments]);
 
   // 댓글 수정 시작 핸들러
   const handleStartEditing = useCallback((memo) => {
@@ -60,25 +87,25 @@ const VisitorMemoModal = ({ isOpen, onClose, visitorMemos, setVisitorMemos, user
     try {
       const payload = { content: editingContent };
       await updateGuestBook(userId, guestbookId, payload);
-      const updatedMemos = visitorMemos.map((memo) =>
-        memo.guestbookId === guestbookId ? { ...memo, content: editingContent } : memo
-      );
-      setVisitorMemos(updatedMemos);
+      // 수정 후 첫 페이지 다시 로드
+      loadComments(0);
       setEditingCommentId(null);
       setEditingContent("");
     } catch (error) {
       console.error("댓글 수정 실패:", error);
     }
-  }, [editingContent, userId, visitorMemos, setVisitorMemos]); 
+  }, [editingContent, userId, loadComments]);
+
+  // 더보기 버튼 핸들러
+  const handleLoadMore = async () => {
+    if (currentPage < totalPages - 1) {
+      await loadComments(currentPage + 1);
+    }
+  };
 
   return (
-    <div
-      className={`fixed inset-0 flex items-end justify-center z-50 transition-transform duration-500 ${isOpen ? "translate-y-0" : "translate-y-full"}`}
-    >
-      <div
-        className="bg-transparent"
-        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      ></div>
+    <div className={`fixed inset-0 flex items-end justify-center z-50 transition-transform duration-500 ${isOpen ? "translate-y-0" : "translate-y-full"}`}>
+      <div className="bg-transparent" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}></div>
       <div className="w-full max-w-md bg-white rounded-t-3xl shadow-lg p-4 overflow-y-auto max-h-[70vh]">
         <button className="text-gray-500 text-center w-full" onClick={onClose}>▼</button>
         {/* 댓글 입력 컴포넌트 */}
@@ -99,6 +126,14 @@ const VisitorMemoModal = ({ isOpen, onClose, visitorMemos, setVisitorMemos, user
             />
           ))}
         </div>
+        {/* 더보기 버튼 (마지막 페이지가 아닐 경우) */}
+        {currentPage < totalPages - 1 && (
+          <div className="flex justify-center mt-4">
+            <button onClick={handleLoadMore} className="px-4 py-2 bg-gray-200 rounded-full">
+              더보기
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

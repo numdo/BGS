@@ -22,9 +22,10 @@ public class ItemController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getItemList() {
-        List<ItemResponseDto> items = itemService.getItemList();
-
+    public ResponseEntity<?> getItemList(
+            @AuthenticationPrincipal Integer userId
+    ) {
+        List<ItemResponseDto> items = itemService.getItemList(userId);
         return new ResponseEntity<>(items, HttpStatus.OK);
     }
 
