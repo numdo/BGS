@@ -67,7 +67,7 @@ const EmailVerification = ({
           placeholder="이메일"
           value={email}
           onChange={handleEmailChange}
-          className="flex-grow p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-blue-300 text-base"
+          className="flex-grow p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-primary text-base"
           required
         />
         <button
@@ -77,7 +77,7 @@ const EmailVerification = ({
           className={`p-3 rounded-lg text-base font-semibold transition ${
             loading || !email || !isEmailValid
               ? "bg-gray-400 text-white cursor-not-allowed"
-              : "bg-green-500 text-white hover:bg-green-600"
+              : "bg-primary-light text-white hover:bg-primary"
           }`}
         >
           중복 체크
@@ -91,7 +91,7 @@ const EmailVerification = ({
       )}
       {/* 이메일 중복 체크 결과 메시지 */}
       {emailStatus === "available" && (
-        <p className="text-green-500 text-sm text-center">
+        <p className="text-blue-500 text-sm text-center">
           사용 가능한 이메일입니다.
         </p>
       )}
@@ -114,7 +114,7 @@ const EmailVerification = ({
         className={`w-full p-3 rounded-lg text-base font-semibold transition ${
           isEmailSent || emailStatus !== "available"
             ? "bg-gray-400 text-white cursor-not-allowed"
-            : "bg-green-500 text-white hover:bg-green-600"
+            : "bg-primary-light text-white hover:bg-primary"
         }`}
       >
         {isEmailSent
@@ -131,14 +131,14 @@ const EmailVerification = ({
             placeholder="인증번호"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            className="flex-1 p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-blue-300 text-base"
+            className="flex-1 p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-primary text-base"
             required
           />
           <button
             type="button"
             onClick={() => verifyCode(code)}
             disabled={loading || !code}
-            className="p-3 rounded-lg text-base font-semibold transition bg-blue-500 text-white hover:bg-blue-600"
+            className="p-3 rounded-lg text-base font-semibold transition bg-primary-light text-white hover:bg-primary"
           >
             확인
           </button>

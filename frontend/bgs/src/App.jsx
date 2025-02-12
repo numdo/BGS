@@ -71,7 +71,10 @@ function App() {
               element={<FollowerFollowingListPage />}
             />
             <Route path="/workout" element={<WorkoutPage />} />
-            <Route path="/workoutdiary" element={<WorkoutDiaryPage />} />
+            <Route
+              path="/workoutdiary/:diaryId"
+              element={<WorkoutDiaryPage />}
+            />
             <Route path="/workoutcreate" element={<WorkoutCreatePage />} />
             <Route
               path="/workoutupdate/:diaryId"

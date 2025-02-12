@@ -10,7 +10,6 @@ import com.ssafy.bgs.user.service.UserService;
 import com.ssafy.bgs.auth.service.VerificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,11 +32,6 @@ public class UserController {
     private final Map<String, String> verificationStorage = new HashMap<>();
     private final UserRepository userRepository;
 
-    @GetMapping
-    public ResponseEntity<?> getAllUsers(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int pageSize) {
-        Page<UserResponseDto> result = userService.getAllUsers(page, pageSize);
-        return ResponseEntity.ok(result);
-    }
     @GetMapping("/nickname-check/{nickname}")
     public ResponseEntity<?> checkNickname(@PathVariable String nickname, Authentication authentication) {
         // authentication.getName()은 JWT 생성 시 subject에 저장한 userId (문자열) 입니다.

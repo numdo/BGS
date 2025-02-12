@@ -1,25 +1,11 @@
-import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import arrow_back from "../../assets/icons/arrow_back.png";
 import favicon from "../../assets/images/favicon.png";
 export default function TopBar() {
-  const dropdownRef = useRef({});
   const navigate = useNavigate();
   const handleNavigation = (url) => {
     navigate(url); // url로 이동
   };
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(null);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
   return (
     <div className="w-full border-b z-30">
       <div className="flex justify-between items-center px-4 py-3">
