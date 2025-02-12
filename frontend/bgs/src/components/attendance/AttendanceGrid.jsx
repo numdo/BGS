@@ -130,7 +130,7 @@ const AttendanceGrid = forwardRef((props, ref) => {
       const gap = Math.floor((date - prevDate) / (1000 * 60 * 60 * 24));
       // gap이 1 또는 2라면(즉, 3일 이상 결석 전까지는 연속 출석으로 간주)
       if (gap > 0 && gap < 3) {
-        return "#ddcb 62"; // 연한
+        return "#ceb71b"; // 연한
       }
     }
   
