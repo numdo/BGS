@@ -14,6 +14,8 @@ import com.ssafy.bgs.mygym.repository.UserItemRepository;
 import com.ssafy.bgs.user.entity.User;
 import com.ssafy.bgs.user.exception.UserNotFoundException;
 import com.ssafy.bgs.user.repository.UserRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -35,13 +37,14 @@ public class ItemService {
         this.userItemRepository = userItemRepository;
     }
 
-    public List<ItemResponseDto> getItemList(Integer userId) {
+    public List<ItemResponseDto> getItemList(Integer userId, int page, int pageSize) {
         List<ItemResponseDto> itemList = new ArrayList<>();
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
 
         // 유저 없음
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
-        itemRepository.findByUsableTrue().forEach(item -> {
+        itemRepository.findByUsableTrue(pageable).forEach(item -> {
             // 아이템 정보 조회
             ItemResponseDto itemResponseDto = new ItemResponseDto();
             itemResponseDto.setItemId(item.getItemId());

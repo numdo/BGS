@@ -6,6 +6,8 @@ import com.ssafy.bgs.mygym.dto.response.ItemResponseDto;
 import com.ssafy.bgs.mygym.entity.Item;
 import com.ssafy.bgs.mygym.exception.ItemNotFoundException;
 import com.ssafy.bgs.mygym.repository.ItemRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,10 +19,11 @@ public class AdminItemService {
     private final ItemRepository itemRepository;
     private final ImageService imageService;
 
-    public List<ItemResponseDto> getItemList(Integer userId) {
+    public List<ItemResponseDto> getItemList(int page, int pageSize) {
         List<ItemResponseDto> itemList = new ArrayList<>();
+        Pageable pageable = PageRequest.of(page, pageSize);
 
-        itemRepository.findAll().forEach(item -> {
+        itemRepository.findAll(pageable).forEach(item -> {
             // 아이템 정보 조회
             ItemResponseDto itemResponseDto = new ItemResponseDto();
             itemResponseDto.setItemId(item.getItemId());

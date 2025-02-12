@@ -21,9 +21,11 @@ public class ItemController {
 
     @GetMapping
     public ResponseEntity<?> getItemList(
-            @AuthenticationPrincipal Integer userId
+            @AuthenticationPrincipal Integer userId,
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @RequestParam(required = false, defaultValue = "10") int pageSize
     ) {
-        List<ItemResponseDto> items = itemService.getItemList(userId);
+        List<ItemResponseDto> items = itemService.getItemList(userId, page, pageSize);
         return new ResponseEntity<>(items, HttpStatus.OK);
     }
 
