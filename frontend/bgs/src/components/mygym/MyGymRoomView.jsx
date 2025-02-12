@@ -68,7 +68,7 @@ const MyGymRoomView = ({ userId }) => {
             zIndex: 1,
             boxShadow: "inset 0 4px 8px rgba(0, 0, 0, 0.3)",
             backgroundImage: `linear-gradient(${myGym.wallColor}, ${myGym.wallColor}),
-                              radial-gradient(circle at center, rgba(0, 0, 0, 0.3) 0%, transparent 20%)`,
+                              radial-gradient(circle at center, rgba(0, 0, 0, 0.3) 0%, transparent 15%)`,
             backgroundBlendMode: "multiply",
           }}
         />
