@@ -9,6 +9,7 @@ import SelectColor from "../../components/mygym/SelectColor";
 import MyGymRoomBgColor from "../../components/mygym/MyGymRoomBgColor";
 import CommentInput from "../../components/mygym/CommentInput";
 import CommentList from "../../components/mygym/CommentList";
+import VisitorComment from "../../components/mygym/VisitorComment";
 import "../../style.css";
 
 import useUserStore from "../../stores/useUserStore";
@@ -139,15 +140,8 @@ const MyGymPage = () => {
         <>
           <MyGymRoomView userId={user.userId} />
           {/* 댓글 영역: 항상 보이도록 */}
-          <div className="mt-4 w-full bg-gray-100 p-3 rounded-3xl">
-            <CommentInput
-              newComment={newComment}
-              setNewComment={setNewComment}
-              onAddComment={handleAddComment}
-            />
-            {visitorMemos.map((memo) => (
-              <CommentList key={memo.guestbookId} memo={memo} />
-            ))}
+          <div className="mt-4 flex-1 bg-white rounded-3xl">
+            <VisitorComment userId={user.userId}/>
           </div>
         </>
       )}
