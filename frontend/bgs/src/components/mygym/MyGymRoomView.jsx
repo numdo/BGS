@@ -50,6 +50,12 @@ const MyGymRoomView = ({ userId }) => {
     <div className="relative flex flex-col items-center">
       {/* 실제 방 컨테이너 */}
       <div className="relative w-96 h-96">
+      <div
+        className="relative w-96 h-96"
+        style={{
+          filter: "drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4))",
+        }}
+      >
         {/* 윗부분: 마이짐 벽 색 */}
         <div
           style={{
@@ -60,6 +66,10 @@ const MyGymRoomView = ({ userId }) => {
               "polygon(50% 12%, 100% 30%, 100% 65%, 50% 45%, 0% 65%, 0% 30%)",
             backgroundColor: myGym.wallColor,
             zIndex: 1,
+            boxShadow: "inset 0 4px 8px rgba(0, 0, 0, 0.3)",
+            backgroundImage: `linear-gradient(${myGym.wallColor}, ${myGym.wallColor}),
+                              radial-gradient(circle at center, rgba(0, 0, 0, 0.3) 0%, transparent 20%)`,
+            backgroundBlendMode: "multiply",
           }}
         />
         {/* 아랫부분 */}
@@ -98,6 +108,7 @@ const MyGymRoomView = ({ userId }) => {
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );

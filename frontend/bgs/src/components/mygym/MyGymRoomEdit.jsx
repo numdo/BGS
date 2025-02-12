@@ -144,6 +144,12 @@ const MyGymRoomEdit = () => {
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
       >
+        <div
+        className="relative w-96 h-96"
+        style={{
+          filter: "drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4))",
+        }}
+      >
         {/* 윗부분 - 폴리곤 벽 색 */}
         <div
           style={{
@@ -154,6 +160,10 @@ const MyGymRoomEdit = () => {
               "polygon(50% 12%, 100% 30%, 100% 65%, 50% 45%, 0% 65%, 0% 30%)",
             backgroundColor: myGym.wallColor,
             zIndex: 1,
+            boxShadow: "inset 0 4px 8px rgba(0, 0, 0, 0.3)",
+            backgroundImage: `linear-gradient(${myGym.wallColor}, ${myGym.wallColor}),
+                              radial-gradient(circle at center, rgba(0, 0, 0, 0.3) 0%, transparent 15%)`,
+            backgroundBlendMode: "multiply",
           }}
         />
         {/* 아랫부분 */}
@@ -165,6 +175,7 @@ const MyGymRoomEdit = () => {
             clipPath: "polygon(50% 45%, 100% 65%, 50% 85%, 0% 65%)",
             backgroundColor: "#999999",
             zIndex: 0,
+            boxShadow: "inset 0 -4px 6px rgba(0, 0, 0, 0.3)",
           }}
         />
         {/* 아이템들 (deleted=false인 것만) */}
@@ -234,9 +245,10 @@ const MyGymRoomEdit = () => {
                   style={{ transform: "translateX(-10%)" }}
                 />
               </div>
-            </div>
+              </div>
           );
         })}
+        </div>
       </div>
     </div>
   );
