@@ -99,10 +99,10 @@ const AttendanceGrid = forwardRef((props, ref) => {
     if (!attendanceMap[dateStr]) return "#ebedf0"; // 출석 기록 없음
     return [
       "#ebedf0", // 없음
-      "#c6e48b", // 1~2회
-      "#7bc96f", // 3~4회
-      "#239a3b", // 5~6회
-      "#196127", // 7회 이상
+      "#e8d98d", // 1~2회
+      "#ceb71b", // 3~4회
+      "#ac9314", // 5~6회
+      "#775a0b", // 7회 이상
     ][Math.min(4, Math.floor(Math.random() * 5))];
   };
 
@@ -164,7 +164,7 @@ const AttendanceGrid = forwardRef((props, ref) => {
         <div className="flex items-center text-gray-500 text-xs mt-2">
           <span>Less</span>
           <div className="flex ml-2">
-            {["#ebedf0", "#ddcb 62", "#ceb71b", "#ac9314", "#775a0b"].map(
+            {["#ebedf0", "#e8d98d", "#ceb71b", "#ac9314", "#775a0b"].map(
               (color, index) => (
                 <div
                   key={index}
