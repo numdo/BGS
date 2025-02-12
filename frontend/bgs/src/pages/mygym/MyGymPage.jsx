@@ -37,7 +37,7 @@ const MyGymPage = () => {
     setIsEditing(false);
   };
 
-  // 방명록(댓글) 상태 관리 (예시)
+  // 방명록(댓글)
   const [visitorMemos, setVisitorMemos] = useState([]);
   const [newComment, setNewComment] = useState("");
 
@@ -50,7 +50,7 @@ const MyGymPage = () => {
         setMyGym(MyGym);
       });
       try {
-        // 최신 댓글 10개를 불러옴 (API에서 최신순으로 정렬되어 있다고 가정)
+        // 최신 댓글 10개를 불러옴
         const data = await getGuestBooks(response.userId, 0, 10);
         const freshMemos = data.content.filter((memo) => !memo.deleted);
         setVisitorMemos(freshMemos);
@@ -61,7 +61,7 @@ const MyGymPage = () => {
     enterMygymPage();
   }, [setUser, setMyGym]);
 
-  // 새 댓글 추가 핸들러 (예시; 실제 API 호출이 있다면 해당 로직 추가)
+  // 새 댓글 추가 핸들러 
   const handleAddComment = async () => {
     if (newComment.trim() === "") return;
     try {
@@ -92,7 +92,7 @@ const MyGymPage = () => {
         backgroundPosition: "center",
         backgroundRepeat: "repeat-x",
         animation: "moveBg 60s linear infinite",
-        position: "relative", // 하위의 absolute 요소를 위한 설정
+        position: "relative", 
       }}
     >
       <TopBar />
