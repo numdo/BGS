@@ -15,6 +15,7 @@ export default function BottomBar() {
   const location = useLocation();
   return (
     <>
+      <div className="fixed bottom-0 left-0 w-full h-16 bg-gray-300 border-t border-gray-200 shadow-lg"></div>
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-lg">
         <div className="flex justify-evenly items-center py-2">
           <button

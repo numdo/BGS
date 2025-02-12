@@ -29,7 +29,9 @@ const CommentInput = ({ diaryId, onCommentAdded }) => {
       <input
         type="text"
         value={comment}
-        onChange={(e) => setComment(e.target.value)}
+        onChange={(e) => {
+          setComment(e.target.value);
+        }}
         placeholder="댓글을 입력하세요..."
         className="flex-1 px-3 py-2 border rounded-md"
       />

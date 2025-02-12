@@ -69,7 +69,7 @@ const BgsLoginPage = () => {
           placeholder="이메일"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-blue-300 text-base"
+          className="w-full p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-primary text-base"
           required
         />
         <input
@@ -77,7 +77,7 @@ const BgsLoginPage = () => {
           placeholder="비밀번호"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-blue-300 text-base"
+          className="w-full p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-primary text-base"
           required
         />
 
@@ -86,7 +86,7 @@ const BgsLoginPage = () => {
 
         {/* 비밀번호 찾기 및 회원가입 */}
         <div className="w-full flex items-center justify-between text-sm">
-          <Link to="/forgot-password" className="text-blue-600 hover:underline">
+          <Link to="/forgot-password" className="text-primary hover:underline">
             비밀번호를 잊으셨나요?
           </Link>
           <Link to="/signup" className="font-bold text-black hover:underline">
@@ -103,7 +103,7 @@ const BgsLoginPage = () => {
           className={`w-full p-3 rounded-lg text-base font-semibold transition ${
             loading
               ? "bg-gray-400 text-white cursor-not-allowed"
-              : "bg-blue-500 text-white hover:bg-blue-600"
+              : "bg-primary text-white hover:bg-blue-600"
           }`}
           disabled={loading}
         >

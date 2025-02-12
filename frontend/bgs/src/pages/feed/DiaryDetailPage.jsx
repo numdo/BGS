@@ -14,29 +14,31 @@ import chat from "../../assets/icons/chat.svg";
 import fitness_center from "../../assets/icons/fitness_center.svg";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import useUserStore from "../../stores/useUserStore";
 
 const API_URL = "/diaries";
 
 const DiaryDetailPage = () => {
+  const { me } = useUserStore();
   const { diaryId } = useParams();
   const navigate = useNavigate();
   const [feed, setFeed] = useState(null);
-  const [userId, setUserId] = useState(null);
+  const [userId, setUserId] = useState(me.userId);
   const [isLiked, setIsLiked] = useState(false);
   const [likedCount, setLikedCount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(true);
-
+  const [refreshKey, setRefreshKey] = useState(0);
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      try {
-        const decodedToken = JSON.parse(atob(token.split(".")[1]));
-        setUserId(decodedToken.sub);
-      } catch (error) {
-        console.error("토큰 디코딩 오류:", error);
-      }
-    }
+    // const token = localStorage.getItem("accessToken");
+    // if (token) {
+    //   try {
+    //     const decodedToken = JSON.parse(atob(token.split(".")[1]));
+    //     setUserId(decodedToken.sub);
+    //   } catch (error) {
+    //     console.error("토큰 디코딩 오류:", error);
+    //   }
+    // }
 
     axiosInstance
       .get(`${API_URL}/${diaryId}`)
@@ -207,8 +209,13 @@ const DiaryDetailPage = () => {
           {/* 댓글 입력창 & 댓글 목록 */}
           {isCommentsOpen && (
             <div className="mt-6">
-              <CommentInput diaryId={diaryId} onCommentAdded={() => {}} />
-              <CommentList diaryId={diaryId} />
+              <CommentInput
+                diaryId={diaryId}
+                onCommentAdded={() => {
+                  setRefreshKey((prev) => prev + 1);
+                }}
+              />
+              <CommentList key={refreshKey} diaryId={diaryId} />
             </div>
           )}
         </div>
