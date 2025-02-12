@@ -95,11 +95,11 @@ export async function updateMygym(userId, object) {
 }
 
 // 방명록 목록 조회
-export async function getGuestBooks(userId, page = 0, pageSize = 10) {
+export async function getGuestBooks(userId, page = 0/*, pageSize = 10*/) {
   try {
     const token = localStorage.getItem("accessToken");
     const response = await axios.get(
-      `${BASE_URL}api/mygyms/${userId}/guestbooks?page=${page + 1}&pageSize=${pageSize}&sort=createdAt,desc`,
+      `${BASE_URL}api/mygyms/${userId}/guestbooks?page=${page + 1}&pageSize=${1000}&sort=createdAt,desc`,
       {
         headers: {
           Authorization: `Bearer ${token}`
