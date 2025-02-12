@@ -29,6 +29,7 @@ import AtomicPage from "./pages/admin/AtomicPage";
 import FollowerFollowingListPage from "./pages/info/FollowerFollowingListPage";
 import AdminMainPage from "./pages/admin/AdminMainPage";
 import ForbiddenPage from "./pages/error/ForbiddenPage"; // 403 페이지 추가
+import ItemShopPage from "./pages/mygym/ItemShopPage";
 
 function App() {
   return (
@@ -53,6 +54,8 @@ function App() {
             <Route path="/" element={<MainPage />} />
             <Route path="/user-details" element={<UserDetailsPage />} />
             <Route path="/mygym" element={<MyGymPage />} />
+            <Route path="/shop" element={<ItemShopPage />} />
+            <Route path="/admin-item" element={<AdminItemPage />} />
             <Route path="/admin-item" element={<AdminItemPage />} />
             <Route path="/feeds" element={<FeedPage />} />
             <Route path="/feeds/diary/:diaryId" element={<DiaryDetailPage />} />
