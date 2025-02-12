@@ -3,6 +3,7 @@ package com.ssafy.bgs.diary.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -25,6 +26,7 @@ public class Diary {
     private String content;
     @Column
     private String allowedScope;
+    @CreatedDate
     @Column
     private Timestamp createdAt;
     @Column

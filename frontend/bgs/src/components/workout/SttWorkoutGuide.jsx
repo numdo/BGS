@@ -29,7 +29,7 @@ export default function SttWorkoutGuide({ onCancel, onStart }) {
 
         {/* 헤더 */}
         <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-          <MicrophoneIcon className="w-6 h-6 text-blue-500 mr-2" />
+          <MicrophoneIcon className="w-6 h-6 mr-2" />
           STT 음성 가이드
         </h2>
         <p className="text-gray-600 mt-2">
@@ -81,7 +81,7 @@ export default function SttWorkoutGuide({ onCancel, onStart }) {
           </button>
           <button
             onClick={() => onStart(dontShowAgain)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
+            className="px-4 py-2 bg-primary text-white rounded-lg flex items-center space-x-2 transition"
           >
             <MicrophoneIcon className="w-5 h-5 text-white" />
             <span>녹음 시작</span>

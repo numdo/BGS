@@ -14,8 +14,9 @@ import com.ssafy.bgs.mygym.repository.UserItemRepository;
 import com.ssafy.bgs.user.entity.User;
 import com.ssafy.bgs.user.exception.UserNotFoundException;
 import com.ssafy.bgs.user.repository.UserRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,20 +37,14 @@ public class ItemService {
         this.userItemRepository = userItemRepository;
     }
 
-    public List<ItemResponseDto> getItemList(Integer userId) {
+    public List<ItemResponseDto> getItemList(Integer userId, int page, int pageSize) {
         List<ItemResponseDto> itemList = new ArrayList<>();
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
 
         // 유저 없음
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
-        // 권한에 따른 아이템 조회
-        List<Item> items;
-        if (user.getRole().equals("ADMIN"))
-            items = itemRepository.findAll();
-        else
-            items = itemRepository.findByUsableTrue();
-
-        items.forEach(item -> {
+        itemRepository.findByUsableTrue(pageable).forEach(item -> {
             // 아이템 정보 조회
             ItemResponseDto itemResponseDto = new ItemResponseDto();
             itemResponseDto.setItemId(item.getItemId());
@@ -70,31 +65,6 @@ public class ItemService {
         });
 
         return itemList;
-    }
-
-    public void addItem(Item item, MultipartFile file) {
-        Item savedItem = itemRepository.save(item);
-        imageService.uploadImage(file, "item", Long.valueOf(savedItem.getItemId()));
-    }
-
-    public void updateItem(Item item, MultipartFile file) {
-        Item savedItem = itemRepository.save(item);
-        if (file != null) {
-            imageService.deleteImage(imageService.getImage("item", savedItem.getItemId()).getImageId());
-            imageService.uploadImage(file, "item", Long.valueOf(savedItem.getItemId()));
-        }
-    }
-
-    public void enableItem(Integer itemId) {
-        Item savedItem = itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException(itemId));
-        savedItem.setUsable(true);
-        itemRepository.save(savedItem);
-    }
-
-    public void disableItem(Integer itemId) {
-        Item savedItem = itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException(itemId));
-        savedItem.setUsable(false);
-        itemRepository.save(savedItem);
     }
 
     public void buyItem(Integer userId, Integer itemId) {

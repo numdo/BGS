@@ -74,16 +74,21 @@ const AttendanceGrid = forwardRef((props, ref) => {
         const todayStr = formatDate(new Date());
         const attendanceData = { latitude, longitude };
         try {
-          await checkAttendance(attendanceData);
+          const response = await checkAttendance(attendanceData);
+
+          // ✅ 출석 체크 성공 시 알림 표시
+          alert("✅ 출석이 완료되었습니다!");
+
+          // 출석 정보 상태 업데이트
           setAttendanceMap((prev) => ({ ...prev, [todayStr]: attendanceData }));
         } catch (err) {
           console.error("출석 체크 실패:", err);
-          alert("출석 체크에 실패했습니다.");
+          alert("❌ 출석 체크에 실패했습니다. 다시 시도해주세요.");
         }
       },
       (error) => {
         console.error("위치 정보를 가져오는데 실패했습니다.", error);
-        alert("위치 정보를 가져오는데 실패했습니다.");
+        alert("❌ 위치 정보를 가져오는데 실패했습니다.");
       }
     );
   };
@@ -95,15 +100,41 @@ const AttendanceGrid = forwardRef((props, ref) => {
   // 매 렌더마다 호출되는 getColorIntensity 함수는 예제용으로 랜덤 처리하고 있으나,
   // 매번 다른 값을 반환하지 않도록 하려면 별도로 메모이제이션하거나 실제 데이터를 기준으로 처리할 수 있습니다.
   const getColorIntensity = (date) => {
+    const today = new Date();
+    // 미래 날짜는 기본 색상(출석 아직 아님)
+    if (date > today) return "#ebedf0";
+
     const dateStr = formatDate(date);
-    if (!attendanceMap[dateStr]) return "#ebedf0"; // 출석 기록 없음
-    return [
-      "#ebedf0", // 없음
-      "#c6e48b", // 1~2회
-      "#7bc96f", // 3~4회
-      "#239a3b", // 5~6회
-      "#196127", // 7회 이상
-    ][Math.min(4, Math.floor(Math.random() * 5))];
+
+    // 출석 기록이 있으면 진한
+    if (attendanceMap[dateStr]) return "#775a0b";
+
+    // 출석 기록이 없는 날이면, 과거에 출석한 기록이 있는지 확인하여 연속 출석의 일부라면 연한 초록색으로 처리
+    // attendanceMap의 key는 "YYYY-MM-DD" 형식이므로 ISO 형식으로 정렬하면 날짜 순서가 유지됩니다.
+    const attendedDates = Object.keys(attendanceMap).sort(); // 오름차순 정렬
+    let previousAttended = null;
+    for (let i = 0; i < attendedDates.length; i++) {
+      // 날짜 문자열 비교는 ISO 형식에서 올바르게 작동합니다.
+      if (attendedDates[i] < dateStr) {
+        previousAttended = attendedDates[i];
+      } else {
+        break;
+      }
+    }
+
+    // 만약 이전에 출석한 날이 있다면, 그 날과의 차이를 계산
+    if (previousAttended) {
+      const prevDate = new Date(previousAttended);
+      // 일수 차이 계산 (정수)
+      const gap = Math.floor((date - prevDate) / (1000 * 60 * 60 * 24));
+      // gap이 1 또는 2라면(즉, 3일 이상 결석 전까지는 연속 출석으로 간주)
+      if (gap > 0 && gap < 3) {
+        return "#ceb71b"; // 연한
+      }
+    }
+
+    // 기본 색상 (출석 기록도 없고 연속 출석 범위에 속하지 않음)
+    return "#ebedf0";
   };
 
   return (
@@ -164,7 +195,7 @@ const AttendanceGrid = forwardRef((props, ref) => {
         <div className="flex items-center text-gray-500 text-xs mt-2">
           <span>Less</span>
           <div className="flex ml-2">
-            {["#ebedf0", "#ddcb 62", "#ceb71b", "#ac9314", "#775a0b"].map(
+            {["#ebedf0", "#e8d98d", "#ceb71b", "#ac9314", "#775a0b"].map(
               (color, index) => (
                 <div
                   key={index}
