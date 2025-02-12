@@ -75,10 +75,10 @@ const AttendanceGrid = forwardRef((props, ref) => {
         const attendanceData = { latitude, longitude };
         try {
           const response = await checkAttendance(attendanceData);
-          
+
           // ✅ 출석 체크 성공 시 알림 표시
           alert("✅ 출석이 완료되었습니다!");
-  
+
           // 출석 정보 상태 업데이트
           setAttendanceMap((prev) => ({ ...prev, [todayStr]: attendanceData }));
         } catch (err) {
@@ -92,7 +92,6 @@ const AttendanceGrid = forwardRef((props, ref) => {
       }
     );
   };
-  
 
   useImperativeHandle(ref, () => ({
     handleCheckAttendance,
@@ -104,12 +103,12 @@ const AttendanceGrid = forwardRef((props, ref) => {
     const today = new Date();
     // 미래 날짜는 기본 색상(출석 아직 아님)
     if (date > today) return "#ebedf0";
-  
+
     const dateStr = formatDate(date);
-  
+
     // 출석 기록이 있으면 진한
     if (attendanceMap[dateStr]) return "#775a0b";
-  
+
     // 출석 기록이 없는 날이면, 과거에 출석한 기록이 있는지 확인하여 연속 출석의 일부라면 연한 초록색으로 처리
     // attendanceMap의 key는 "YYYY-MM-DD" 형식이므로 ISO 형식으로 정렬하면 날짜 순서가 유지됩니다.
     const attendedDates = Object.keys(attendanceMap).sort(); // 오름차순 정렬
@@ -122,7 +121,7 @@ const AttendanceGrid = forwardRef((props, ref) => {
         break;
       }
     }
-  
+
     // 만약 이전에 출석한 날이 있다면, 그 날과의 차이를 계산
     if (previousAttended) {
       const prevDate = new Date(previousAttended);
@@ -133,11 +132,10 @@ const AttendanceGrid = forwardRef((props, ref) => {
         return "#ceb71b"; // 연한
       }
     }
-  
+
     // 기본 색상 (출석 기록도 없고 연속 출석 범위에 속하지 않음)
     return "#ebedf0";
   };
-  
 
   return (
     <div
@@ -197,7 +195,7 @@ const AttendanceGrid = forwardRef((props, ref) => {
         <div className="flex items-center text-gray-500 text-xs mt-2">
           <span>Less</span>
           <div className="flex ml-2">
-            {["#ebedf0", "#ddcb 62", "#ceb71b", "#ac9314", "#775a0b"].map(
+            {["#ebedf0", "#e8d98d", "#ceb71b", "#ac9314", "#775a0b"].map(
               (color, index) => (
                 <div
                   key={index}

@@ -8,12 +8,17 @@ import addlogo from "../../assets/icons/add.svg";
 import miclogo from "../../assets/icons/mic.svg";
 import deletelogo from "../../assets/icons/delete.svg";
 import moreicon from "../../assets/icons/more.svg";
+import mic_colored from "../../assets/icons/mic_colored.svg";
 import SttWorkoutGuide from "../../components/workout/SttWorkoutGuide";
 
 export default function WorkoutCreatePage() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // ---------------------------
+  // 더보기 관련 상태태
+  // ---------------------------
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
   // ---------------------------
   // STT 가이드 관련 상태
   // ---------------------------
@@ -470,46 +475,60 @@ export default function WorkoutCreatePage() {
     <>
       <TopBar />
       <div className="m-5 pb-24 flex-col relative">
-        <button
-          className="absolute right-0 bg-gray-100 rounded-md w-6 h-6"
-          onClick={() => {}}
-        >
-          <img src={moreicon} alt="" />
-        </button>
-        {/* 날짜 */}
-        <div className="border border-gray-100 text-gray-500 w-44 rounded-md pl-2">
-          <label htmlFor="date">날짜 </label>
-          <input
-            type="date"
-            id="date"
-            value={diary.workoutDate}
-            onChange={(e) =>
-              setDiary({ ...diary, workoutDate: e.target.value })
-            }
-          />
-        </div>
+        {isMoreOpen && (
+          <div className="absolute right-0 top-7 bg-white mt-2 p-2 border z-10 rounded-md">
+            <div className="border border-gray-100 text-gray-500 w-44 rounded-md pl-2">
+              <label htmlFor="date">날짜 </label>
+              {/* 날짜 */}
+              <input
+                type="date"
+                id="date"
+                value={diary.workoutDate}
+                onChange={(e) =>
+                  setDiary({ ...diary, workoutDate: e.target.value })
+                }
+              />
+            </div>
+            <button
+              onClick={() => setIsPreviousModalOpen(true)}
+              className="p-1 border border-gray-100 text-gray-500 rounded text-sm"
+            >
+              이전 기록 보기
+            </button>
+          </div>
+        )}
+
         {/* 상단 버튼들 */}
-        <div className="flex items-center mt-3 rounded-lg">
+        <div className="flex items-center">
+          <div className="grid grid-cols-2 items-center rounded-lg flex-grow">
+            <button
+              onClick={() => setIsExerciseModalOpen(true)}
+              className="px-4 py-2 bg-primary-light text-white text-sm rounded-l-md"
+            >
+              🏋️‍♂️ 운동 추가
+            </button>
+            <button
+              onClick={handleRecordButton}
+              className="flex items-center justify-center px-4 py-2 bg-primary-light border-l border-gray-400 text-white text-sm rounded-r-md"
+            >
+              {isRecording ? (
+                <img src={mic_colored} alt="녹음 버튼" className="w-5 h-5" />
+              ) : (
+                <img src={miclogo} alt="녹음 버튼" className="w-5 h-5" />
+              )}
+              {isRecording ? "녹음 중..." : "녹음"}
+            </button>
+          </div>
           <button
-            onClick={() => setIsExerciseModalOpen(true)}
-            className="px-4 py-2 bg-primary-light text-white text-sm rounded-l-md"
+            className="bg-gray-100 rounded-md w-6 h-6 ml-3"
+            onClick={() => {
+              setIsMoreOpen(!isMoreOpen);
+            }}
           >
-            🏋️‍♂️ 운동 추가
-          </button>
-          <button
-            onClick={handleRecordButton}
-            className="flex items-center px-4 py-2 bg-primary-light border-l border-gray-400 text-white text-sm rounded-r-md"
-          >
-            <img src={miclogo} alt="녹음 버튼" className="w-5 h-5" />
-            {isRecording ? "⏹ 녹음 중..." : "🎙 녹음"}
+            <img src={moreicon} alt="" />
           </button>
         </div>
-        <button
-          onClick={() => setIsPreviousModalOpen(true)}
-          className="m-3 p-2 bg-gray-200 text-gray-500 rounded text-sm"
-        >
-          이전 기록 보기
-        </button>
+
         {/* STT 가이드 모달 */}
         {showSttGuide && (
           <SttWorkoutGuide
@@ -680,88 +699,94 @@ export default function WorkoutCreatePage() {
         )}
         {/* 이미 추가된 운동 목록 */}
         <div className="mt-4">
-          {diary.diaryWorkouts.map((workout, wIndex) => (
-            <div key={`dw-${wIndex}`} className="border p-2 rounded mb-2">
-              <div className="flex justify-between items-center">
-                <h2>{getWorkoutName(workout.workoutId)}</h2>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleAddSet(wIndex)}
-                    className="w-8 px-2 py-1 bg-success text-gray-400 rounded"
-                  >
-                    +
-                  </button>
-                  <button
-                    onClick={() => handleDeleteWorkout(wIndex)}
-                    className="px-1 py-1 bg-danger text-white rounded"
-                  >
-                    <img src={deletelogo} alt="" />
-                  </button>
-                </div>
-              </div>
-              {workout.sets.map((set, setIndex) => (
-                <div
-                  key={`set-${wIndex}-${setIndex}`}
-                  className="flex items-center space-x-4 mt-2"
-                >
-                  <div>
-                    <label className="mr-1">무게:</label>
-                    <input
-                      type="number"
-                      value={set.weight}
-                      onChange={(e) =>
-                        handleWorkoutSetChange(
-                          wIndex,
-                          setIndex,
-                          "weight",
-                          e.target.value
-                        )
-                      }
-                      className="w-20 p-1 border rounded"
-                    />
+          {diary.diaryWorkouts.length === 0 ? (
+            <p className="text-gray-500">운동을 추가해보세요</p>
+          ) : (
+            <>
+              {diary.diaryWorkouts.map((workout, wIndex) => (
+                <div key={`dw-${wIndex}`} className="border p-2 rounded mb-2">
+                  <div className="flex justify-between items-center">
+                    <h2>{getWorkoutName(workout.workoutId)}</h2>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleAddSet(wIndex)}
+                        className="w-8 px-2 py-1 bg-success text-gray-400 rounded"
+                      >
+                        +
+                      </button>
+                      <button
+                        onClick={() => handleDeleteWorkout(wIndex)}
+                        className="px-1 py-1 bg-danger text-white rounded"
+                      >
+                        <img src={deletelogo} alt="" />
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <label className="mr-1">횟수:</label>
-                    <input
-                      type="number"
-                      value={set.repetition}
-                      onChange={(e) =>
-                        handleWorkoutSetChange(
-                          wIndex,
-                          setIndex,
-                          "repetition",
-                          e.target.value
-                        )
-                      }
-                      className="w-20 p-1 border rounded"
-                    />
-                  </div>
-                  <div>
-                    <label className="mr-1">시간:</label>
-                    <input
-                      type="number"
-                      value={set.workoutTime}
-                      onChange={(e) =>
-                        handleWorkoutSetChange(
-                          wIndex,
-                          setIndex,
-                          "workoutTime",
-                          e.target.value
-                        )
-                      }
-                      className="w-20 p-1 border rounded"
-                    />
-                  </div>
-                  <button
-                    onClick={() => handleDeleteSet(wIndex, setIndex)}
-                    className="px-1 py-1 bg-danger text-white rounded"
-                  >
-                    <img src={deletelogo} alt="" />
-                  </button>
+                  {workout.sets.map((set, setIndex) => (
+                    <div
+                      key={`set-${wIndex}-${setIndex}`}
+                      className="flex items-center space-x-4 mt-2"
+                    >
+                      <div>
+                        <label className="mr-1">무게:</label>
+                        <input
+                          type="number"
+                          value={set.weight}
+                          onChange={(e) =>
+                            handleWorkoutSetChange(
+                              wIndex,
+                              setIndex,
+                              "weight",
+                              e.target.value
+                            )
+                          }
+                          className="w-20 p-1 border rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="mr-1">횟수:</label>
+                        <input
+                          type="number"
+                          value={set.repetition}
+                          onChange={(e) =>
+                            handleWorkoutSetChange(
+                              wIndex,
+                              setIndex,
+                              "repetition",
+                              e.target.value
+                            )
+                          }
+                          className="w-20 p-1 border rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="mr-1">시간:</label>
+                        <input
+                          type="number"
+                          value={set.workoutTime}
+                          onChange={(e) =>
+                            handleWorkoutSetChange(
+                              wIndex,
+                              setIndex,
+                              "workoutTime",
+                              e.target.value
+                            )
+                          }
+                          className="w-20 p-1 border rounded"
+                        />
+                      </div>
+                      <button
+                        onClick={() => handleDeleteSet(wIndex, setIndex)}
+                        className="px-1 py-1 bg-danger text-white rounded"
+                      >
+                        <img src={deletelogo} alt="" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               ))}
-            </div>
-          ))}
+            </>
+          )}
         </div>
         {/* 이미지 업로드 섹션 */}
         <div className="mt-4">
@@ -807,7 +832,7 @@ export default function WorkoutCreatePage() {
           className="w-full h-24 mt-4 p-2 border rounded"
           value={diary.content}
           onChange={(e) => setDiary({ ...diary, content: e.target.value })}
-          placeholder="운동일지 내용을 입력하세요."
+          placeholder="메모를 입력해보세요"
         />
         {/* 해시태그 추가 */}
         <div className="mt-4">
@@ -852,7 +877,7 @@ export default function WorkoutCreatePage() {
               }
               className="peer hidden"
             />
-            <div className="w-6 h-6 border-2 border-gray-500 rounded-full peer-checked:bg-primary transition-all"></div>
+            <div className="w-6 h-6 border-2 border-gray-500 rounded-full peer-checked:bg-gray-600 transition-all"></div>
           </label>
         </div>
         {/* 저장 버튼 */}
