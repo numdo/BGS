@@ -124,11 +124,7 @@ export default function WorkoutPage() {
               >
                 <div className="flex justify-between">
                   <div
-                    onClick={() =>
-                      navigate("/workoutdiary", {
-                        state: { diaryId: diary.diaryId },
-                      })
-                    }
+                    onClick={() => navigate(`/workoutdiary/${diary.diaryId}`)}
                   >
                     <p className="text-gray-600">{diary.content}</p>
                   </div>

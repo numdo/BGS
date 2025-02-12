@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import person from "../../assets/icons/person.svg";
+import more_horiz from "../../assets/icons/more_horiz.svg";
 const API_URL = "/diaries";
 
 const CommentList = ({ diaryId }) => {
@@ -10,7 +11,11 @@ const CommentList = ({ diaryId }) => {
     const fetchComments = async () => {
       try {
         const response = await axiosInstance.get(
-          `${API_URL}/${diaryId}/comments`
+          `${API_URL}/${diaryId}/comments`,
+          {
+            page: 1,
+            pageSize: 100,
+          }
         );
         console.log(response.data);
         setComments(response.data);
@@ -43,6 +48,7 @@ const CommentList = ({ diaryId }) => {
                   </div>
                   <p className="text-sm">{comment.content}</p>
                 </div>
+                <img className="ml-auto" src={more_horiz} alt="" />
               </div>
             </div>
           ))

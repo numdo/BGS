@@ -83,7 +83,7 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-white px-10 py-16">
+    <div className="flex flex-col items-center justify-center bg-white px-10 py-16">
       {/* 뒤로가기 버튼 */}
       <button
         onClick={() => navigate(-1)}
