@@ -10,6 +10,11 @@ import deletelogo from "../../assets/icons/delete.svg";
 import moreicon from "../../assets/icons/more.svg";
 import mic_colored from "../../assets/icons/mic_colored.svg";
 import SttWorkoutGuide from "../../components/workout/SttWorkoutGuide";
+import {
+  showConfirmAlert,
+  showErrorAlert,
+  showSuccessAlert,
+} from "../../utils/toastrAlert";
 
 export default function WorkoutCreatePage() {
   const navigate = useNavigate();
@@ -183,7 +188,7 @@ export default function WorkoutCreatePage() {
 
   const handleWorkoutSelection = () => {
     if (selectedWorkouts.length === 0) {
-      alert("운동을 하나 이상 선택해주세요!");
+      showErrorAlert("운동을 한 가지 이상 추가해 주세요!");
       return;
     }
     setDiary((prevDiary) => {
@@ -234,7 +239,7 @@ export default function WorkoutCreatePage() {
       });
       return { ...prevDiary, diaryWorkouts: newDiaryWorkouts };
     });
-    alert(`"${record.workoutName}" 운동들이 추가되었습니다.`);
+    showSuccessAlert(`"${record.workoutName}" 운동들이 추가되었습니다.`);
     closePreviousModal();
   };
 
@@ -280,7 +285,7 @@ export default function WorkoutCreatePage() {
         });
         const duration = Date.now() - recordStartTime;
         if (duration < 2000 || audioBlob.size < 5000) {
-          alert("녹음이 너무 짧습니다. 다시 시도해주세요.");
+          showErrorAlert("녹음이 너무 짧습니다. 다시 시도해주세요.");
           return;
         }
         setIsLoading(true);
@@ -297,7 +302,7 @@ export default function WorkoutCreatePage() {
           );
           console.log("STT 응답 데이터:", response.data);
           if (response.data.invalidInput) {
-            alert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
+            showErrorAlert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
             return;
           }
           if (response.data.diaryWorkouts) {
@@ -314,7 +319,7 @@ export default function WorkoutCreatePage() {
             });
           }
         } catch (err) {
-          alert("오류 발생! 운동을 인식할 수 없습니다.");
+          showErrorAlert("오류 발생! 운동을 인식할 수 없습니다.");
           console.error("음성 처리 실패:", err);
         }
         setIsLoading(false);
@@ -322,7 +327,7 @@ export default function WorkoutCreatePage() {
       };
       recorder.start();
     } catch (error) {
-      alert("마이크 접근 오류! 마이크 사용 권한을 확인해주세요.");
+      showErrorAlert("마이크 접근 오류! 마이크 사용 권한을 확인해주세요.");
       console.error("마이크 접근 오류:", error);
     }
   };
@@ -396,12 +401,12 @@ export default function WorkoutCreatePage() {
     const maxAllowedSize = 1 * 1024 * 1024;
     for (let file of selectedFiles) {
       if (file.size > maxAllowedSize) {
-        alert(`파일이 너무 큽니다: ${file.name}`);
+        showErrorAlert(`파일이 너무 큽니다: ${file.name}`);
         return;
       }
     }
     if (selectedFiles.length + files.length > 6) {
-      alert("이미지는 최대 6장까지 업로드할 수 있습니다.");
+      showErrorAlert("이미지는 최대 6장까지 업로드할 수 있습니다.");
       return;
     }
     setFiles((prev) => [...prev, ...selectedFiles]);
@@ -421,7 +426,7 @@ export default function WorkoutCreatePage() {
     e.preventDefault();
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      alert("로그인이 필요합니다.");
+      await showErrorAlert("로그인이 필요합니다.");
       navigate("/login");
       return;
     }
@@ -432,20 +437,19 @@ export default function WorkoutCreatePage() {
     );
     files.forEach((f) => formData.append("files", f));
     try {
-      await axiosInstance.post("/diaries", formData, 
-        {
+      await axiosInstance.post("/diaries", formData, {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
-      alert("✅ 운동 데이터 저장 완료!");
+      await showConfirmAlert("저장이 완료되었습니다.");
       navigate("/workout");
     } catch (error) {
       console.error("❌ 저장 오류:", error);
       if (error.response && error.response.status === 401) {
-        alert("로그인이 필요합니다.");
+        await showErrorAlert("로그인이 필요합니다.");
         navigate("/login");
       } else {
-        alert("🚨 저장 실패!");
+        await showErrorAlert("🚨 저장 실패!");
       }
     }
   };

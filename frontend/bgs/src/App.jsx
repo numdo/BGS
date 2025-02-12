@@ -1,4 +1,6 @@
 import { Route, Routes, BrowserRouter } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import KakaoRedirectPage from "./pages/auth/KakaoRedirectPage";
@@ -33,67 +35,76 @@ import ItemShopPage from "./pages/mygym/ItemShopPage";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public Routes: 로그인/회원가입 등 */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/bgslogin" element={<BgsLoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/auth/kakao/callback" element={<KakaoRedirectPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/change-password" element={<ChangePasswordPage />} />
-        <Route path="/social-signup" element={<SocialSignupPage />} />
-        <Route path="/admin/*" element={<AdminMainPage />} />
-        
-        {/* 403 Forbidden 페이지 */}
-        <Route path="/403" element={<ForbiddenPage />} />
+    <>
+      <ToastContainer />
+      <BrowserRouter>
+        <Routes>
+          {/* Public Routes: 로그인/회원가입 등 */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/bgslogin" element={<BgsLoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/auth/kakao/callback" element={<KakaoRedirectPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/change-password" element={<ChangePasswordPage />} />
+          <Route path="/social-signup" element={<SocialSignupPage />} />
+          <Route path="/admin/*" element={<AdminMainPage />} />
 
-        {/* Protected Routes: 로그인이 되어 있어야 함 */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<ProtectedLayout />}>
-            <Route path="/" element={<MainPage />} />
-            <Route path="/user-details" element={<UserDetailsPage />} />
-            <Route path="/mygym" element={<MyGymPage />} />
-            <Route path="/shop" element={<ItemShopPage />} />
-            <Route path="/admin-item" element={<AdminItemPage />} />
-            <Route path="/admin-item" element={<AdminItemPage />} />
-            <Route path="/feeds" element={<FeedPage />} />
-            <Route path="/feeds/diary/:diaryId" element={<DiaryDetailPage />} />
-            <Route
-              path="/feeds/evaluation/:evaluationId"
-              element={<EvaluationDetailPage />}
-            />
-            <Route path="/myinfo" element={<MyInfoPage />} />
-            <Route path="/myinfoedit" element={<MyInfoEditPage />} />
-            <Route path="/profile/:userId" element={<UserInfoPage />} />
-            <Route
-              path="/follow/:type"
-              element={<FollowerFollowingListPage />}
-            />
-            <Route path="/workout" element={<WorkoutPage />} />
-            <Route
-              path="/workoutdiary/:diaryId"
-              element={<WorkoutDiaryPage />}
-            />
-            <Route path="/workoutcreate" element={<WorkoutCreatePage />} />
-            <Route
-              path="/workoutupdate/:diaryId"
-              element={<WorkoutUpdatePage />}
-            />
-            <Route path="/workoutrealtime" element={<WorkoutRealtimePage />} />
-            <Route
-              path="/evaluationcreate"
-              element={<EvaluationCreatePage />}
-            />
-            <Route
-              path="/evaluationupdate/:evaluationId"
-              element={<EvaluationUpdatePage />}
-            />
-            <Route path="/atomic" element={<AtomicPage />} />
+          {/* 403 Forbidden 페이지 */}
+          <Route path="/403" element={<ForbiddenPage />} />
+
+          {/* Protected Routes: 로그인이 되어 있어야 함 */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<ProtectedLayout />}>
+              <Route path="/" element={<MainPage />} />
+              <Route path="/user-details" element={<UserDetailsPage />} />
+              <Route path="/mygym" element={<MyGymPage />} />
+              <Route path="/shop" element={<ItemShopPage />} />
+              <Route path="/admin-item" element={<AdminItemPage />} />
+              <Route path="/admin-item" element={<AdminItemPage />} />
+              <Route path="/feeds" element={<FeedPage />} />
+              <Route
+                path="/feeds/diary/:diaryId"
+                element={<DiaryDetailPage />}
+              />
+              <Route
+                path="/feeds/evaluation/:evaluationId"
+                element={<EvaluationDetailPage />}
+              />
+              <Route path="/myinfo" element={<MyInfoPage />} />
+              <Route path="/myinfoedit" element={<MyInfoEditPage />} />
+              <Route path="/profile/:userId" element={<UserInfoPage />} />
+              <Route
+                path="/follow/:type"
+                element={<FollowerFollowingListPage />}
+              />
+              <Route path="/workout" element={<WorkoutPage />} />
+              <Route
+                path="/workoutdiary/:diaryId"
+                element={<WorkoutDiaryPage />}
+              />
+              <Route path="/workoutcreate" element={<WorkoutCreatePage />} />
+              <Route
+                path="/workoutupdate/:diaryId"
+                element={<WorkoutUpdatePage />}
+              />
+              <Route
+                path="/workoutrealtime"
+                element={<WorkoutRealtimePage />}
+              />
+              <Route
+                path="/evaluationcreate"
+                element={<EvaluationCreatePage />}
+              />
+              <Route
+                path="/evaluationupdate/:evaluationId"
+                element={<EvaluationUpdatePage />}
+              />
+              <Route path="/atomic" element={<AtomicPage />} />
+            </Route>
           </Route>
-        </Route>
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 
