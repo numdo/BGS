@@ -7,17 +7,11 @@ import com.ssafy.bgs.user.dto.response.AdminUserResponseDto;
 import com.ssafy.bgs.user.dto.response.UserResponseDto;
 import com.ssafy.bgs.user.service.AdminUserService;
 import com.ssafy.bgs.user.service.UserService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/users")

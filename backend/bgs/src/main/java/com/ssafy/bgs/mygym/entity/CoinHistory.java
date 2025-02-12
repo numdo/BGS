@@ -13,18 +13,23 @@ import java.time.LocalDateTime;
 @Setter
 public class CoinHistory {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // 추가 ✅
+    @Column(name = "coin_history_id")
     private Integer coinHistoryId;
 
-    @Column
+    @Column(name = "user_id", nullable = false)
     private Integer userId;
-    @Column
+
+    @Column(name = "amount", nullable = false)
     private Integer amount;
-    @Column
+
+    @Column(name = "usage_type", nullable = false)
     private String usageType;
-    @Column
-    private Integer usageId;
-    @Column
+
+    @Column(name = "usage_id")
+    private Integer usageId; // optional
+
+    @Column(name = "created_at", updatable = false)
     private Timestamp createdAt;
 
     @PrePersist

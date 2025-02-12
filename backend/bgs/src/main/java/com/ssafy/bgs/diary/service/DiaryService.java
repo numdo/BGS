@@ -15,6 +15,8 @@ import com.ssafy.bgs.diary.repository.*;
 import com.ssafy.bgs.image.dto.response.ImageResponseDto;
 import com.ssafy.bgs.image.entity.Image;
 import com.ssafy.bgs.image.service.ImageService;
+import com.ssafy.bgs.mygym.entity.CoinHistory;
+import com.ssafy.bgs.mygym.repository.CoinHistoryRepository;
 import com.ssafy.bgs.user.entity.User;
 import com.ssafy.bgs.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -24,6 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,9 +42,10 @@ public class DiaryService {
     private final ImageService imageService;
     private final UserRepository userRepository;
     private final WorkoutRepository workoutRepository;
+    private final CoinHistoryRepository coinHistoryRepository;
 
 
-    public DiaryService(DiaryRepository diaryRepository, DiaryWorkoutRepository diaryWorkoutRepository, WorkoutSetRepository workoutSetRepository, DiaryLikedRepository diaryLikedRepository, HashtagRepository hashtagRepository, CommentRepository commentRepository, ImageService imageService, UserRepository userRepository, WorkoutRepository workoutRepository) {
+    public DiaryService(DiaryRepository diaryRepository, DiaryWorkoutRepository diaryWorkoutRepository, WorkoutSetRepository workoutSetRepository, DiaryLikedRepository diaryLikedRepository, HashtagRepository hashtagRepository, CommentRepository commentRepository, ImageService imageService, UserRepository userRepository, WorkoutRepository workoutRepository, CoinHistoryRepository coinHistoryRepository) {
         this.diaryRepository = diaryRepository;
         this.diaryWorkoutRepository = diaryWorkoutRepository;
         this.workoutSetRepository = workoutSetRepository;
@@ -50,6 +55,7 @@ public class DiaryService {
         this.imageService = imageService;
         this.userRepository = userRepository;
         this.workoutRepository = workoutRepository;
+        this.coinHistoryRepository = coinHistoryRepository;
     }
 
     /**
@@ -95,18 +101,31 @@ public class DiaryService {
 
     /**
      * Diary insert
+     * 다이어리 작성 시 하루 한 번만 코인 +1 지급
      **/
     @Transactional
     public void addDiary(DiaryRequestDto diaryRequestDto, List<MultipartFile> files) {
-        // 운동 다이어리 column 입력
+        Integer userId = diaryRequestDto.getUserId();
+        // 오늘 기준 생성 시간 범위로 오늘 작성한 다이어리가 있는지 확인
+        LocalDateTime startOfToday = LocalDateTime.now().with(LocalTime.MIN);
+        LocalDateTime endOfToday = LocalDateTime.now().with(LocalTime.MAX);
+        boolean hasDiaryToday = diaryRepository.existsByUserIdAndCreatedAtBetween(userId, startOfToday, endOfToday);
+
+        // 운동 다이어리 column 입력 (workoutDate는 사용자가 입력한 값)
         Diary diary = new Diary();
         diary.setUserId(diaryRequestDto.getUserId());
         diary.setContent(diaryRequestDto.getContent());
         diary.setWorkoutDate(diaryRequestDto.getWorkoutDate());
         diary.setAllowedScope(diaryRequestDto.getAllowedScope());
-
-        // 운동 다이어리 저장
         Diary savedDiary = diaryRepository.save(diary);
+
+        // 코인 지급: 오늘 첫 다이어리 작성이라면 지급
+        if (!hasDiaryToday) {
+            System.out.println("오늘 첫 다이어리 작성! 코인 지급!");
+            giveCoinForDiary(userId);
+        } else {
+            System.out.println("이미 오늘 다이어리를 작성함! 코인 지급 X");
+        }
 
         // 해시태그 저장
         saveHashtags(diaryRequestDto.getHashtags(), savedDiary.getDiaryId());
@@ -122,6 +141,24 @@ public class DiaryService {
         // 이미지 저장
         if (files != null && !files.isEmpty())
             imageService.uploadImages(files, "diary", Long.valueOf(savedDiary.getDiaryId()));
+    }
+
+    /**
+     * 하루 한 번 다이어리 작성 보상 (코인 +1)
+     **/
+    private void giveCoinForDiary(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        // 코인 +1 증가 (null 체크는 필요 시 추가)
+        user.setCoin((user.getCoin() == null ? 0 : user.getCoin()) + 1);
+        userRepository.save(user);
+
+        // CoinHistory 기록 저장
+        CoinHistory coinHistory = new CoinHistory();
+        coinHistory.setUserId(userId);
+        coinHistory.setAmount(1); // 1 코인 지급
+        coinHistory.setUsageType("DIARY");
+        coinHistoryRepository.save(coinHistory);
     }
 
     /**

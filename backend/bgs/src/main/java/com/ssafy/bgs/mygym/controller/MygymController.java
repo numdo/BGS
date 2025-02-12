@@ -3,12 +3,19 @@ package com.ssafy.bgs.mygym.controller;
 import com.ssafy.bgs.mygym.dto.request.GuestbookRequestDto;
 import com.ssafy.bgs.mygym.dto.request.MygymRequestDto;
 import com.ssafy.bgs.mygym.dto.response.GuestbookResponseDto;
+import com.ssafy.bgs.mygym.dto.response.ItemResponseDto;
+import com.ssafy.bgs.mygym.entity.Item;
 import com.ssafy.bgs.mygym.service.MygymService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.ssafy.bgs.mygym.dto.response.CoinHistoryResponseDto;
+import org.springframework.security.core.Authentication;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/mygyms")
@@ -78,5 +85,56 @@ public class MygymController {
     ) {
         mygymService.deleteGuestbook(guestbookId, guestId);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/items")
+    public ResponseEntity<?> getItemList() {
+        List<ItemResponseDto> items = mygymService.getItemList();
+
+        return new ResponseEntity<>(items, HttpStatus.OK);
+    }
+
+    @PostMapping("/items")
+    public ResponseEntity<?> addItem(
+            @RequestPart(name = "item") Item item,
+            @RequestPart(name = "file") MultipartFile file
+    ) {
+        mygymService.addItem(item, file);
+
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @PatchMapping("/items/{itemId}")
+    public ResponseEntity<?> updateItem(
+            @PathVariable Integer itemId,
+            @RequestPart(name = "item") Item item,
+            @RequestPart(required = false, name = "file") MultipartFile file
+    ) {
+        item.setItemId(itemId);
+        mygymService.updateItem(item, file);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PatchMapping("/items/{itemId}/enable")
+    public ResponseEntity<?> enableItem(@PathVariable Integer itemId) {
+        mygymService.enableItem(itemId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PatchMapping("/items/{itemId}/disable")
+    public ResponseEntity<?> disableItem(@PathVariable Integer itemId) {
+        mygymService.disableItem(itemId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     * 로그인한 사용자의 코인 증가 내역 조회 API
+     */
+    @GetMapping("/coin-histories")
+    public ResponseEntity<?> getCoinHistory(Authentication authentication) {
+        // EvaluationController와 같이 authentication.getName()을 사용하여 사용자 ID를 추출
+        Integer userId = Integer.parseInt(authentication.getName());
+        List<CoinHistoryResponseDto> coinHistories = mygymService.getCoinHistory(userId);
+        return new ResponseEntity<>(coinHistories, HttpStatus.OK);
     }
 }
