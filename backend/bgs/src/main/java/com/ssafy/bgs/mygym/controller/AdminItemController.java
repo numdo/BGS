@@ -27,9 +27,10 @@ public class AdminItemController {
     @GetMapping
     public ResponseEntity<?> getItemList(
             @RequestParam(required = false, defaultValue = "1") int page,
-            @RequestParam(required = false, defaultValue = "10") int pageSize
+            @RequestParam(required = false, defaultValue = "10") int pageSize,
+            @RequestParam(required = false) String keyword
     ) {
-        List<ItemResponseDto> items = adminItemService.getItemList(page, pageSize);
+        List<ItemResponseDto> items = adminItemService.getItemList(page, pageSize,keyword);
         return new ResponseEntity<>(items, HttpStatus.OK);
     }
 
