@@ -1,18 +1,22 @@
 import { useState, useEffect, useRef } from "react";
-import { getFollowerList, getFollowingList } from "../../api/Follow";
-import DefaultProfileImage from "../../assets/icons/MyInfo.png";
 import { useNavigate, useParams } from "react-router-dom";
+import { getFollowerList, getFollowingList } from "../../api/Follow";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
+import UserList from "../../components/follow/UserList";
 
 export default function FollowerFollowingListPage() {
   const { type } = useParams();
   const navigate = useNavigate();
+  const fetchedData = useRef({ followers: [], following: [] });
+
   const [activeTab, setActiveTab] = useState(
     type === "following" ? "following" : "followers"
   );
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const containerRef = useRef(null);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -20,14 +24,23 @@ export default function FollowerFollowingListPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [followersData, followingData] = await Promise.all([
-          getFollowerList(),
-          getFollowingList(),
-        ]);
-        setFollowers(followersData);
-        setFollowing(followingData);
+        if (
+          !fetchedData.current.followers.length ||
+          !fetchedData.current.following.length
+        ) {
+          const [followersData, followingData] = await Promise.all([
+            getFollowerList(),
+            getFollowingList(),
+          ]);
+          fetchedData.current.followers = followersData;
+          fetchedData.current.following = followingData;
+        }
+        setFollowers(fetchedData.current.followers);
+        setFollowing(fetchedData.current.following);
       } catch (error) {
         console.error("❌ 팔로워/팔로잉 리스트 불러오기 실패:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchData();
@@ -42,7 +55,7 @@ export default function FollowerFollowingListPage() {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    navigate(`/follow/${tab}`);
+    navigate(`/follow/${tab}`, { replace: true });
   };
 
   const handleTouchStart = (e) => {
@@ -56,12 +69,10 @@ export default function FollowerFollowingListPage() {
   const handleTouchEnd = () => {
     const moveDistance = touchStartX.current - touchEndX.current;
 
-    if (moveDistance > 50) {
-      setActiveTab("following");
-      navigate("/follow/following");
-    } else if (moveDistance < -50) {
-      setActiveTab("followers");
-      navigate("/follow/followers");
+    if (moveDistance > 50 && activeTab !== "following") {
+      handleTabChange("following");
+    } else if (moveDistance < -50 && activeTab !== "followers") {
+      handleTabChange("followers");
     }
   };
 
@@ -98,66 +109,39 @@ export default function FollowerFollowingListPage() {
           </button>
         </div>
 
+        {/* ✅ 로딩 중 메시지를 화면 상단에 배치 */}
+        {isLoading && (
+          <div className="w-full text-center text-gray-500 text-lg mt-20">
+            로딩 중...
+          </div>
+        )}
+
         {/* ✅ 슬라이드 컨테이너 */}
         <div className="relative flex-grow overflow-hidden">
           <div
             className="flex transition-transform duration-300 ease-in-out w-full"
-            style={{ width: "200%" }}
             ref={containerRef}
           >
-            {/* ✅ 팔로워 리스트 (왼쪽 정렬) */}
-            <div className="w-full flex-shrink-0 flex flex-col items-start px-4 mt-4">
-              {followers.length > 0 ? (
-                followers.map((user) => (
-                  <UserItem key={user.userId} user={user} />
-                ))
-              ) : (
-                <p className="text-gray-500 text-lg mt-10 w-full text-left">
-                  팔로워가 없습니다.
-                </p>
-              )}
-            </div>
-
-            {/* ✅ 팔로잉 리스트 (왼쪽 정렬) */}
-            <div className="w-full flex-shrink-0 flex flex-col items-start px-4 mt-4">
-              {following.length > 0 ? (
-                following.map((user) => (
-                  <UserItem key={user.userId} user={user} />
-                ))
-              ) : (
-                <p className="text-gray-500 text-lg mt-10 w-full text-left">
-                  팔로잉이 없습니다.
-                </p>
-              )}
-            </div>
+            {!isLoading && (
+              <>
+                <div className="w-full flex-shrink-0 flex justify-center">
+                  <UserList
+                    users={followers}
+                    emptyMessage="팔로워가 없습니다."
+                  />
+                </div>
+                <div className="w-full flex-shrink-0 flex justify-center">
+                  <UserList
+                    users={following}
+                    emptyMessage="팔로잉이 없습니다."
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
       <BottomBar />
     </>
-  );
-}
-
-// ✅ 개별 유저 아이템 컴포넌트
-function UserItem({ user }) {
-  const navigate = useNavigate();
-
-  return (
-    <div
-      className="flex items-center p-4 border-b cursor-pointer hover:bg-gray-100 w-full max-w-md"
-      onClick={() => navigate(`/profile/${user.userId}`)}
-    >
-      <img
-        src={user.profileImageUrl || DefaultProfileImage}
-        alt="프로필"
-        className="w-12 h-12 rounded-full"
-      />
-      <div className="ml-4 w-full overflow-hidden">
-        <p className="text-lg font-semibold truncate">{user.nickname}</p>
-        <p className="text-gray-500 text-sm truncate">
-          {user.introduce || "소개 없음"}
-        </p>
-      </div>
-    </div>
   );
 }

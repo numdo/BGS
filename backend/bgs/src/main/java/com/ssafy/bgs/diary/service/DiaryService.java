@@ -20,7 +20,6 @@ import com.ssafy.bgs.mygym.repository.CoinHistoryRepository;
 import com.ssafy.bgs.user.entity.User;
 import com.ssafy.bgs.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -214,6 +213,13 @@ public class DiaryService {
             i++;
         }
         return workoutSets;
+    }
+
+    public Long getDiaryCount(Integer readerId, Integer userId) {
+        if (readerId.equals(userId))
+            return diaryRepository.countByUserIdAndDeletedFalse(userId);
+        else
+            return diaryRepository.countByUserIdAndAllowedScopeAndDeletedFalse(userId, "A");
     }
 
     /**
@@ -521,9 +527,8 @@ public class DiaryService {
     /**
      * Comment select
      **/
-    public Page<CommentResponseDto> getCommentList(Integer diaryId, int page, int pageSize) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
-        return commentRepository.findCommentsByDiaryId(diaryId, pageable);
+    public List<CommentResponseDto> getCommentList(Integer diaryId) {
+        return commentRepository.findCommentsByDiaryId(diaryId);
     }
 
     /**
@@ -707,5 +712,4 @@ public class DiaryService {
         }
         return result;
     }
-
 }

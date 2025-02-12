@@ -4,34 +4,53 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { getUser } from "../../api/User";
 import { follow, unfollow, getFollowingList } from "../../api/Follow";
+import { getUserPostCount } from "../../api/Feed"; // ✅ 게시물 개수 가져오는 API
 import PostsTab from "../../components/myinfo/PostsTab";
 import StatsTab from "../../components/myinfo/StatsTab";
 import MyGymTab from "../../components/myinfo/MyGymTab";
-import DefaultProfileImage from "../../assets/icons/MyInfo.png";
+import DefaultProfileImage from "../../assets/icons/myinfo.png";
 
 export default function UserInfoPage() {
-  const { userId } = useParams(); // URL에서 userId 가져오기
+  // ✅ URL에서 userId 가져오기
+  const { userId } = useParams();
+
+  // ✅ 유저 정보, 팔로우 상태, 탭 관리 상태
   const [user, setUser] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [activeTab, setActiveTab] = useState("posts");
+
+  // ✅ 그래프에 사용할 운동 데이터
   const [weightData, setWeightData] = useState([]);
   const [totalWeightData, setTotalWeightData] = useState([]);
   const [workoutFrequency, setWorkoutFrequency] = useState([]);
 
+  // ✅ 게시물 개수 저장하는 상태
+  const [postCount, setPostCount] = useState(0);
+
+  // ✅ 유저 정보 가져오기 (프로필 & 게시물 개수)
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const res = await getUser(userId); // ✅ 친구 프로필 정보 가져오기
+        const res = await getUser(userId); // ✅ 해당 userId의 프로필 데이터 가져오기
         console.log("🔹 친구 프로필 데이터:", res);
         setUser(res);
 
-        // ✅ 팔로우 상태 확인
-        const followingList = await getFollowingList();
+        // ✅ 동시에 여러 API 요청 (팔로우 상태 확인 & 게시물 개수 가져오기)
+        const [followingList, postData] = await Promise.all([
+          getFollowingList(), // ✅ 사용자가 팔로우한 유저 리스트
+          getUserPostCount(userId), // ✅ 해당 유저의 게시물 개수
+        ]);
+
+        // ✅ 현재 사용자가 해당 유저를 팔로우하고 있는지 확인
         const isUserFollowing = followingList.some(
           (f) => f.userId === res.userId
         );
         setIsFollowing(isUserFollowing);
 
+        // ✅ 게시물 개수를 저장 (API 응답이 undefined일 경우 대비해서 기본값 0)
+        setPostCount(postData ?? 0);
+
+        // ✅ 더미 데이터 유지 (운동 관련 그래프 데이터)
         setWeightData([
           { date: "01-01", weight: res.weight - 3 },
           { date: "01-10", weight: res.weight - 2 },
@@ -59,29 +78,30 @@ export default function UserInfoPage() {
     };
 
     fetchUserData();
-  }, [userId]);
+  }, [userId]); // ✅ userId가 변경될 때마다 실행
 
+  // ✅ 팔로우 / 언팔로우 처리 함수
   const handleFollowToggle = async () => {
     if (!user?.userId) {
       console.error("❌ 유저 ID가 존재하지 않습니다.");
       return;
     }
 
-    const previousState = isFollowing; // 이전 상태 저장
-    setIsFollowing(!isFollowing); // ✅ UI 즉시 반영
+    // ✅ UI 즉시 반영을 위해 현재 상태를 반전시킴
+    const previousState = isFollowing;
+    setIsFollowing(!isFollowing);
 
     try {
       if (isFollowing) {
-        await unfollow(user.userId);
+        await unfollow(user.userId); // ✅ 언팔로우 요청
         console.log(`언팔로우 성공: ${user.userId}`);
       } else {
-        await follow(user.userId);
+        await follow(user.userId); // ✅ 팔로우 요청
         console.log(`팔로우 성공: ${user.userId}`);
       }
-      setIsFollowing(!isFollowing);
     } catch (error) {
       console.error("❌ 팔로우 변경 중 오류 발생:", error);
-      setIsFollowing(previousState); // ✅ 실패하면 원래 상태로 롤백
+      setIsFollowing(previousState); // ✅ 실패 시 원래 상태로 복구
     }
   };
 
@@ -91,11 +111,11 @@ export default function UserInfoPage() {
     <>
       <TopBar />
       <div className="p-6 max-w-3xl mx-auto">
-        {/* 상단 프로필 섹션 */}
+        {/* ✅ 상단 프로필 섹션 */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <img
-              src={user.profileImageUrl || DefaultProfileImage} // ✅ 기본 이미지 추가
+              src={user.profileImageUrl || DefaultProfileImage} // ✅ 기본 이미지 설정
               alt="Profile"
               className="rounded-full h-24 w-24"
             />
@@ -106,7 +126,7 @@ export default function UserInfoPage() {
               <p className="text-gray-600 mt-2">{user.introduce}</p>
             </div>
           </div>
-          {/* ✅ 팔로우 버튼 */}
+          {/* ✅ 팔로우 / 언팔로우 버튼 */}
           <button
             className={`py-2 px-4 rounded-lg font-semibold transition ${
               isFollowing
@@ -119,24 +139,28 @@ export default function UserInfoPage() {
           </button>
         </div>
 
-        {/* 탭 네비게이션 */}
+        {/* ✅ 탭 네비게이션 (게시물 수 포함) */}
         <div className="border-b mb-4 flex justify-around">
-          {["posts", "stats", "myGym"].map((tab) => (
+          {[
+            { key: "posts", label: `게시물 (${postCount})` }, // ✅ 게시물 개수 표시
+            { key: "stats", label: "통계" },
+            { key: "myGym", label: "마이짐" },
+          ].map((tab) => (
             <button
-              key={tab}
+              key={tab.key}
               className={`py-2 px-4 ${
-                activeTab === tab
+                activeTab === tab.key
                   ? "border-b-2 border-gray-800 text-gray-800"
                   : "text-gray-500"
               }`}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => setActiveTab(tab.key)}
             >
-              {tab === "posts" ? "게시물" : tab === "stats" ? "통계" : "마이짐"}
+              {tab.label}
             </button>
           ))}
         </div>
 
-        {/* 탭 내용 렌더링 */}
+        {/* ✅ 탭 내용 렌더링 */}
         <div className="p-4">
           {activeTab === "posts" && (
             <PostsTab userId={user.userId} nickname={user.nickname} />

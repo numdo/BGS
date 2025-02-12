@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 
-const API_URL = "/mygyms/items";
+const API_URL = "/items";
 
 const AdminItemPage = () => {
   const [items, setItems] = useState([]);

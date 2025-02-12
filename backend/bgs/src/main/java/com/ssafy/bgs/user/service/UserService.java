@@ -1,24 +1,19 @@
 package com.ssafy.bgs.user.service;
 
 
-import com.ssafy.bgs.auth.dto.request.SocialSignupRequestDto;
-import com.ssafy.bgs.auth.dto.request.SignupRequestDto;
 import com.ssafy.bgs.auth.service.VerificationService;
 import com.ssafy.bgs.common.DuplicatedException;
-import com.ssafy.bgs.common.UnauthorizedAccessException;
 import com.ssafy.bgs.image.entity.Image;
 import com.ssafy.bgs.image.service.ImageService;
 import com.ssafy.bgs.redis.service.RedisService;
 import com.ssafy.bgs.user.dto.request.*;
+import com.ssafy.bgs.user.dto.response.AdminUserResponseDto;
 import com.ssafy.bgs.user.dto.response.InfoResponseDto;
-import com.ssafy.bgs.auth.dto.response.LoginResponseDto;
-import com.ssafy.bgs.user.dto.response.PasswordResetResponseDto;
 import com.ssafy.bgs.user.dto.response.UserResponseDto;
 import com.ssafy.bgs.user.entity.AccountType;
 import com.ssafy.bgs.user.entity.Following;
 import com.ssafy.bgs.user.entity.FollowingId;
 import com.ssafy.bgs.user.entity.User;
-import com.ssafy.bgs.user.exception.EmailNotFoundException;
 import com.ssafy.bgs.user.exception.FollowingNotFoundException;
 import com.ssafy.bgs.user.exception.UserNotFoundException;
 import com.ssafy.bgs.auth.jwt.JwtTokenProvider;
@@ -77,6 +72,9 @@ public class UserService {
 
         // 1) 기본 유저 정보 DTO 생성
         UserResponseDto dto = toUserResponseDto(user);
+
+        String redisKey = "user:info:" + user.getId();
+        redisService.setValue(redisKey, dto, 60);
 
         // 2) 가장 최신 프로필 이미지를 조회하여 dto에 세팅
         imageService.findLatestProfileImage(userId)
@@ -164,7 +162,7 @@ public class UserService {
         User updatedUser = userRepository.save(user);
 
 
-        String cacheKey = "user:" + userId;
+        String cacheKey = "user:info" + userId;
         redisService.deleteValue(cacheKey);
 
         // 6) 엔티티 -> DTO 변환
@@ -314,6 +312,7 @@ public class UserService {
         }
         return !userRepository.existsByNickname(nickname);
     }
+
     /**
      * User(Entity) -> UserResponseDto 변환
      */

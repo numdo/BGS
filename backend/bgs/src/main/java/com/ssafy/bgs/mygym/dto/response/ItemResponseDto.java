@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class ItemResponseDto {
     private Integer itemId;
+    private Boolean owned;
     private String itemName;
     private Integer width;
     private Integer height;

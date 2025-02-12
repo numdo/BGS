@@ -1,20 +1,41 @@
-// VisitorMemo.jsx
+// src/components/mygym/VisitorMemo.jsx
 import { useState, useEffect } from "react";
 import VisitorMemoModal from "./VisitorMemoModal";
-import { getGuestBooks, createGuestBooks } from "../../api/Mygym"; // 실제 API 함수 import
-import useUserStore from "../../stores/useUserStore";
+import { getGuestBooks } from "../../api/Mygym";
+import { getUser } from "../../api/User";
 import myinfo from "../../assets/icons/myinfo.png";
+
 const VisitorMemo = ({ userId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [visitorMemos, setVisitorMemos] = useState([]);
+  const [totalCount, setTotalCount] = useState(0); // 전체 방명록 개수
+  const [lastMemo, setLastMemo] = useState(null); // 전체에서 가장 오래된(마지막) 댓글
+  const [lastMemoProfileUrl, setLastMemoProfileUrl] = useState(null);
 
-  // 컴포넌트가 마운트될 때 방명록 데이터를 가져옵니다.
   useEffect(() => {
     async function fetchGuestbooks() {
       try {
-        const data = await getGuestBooks(userId);
-        // 삭제되지 않은 방명록만 필터링해서 저장
-        setVisitorMemos(data.content.filter((memo) => !memo.deleted));
+        // 첫 페이지(최신 댓글) 불러오기
+        const data = await getGuestBooks(userId, 0, 10);
+        const freshMemos = data.content.filter((memo) => !memo.deleted);
+        setVisitorMemos(freshMemos);
+        setTotalCount(data.totalElements);
+
+        // 전체 댓글이 10개를 초과하면, 마지막 페이지의 댓글을 불러옴
+        if (data.totalPages > 1) {
+          const lastPage = data.totalPages - 1; // 프론트엔드에서 0부터 시작하는 page를 전달하면 실제 요청은 (page+1)
+          const lastData = await getGuestBooks(userId, lastPage, 10);
+          if (lastData.content && lastData.content.length > 0) {
+            // 마지막 페이지의 마지막 댓글이 전체에서 가장 오래된 댓글
+            const overallLastMemo = lastData.content[lastData.content.length - 1];
+            setLastMemo(overallLastMemo);
+          }
+        } else {
+          // 전체 댓글이 10개 이하이면, 첫 페이지의 마지막 댓글이 전체 마지막 댓글
+          if (freshMemos.length > 0) {
+            setLastMemo(freshMemos[freshMemos.length - 1]);
+          }
+        }
       } catch (error) {
         console.error("방명록 데이터를 불러오는데 실패했습니다:", error);
       }
@@ -22,10 +43,18 @@ const VisitorMemo = ({ userId }) => {
     fetchGuestbooks();
   }, [userId]);
 
-  // 최신 방명록을 표시 (목록이 비어있을 경우 대체 텍스트를 표시)
-  const lastMemo = visitorMemos.length
-    ? visitorMemos[visitorMemos.length - 1]
-    : null;
+  // 최근(미리보기용) 마지막 댓글 작성자 프로필 불러오기
+  useEffect(() => {
+    if (!lastMemo) {
+      setLastMemoProfileUrl(null);
+      return;
+    }
+    if (lastMemo.guestId) {
+      getUser(lastMemo.guestId).then((res) => {
+        setLastMemoProfileUrl(res.profileImageUrl || null);
+      });
+    }
+  }, [lastMemo]);
 
   return (
     <>
@@ -37,7 +66,7 @@ const VisitorMemo = ({ userId }) => {
           {lastMemo ? (
             <>
               <img
-                src={myinfo}
+                src={lastMemoProfileUrl || myinfo}
                 alt="프로필"
                 className="w-8 h-8 rounded-full mr-3"
               />
@@ -49,16 +78,15 @@ const VisitorMemo = ({ userId }) => {
             </p>
           )}
         </div>
-        <p className="text-blue-500 font-bold">방명록 {visitorMemos.length}</p>
+        <p className="text-blue-500 font-bold">방명록 {totalCount}개</p>
       </div>
 
-      {/* 모달 컴포넌트에 현재 방명록 목록과 이를 업데이트하는 함수 전달 */}
+      {/* 모달 컴포넌트 */}
       <VisitorMemoModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         visitorMemos={visitorMemos}
         setVisitorMemos={setVisitorMemos}
-        userProfile={myinfo}
         userId={userId}
       />
     </>

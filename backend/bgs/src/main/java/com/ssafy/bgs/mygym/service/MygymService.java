@@ -36,7 +36,6 @@ public class MygymService {
     private final CoinHistoryRepository coinHistoryRepository;
     private final ImageService imageService;
 
-
     public MygymService(UserRepository userRepository, ItemRepository itemRepository, MygymColorRepository mygymColorRepository, PlaceRepository placeRepository, UserItemRepository userItemRepository, GuestbookRepository guestbookRepository, CoinHistoryRepository coinHistoryRepository, ImageService imageService) {
         this.userRepository = userRepository;
         this.itemRepository = itemRepository;

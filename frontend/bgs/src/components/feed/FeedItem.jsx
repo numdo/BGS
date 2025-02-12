@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import FeedDefaultImage from "../../assets/images/FeedDefaultImage.png";
+import FeedDefaultImage from "../../assets/images/feeddefaultimage.png";
 
 const DEFAULT_IMAGE_URL = FeedDefaultImage;
 

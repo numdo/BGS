@@ -34,4 +34,8 @@ public interface DiaryRepository extends JpaRepository<Diary, Integer> {
     List<Diary> findByUserIdAndDeletedFalse(Integer userId);
 
     boolean existsByUserIdAndCreatedAtBetween(Integer userId, LocalDateTime startOfDay, LocalDateTime endOfDay);
+
+    long countByUserIdAndDeletedFalse(Integer userId);
+
+    Long countByUserIdAndAllowedScopeAndDeletedFalse(Integer userId, String allowedScope);
 }
