@@ -14,7 +14,7 @@ export async function checkAttendance(attendanceData) {
   // } 
   try {
     const response = await axiosInstance.post(
-      `http://localhost:8080/api/attendance/check`,
+      `${BASE_URL}/check`,
       attendanceData
     );
     return response.data;
