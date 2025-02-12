@@ -15,7 +15,7 @@ const CommentInput = React.memo(
     };
 
     return (
-      <div className="flex items-center space-x-3 p-3 border-b">
+      <div className="flex items-center space-x-3 p-3 border-b w-full">
         <img
           src={user.profileImageUrl || myinfo}
           alt="프로필"

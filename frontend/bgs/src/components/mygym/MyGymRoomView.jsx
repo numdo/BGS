@@ -57,7 +57,7 @@ const MyGymRoomView = ({ userId }) => {
             width: "100%",
             height: "100%",
             clipPath:
-              "polygon(50% 7%, 100% 25%, 100% 60%, 50% 40%, 0% 60%, 0% 25%)",
+              "polygon(50% 12%, 100% 30%, 100% 65%, 50% 45%, 0% 65%, 0% 30%)",
             backgroundColor: myGym.wallColor,
             zIndex: 1,
           }}
@@ -68,7 +68,7 @@ const MyGymRoomView = ({ userId }) => {
             position: "absolute",
             width: "100%",
             height: "100%",
-            clipPath: "polygon(0% 60%, 50% 40%, 100% 60%, 50% 80%, 100% 100%)",
+            clipPath: "polygon(50% 45%, 100% 65%, 50% 85%, 0% 65%)",
             backgroundColor: "#999999",
             zIndex: 0,
           }}
