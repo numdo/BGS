@@ -427,7 +427,7 @@ export default function WorkoutCreatePage() {
     );
     files.forEach((f) => formData.append("files", f));
     try {
-      await axiosInstance.post("http://localhost:8080/api/diaries", formData, 
+      await axiosInstance.post("/diaries", formData, 
         {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,

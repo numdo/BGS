@@ -6,6 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
+
+
 @Repository
 public interface EvaluationRepository extends JpaRepository<Evaluation, Integer> {
     // 삭제되지 않은 평가 조회
@@ -13,5 +16,7 @@ public interface EvaluationRepository extends JpaRepository<Evaluation, Integer>
 
     // 삭제되지 않고, 투표 완료 여부 필터링하여 조회
     Page<Evaluation> findByDeletedFalseAndClosed(boolean close, Pageable pageable);
+
+    boolean existsByUserIdAndCreatedAtBetween(Integer userId, Timestamp start, Timestamp end);
 }
 

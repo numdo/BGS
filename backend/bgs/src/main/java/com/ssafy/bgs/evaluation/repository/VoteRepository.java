@@ -12,4 +12,6 @@ public interface VoteRepository extends JpaRepository<Vote, VoteId> {
 
     // 특정 평가 게시물의 찬성표 수
     long countByEvaluationIdAndApprovalTrue(Integer evaluationId);
+
+    long countByUserId(Integer userId);
 }
