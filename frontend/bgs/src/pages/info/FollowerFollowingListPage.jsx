@@ -85,7 +85,7 @@ export default function FollowerFollowingListPage() {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* ✅ 상단 네비게이션 */}
+        {/* ✅ 상단 네비게이션 (게시물 수 포함) */}
         <div className="flex justify-around border-b-2 pb-2">
           <button
             className={`w-1/2 text-center py-2 font-semibold ${
@@ -95,7 +95,7 @@ export default function FollowerFollowingListPage() {
             }`}
             onClick={() => handleTabChange("followers")}
           >
-            팔로워 ({followers.length})
+            팔로워 <span className="font-bold"> {followers.length} </span>
           </button>
           <button
             className={`w-1/2 text-center py-2 font-semibold ${
@@ -105,7 +105,7 @@ export default function FollowerFollowingListPage() {
             }`}
             onClick={() => handleTabChange("following")}
           >
-            팔로잉 ({following.length})
+            팔로잉 <span className="font-bold"> {following.length} </span>
           </button>
         </div>
 
