@@ -225,7 +225,7 @@ const DiaryDetailPage = () => {
                 />
               </div>
               <div>
-                <img onClick={} src={fitness_center} alt="" />
+                <img src={fitness_center} alt="" />
               </div>
             </div>
           </div>
