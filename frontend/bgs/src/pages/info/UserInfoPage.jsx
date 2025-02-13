@@ -1,14 +1,13 @@
-import BottomBar from "../../components/bar/BottomBar";
-import TopBar from "../../components/bar/TopBar";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { getUser } from "../../api/User";
 import { follow, unfollow, getFollowingList } from "../../api/Follow";
 import { getUserPostCount } from "../../api/Feed"; // ✅ 게시물 개수 가져오는 API
 import PostsTab from "../../components/myinfo/PostsTab";
-import StatsTab from "../../components/myinfo/StatsTab";
 import MyGymTab from "../../components/myinfo/MyGymTab";
 import DefaultProfileImage from "../../assets/icons/myinfo.png";
+import BottomBar from "../../components/bar/BottomBar";
+import TopBar from "../../components/bar/TopBar";
 
 export default function UserInfoPage() {
   // ✅ URL에서 userId 가져오기
@@ -17,15 +16,8 @@ export default function UserInfoPage() {
   // ✅ 유저 정보, 팔로우 상태, 탭 관리 상태
   const [user, setUser] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
-  const [activeTab, setActiveTab] = useState("posts");
-
-  // ✅ 그래프에 사용할 운동 데이터
-  const [weightData, setWeightData] = useState([]);
-  const [totalWeightData, setTotalWeightData] = useState([]);
-  const [workoutFrequency, setWorkoutFrequency] = useState([]);
-
-  // ✅ 게시물 개수 저장하는 상태
-  const [postCount, setPostCount] = useState(0);
+  const [activeTab, setActiveTab] = useState("myGym"); // ✅ "마이짐"을 기본 탭으로 설정
+  const [postCount, setPostCount] = useState(0); // ✅ 게시물 개수 저장 상태
 
   // ✅ 유저 정보 가져오기 (프로필 & 게시물 개수)
   useEffect(() => {
@@ -49,29 +41,6 @@ export default function UserInfoPage() {
 
         // ✅ 게시물 개수를 저장 (API 응답이 undefined일 경우 대비해서 기본값 0)
         setPostCount(postData ?? 0);
-
-        // ✅ 더미 데이터 유지 (운동 관련 그래프 데이터)
-        setWeightData([
-          { date: "01-01", weight: res.weight - 3 },
-          { date: "01-10", weight: res.weight - 2 },
-          { date: "01-20", weight: res.weight - 1 },
-          { date: "02-01", weight: res.weight },
-        ]);
-        setTotalWeightData([
-          { date: "01-01", totalWeight: res.totalWeight - 10 },
-          { date: "01-10", totalWeight: res.totalWeight - 5 },
-          { date: "01-20", totalWeight: res.totalWeight },
-          { date: "02-01", totalWeight: res.totalWeight + 5 },
-        ]);
-        setWorkoutFrequency([
-          { day: "월", count: 3 },
-          { day: "화", count: 2 },
-          { day: "수", count: 4 },
-          { day: "목", count: 1 },
-          { day: "금", count: 3 },
-          { day: "토", count: 5 },
-          { day: "일", count: 2 },
-        ]);
       } catch (error) {
         console.error("❌ 친구 프로필 가져오기 실패:", error);
       }
@@ -139,12 +108,18 @@ export default function UserInfoPage() {
           </button>
         </div>
 
-        {/* ✅ 탭 네비게이션 (게시물 수 포함) */}
+        {/* ✅ 탭 네비게이션 (마이짐이 왼쪽, 게시물이 오른쪽) */}
         <div className="border-b mb-4 flex justify-around">
           {[
-            { key: "posts", label: `게시물 (${postCount})` }, // ✅ 게시물 개수 표시
-            { key: "stats", label: "통계" },
             { key: "myGym", label: "마이짐" },
+            {
+              key: "posts",
+              label: (
+                <>
+                  게시물 <span className="font-bold">{postCount}</span>
+                </>
+              ),
+            },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -160,19 +135,12 @@ export default function UserInfoPage() {
           ))}
         </div>
 
-        {/* ✅ 탭 내용 렌더링 */}
+        {/* ✅ 탭 내용 렌더링 (마이짐이 기본으로 보이도록) */}
         <div className="p-4">
+          {activeTab === "myGym" && <MyGymTab friendId={user.userId} />}
           {activeTab === "posts" && (
             <PostsTab userId={user.userId} nickname={user.nickname} />
           )}
-          {activeTab === "stats" && (
-            <StatsTab
-              weightData={weightData}
-              totalWeightData={totalWeightData}
-              workoutFrequency={workoutFrequency}
-            />
-          )}
-          {activeTab === "myGym" && <MyGymTab friendId={user.userId} />}
         </div>
       </div>
 

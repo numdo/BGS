@@ -72,7 +72,7 @@ public class EvaluationService {
             // 이미지 조회
             ImageResponseDto image = imageService.getImage("evaluation", feed.getEvaluationId());
             if (image != null) {
-                feed.setImageUrl(imageService.getS3Url(image.getUrl()));
+                feed.setImageUrl(imageService.getS3Url(image.getThumbnailUrl()));
             }
 
             // 투표 수 조회
@@ -173,8 +173,10 @@ public class EvaluationService {
         }
 
         if (images != null && !images.isEmpty()) {
-            imageService.uploadImages(images, "evaluation", Long.valueOf(savedEvaluation.getEvaluationId()));
-        }
+                images.forEach(image -> {
+                    imageService.uploadImageWithThumbnail(image, "evaluation", Long.valueOf(savedEvaluation.getEvaluationId()));
+                });
+            }
 
         return convertToDto(savedEvaluation);
     }
@@ -238,13 +240,15 @@ public class EvaluationService {
         for (Image image : existingImages) {
             if (existingImageUrls == null || !existingImageUrls.contains(imageService.getS3Url(image.getUrl()))) {
                 imageService.deleteImage(image.getImageId());
+                image.setDeleted(true);
             }
         }
 
         // 🔹 새로운 이미지 업로드
-        if (newImages != null && !newImages.isEmpty()) {
-            imageService.uploadImages(newImages, "evaluation", Long.valueOf(evaluationId));
-        }
+        if (newImages != null && !newImages.isEmpty())
+            newImages.forEach(image -> {
+                imageService.uploadImageWithThumbnail(image, "evaluation", Long.valueOf(evaluationId));
+            });
 
         return convertToDto(evaluation);
     }

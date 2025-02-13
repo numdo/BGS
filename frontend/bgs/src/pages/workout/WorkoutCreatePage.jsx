@@ -9,6 +9,11 @@ import deletelogo from "../../assets/icons/delete.svg";
 import moreicon from "../../assets/icons/more.svg";
 import mic_colored from "../../assets/icons/mic_colored.svg";
 import SttWorkoutGuide from "../../components/workout/SttWorkoutGuide";
+import {
+  showConfirmAlert,
+  showErrorAlert,
+  showSuccessAlert,
+} from "../../utils/toastrAlert";
 
 export default function WorkoutCreatePage() {
   const navigate = useNavigate();
@@ -33,7 +38,7 @@ export default function WorkoutCreatePage() {
 
   // 운동 목록 / 이전 기록 / 최근 운동
   const [allWorkoutList, setAllWorkoutList] = useState([]);
-  const [workoutList, setWorkoutList] = useState([]); // 검색/필터 결과
+  const [workoutList, setWorkoutList] = useState([]);
   const [previousRecords, setPreviousRecords] = useState([]);
   const [recentExercises, setRecentExercises] = useState([]);
 
@@ -130,7 +135,6 @@ export default function WorkoutCreatePage() {
     }
   };
 
-  // 검색어, 필터 조건 변화 시 운동 목록 업데이트
   useEffect(() => {
     let filtered = allWorkoutList;
     if (searchKeyword.trim() !== "") {
@@ -164,10 +168,10 @@ export default function WorkoutCreatePage() {
     );
   };
 
-  // 운동 선택 시 diaryWorkouts에 추가 (운동 종류에 따라 기본 세트값 다르게)
+  // 운동 선택 시 diaryWorkouts에 추가
   const handleWorkoutSelection = () => {
     if (selectedWorkouts.length === 0) {
-      alert("운동을 하나 이상 선택해주세요!");
+      showErrorAlert("운동을 한 가지 이상 추가해 주세요!");
       return;
     }
     setDiary((prevDiary) => {
@@ -176,9 +180,7 @@ export default function WorkoutCreatePage() {
         const cardio = isCardioWorkout(wid);
         updatedDiaryWorkouts.push({
           workoutId: wid,
-          sets: cardio
-            ? [{ workoutTime: 10 }]
-            : [{ weight: 10, repetition: 10 }],
+          sets: cardio ? [{ workoutTime: 10 }] : [{ weight: 10, repetition: 10 }],
         });
       });
       return { ...prevDiary, diaryWorkouts: updatedDiaryWorkouts };
@@ -222,7 +224,7 @@ export default function WorkoutCreatePage() {
       });
       return { ...prevDiary, diaryWorkouts: newDiaryWorkouts };
     });
-    alert(`"${record.workoutName}" 운동들이 추가되었습니다.`);
+    showSuccessAlert(`"${record.workoutName}" 운동들이 추가되었습니다.`);
     closePreviousModal();
   };
 
@@ -269,7 +271,7 @@ export default function WorkoutCreatePage() {
         });
         const duration = Date.now() - recordStartTime;
         if (duration < 2000 || audioBlob.size < 5000) {
-          alert("녹음이 너무 짧습니다. 다시 시도해주세요.");
+          showErrorAlert("녹음이 너무 짧습니다. 다시 시도해주세요.");
           setIsRecording(false);
           setShowSttGuide(false);
           return;
@@ -284,7 +286,7 @@ export default function WorkoutCreatePage() {
           });
           console.log("STT 응답 데이터:", response.data);
           if (response.data.invalidInput) {
-            alert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
+            showErrorAlert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
             setIsRecording(false);
             setShowSttGuide(false);
             return;
@@ -301,7 +303,7 @@ export default function WorkoutCreatePage() {
             });
           }
         } catch (err) {
-          alert("오류 발생! 운동을 인식할 수 없습니다.");
+          showErrorAlert("오류 발생! 운동을 인식할 수 없습니다.");
           console.error("음성 처리 실패:", err);
         }
         setIsLoading(false);
@@ -310,7 +312,7 @@ export default function WorkoutCreatePage() {
       };
       recorder.start();
     } catch (error) {
-      alert("마이크 접근 오류! 마이크 사용 권한을 확인해주세요.");
+      showErrorAlert("마이크 접근 오류! 마이크 사용 권한을 확인해주세요.");
       console.error("마이크 접근 오류:", error);
     }
   };
@@ -382,12 +384,12 @@ export default function WorkoutCreatePage() {
     const maxAllowedSize = 1 * 1024 * 1024;
     for (let file of selectedFiles) {
       if (file.size > maxAllowedSize) {
-        alert(`파일이 너무 큽니다: ${file.name}`);
+        showErrorAlert(`파일이 너무 큽니다: ${file.name}`);
         return;
       }
     }
     if (selectedFiles.length + files.length > 6) {
-      alert("이미지는 최대 6장까지 업로드할 수 있습니다.");
+      showErrorAlert("이미지는 최대 6장까지 업로드할 수 있습니다.");
       return;
     }
     setFiles((prev) => [...prev, ...selectedFiles]);
@@ -405,7 +407,7 @@ export default function WorkoutCreatePage() {
     e.preventDefault();
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      alert("로그인이 필요합니다.");
+      await showErrorAlert("로그인이 필요합니다.");
       navigate("/login");
       return;
     }
@@ -420,15 +422,15 @@ export default function WorkoutCreatePage() {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
-      alert("✅ 운동 데이터 저장 완료!");
+      await showConfirmAlert("저장이 완료되었습니다.");
       navigate("/workout");
     } catch (error) {
       console.error("❌ 저장 오류:", error);
       if (error.response && error.response.status === 401) {
-        alert("로그인이 필요합니다.");
+        await showErrorAlert("로그인이 필요합니다.");
         navigate("/login");
       } else {
-        alert("🚨 저장 실패!");
+        await showErrorAlert("🚨 저장 실패!");
       }
     }
   };
@@ -496,7 +498,7 @@ export default function WorkoutCreatePage() {
           </button>
         </div>
 
-        {/* STT 가이드 모달 (녹음 모달) */}
+        {/* STT 가이드 모달 */}
         {showSttGuide && (
           <SttWorkoutGuide
             onCancel={handleSttGuideCancel}
@@ -664,28 +666,28 @@ export default function WorkoutCreatePage() {
             <p className="text-gray-500">운동을 추가해보세요</p>
           ) : (
             <>
-              {diary.diaryWorkouts.map((workout, wIndex) => (
-                <div key={`dw-${wIndex}`} className="border p-2 rounded mb-2">
-                  <div className="flex justify-between items-center">
-                    <h2>{getWorkoutName(workout.workoutId)}</h2>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleAddSet(wIndex)}
-                        className="w-8 px-2 py-1 bg-success text-gray-400 rounded"
-                      >
-                        +
-                      </button>
-                      <button
-                        onClick={() => handleDeleteWorkout(wIndex)}
-                        className="px-1 py-1 bg-danger text-white rounded"
-                      >
-                        <img src={deletelogo} alt="" />
-                      </button>
+              {diary.diaryWorkouts.map((workout, wIndex) => {
+                const cardio = isCardioWorkout(workout.workoutId);
+                return (
+                  <div key={`dw-${wIndex}`} className="border p-2 rounded mb-2">
+                    <div className="flex justify-between items-center">
+                      <h2>{getWorkoutName(workout.workoutId)}</h2>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleAddSet(wIndex)}
+                          className="w-8 px-2 py-1 bg-success text-gray-400 rounded"
+                        >
+                          +
+                        </button>
+                        <button
+                          onClick={() => handleDeleteWorkout(wIndex)}
+                          className="px-1 py-1 bg-danger text-white rounded"
+                        >
+                          <img src={deletelogo} alt="" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  {workout.sets.map((set, setIndex) => {
-                    const cardio = isCardioWorkout(workout.workoutId);
-                    return (
+                    {workout.sets.map((set, setIndex) => (
                       <div
                         key={`set-${wIndex}-${setIndex}`}
                         className="flex items-center space-x-4 mt-2"
@@ -750,10 +752,10 @@ export default function WorkoutCreatePage() {
                           <img src={deletelogo} alt="" />
                         </button>
                       </div>
-                    );
-                  })}
-                </div>
-              ))}
+                    ))}
+                  </div>
+                );
+              })}
             </>
           )}
         </div>

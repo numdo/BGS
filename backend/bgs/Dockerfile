@@ -1,6 +1,9 @@
 # Use an official Liberica runtime as a parent image
 FROM bellsoft/liberica-openjdk-alpine:17.0.13
 
+# Install FFmpeg using apk
+RUN apk update && apk add --no-cache ffmpeg
+
 # Set the working directory
 WORKDIR /app
 
@@ -19,4 +22,3 @@ EXPOSE 8080
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "/app/app.jar", "--spring.config.location=/app/config/application.properties"]
-

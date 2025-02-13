@@ -5,14 +5,13 @@ import removeItemPng from "../../assets/icons/remove_item.png";
 import flip from "../../assets/icons/flip.png";
 
 const polygonRatios = [
-  [0.0, 0.6],
-  [0.5, 0.4],
-  [1.0, 0.6],
-  [0.5, 0.8],
-  [1.0, 1.0],
+  [0.5, 0.45], // 상 (예: 50% 가로, 45% 세로)
+  [1.0, 0.65], // 우 (100% 가로, 65% 세로)
+  [0.5, 0.80], // 하 (50% 가로, 85% 세로)
+  [0.0, 0.60], // 좌 (0% 가로, 65% 세로)
 ];
 
-// Ray-casting: 점이 폴리곤 내부에 있는지 확인
+// 이미지가 육각ㅎ형의 중앙에있는지 확인
 function pointInPolygon(px, py, polygon) {
   let isInside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
@@ -145,6 +144,12 @@ const MyGymRoomEdit = () => {
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
       >
+        <div
+        className="relative w-96 h-96"
+        style={{
+          filter: "drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4))",
+        }}
+      >
         {/* 윗부분 - 폴리곤 벽 색 */}
         <div
           style={{
@@ -152,9 +157,13 @@ const MyGymRoomEdit = () => {
             width: "100%",
             height: "100%",
             clipPath:
-              "polygon(50% 7%, 100% 25%, 100% 60%, 50% 40%, 0% 60%, 0% 25%)",
+              "polygon(50% 12%, 100% 30%, 100% 65%, 50% 45%, 0% 65%, 0% 30%)",
             backgroundColor: myGym.wallColor,
             zIndex: 1,
+            boxShadow: "inset 0 4px 8px rgba(0, 0, 0, 0.3)",
+            backgroundImage: `linear-gradient(${myGym.wallColor}, ${myGym.wallColor}),
+                              radial-gradient(circle at center, rgba(0, 0, 0, 0.3) 0%, transparent 15%)`,
+            backgroundBlendMode: "multiply",
           }}
         />
         {/* 아랫부분 */}
@@ -163,9 +172,10 @@ const MyGymRoomEdit = () => {
             position: "absolute",
             width: "100%",
             height: "100%",
-            clipPath: "polygon(0% 60%, 50% 40%, 100% 60%, 50% 80%, 100% 100%)",
+            clipPath: "polygon(50% 45%, 100% 65%, 50% 85%, 0% 65%)",
             backgroundColor: "#999999",
             zIndex: 0,
+            boxShadow: "inset 0 -4px 6px rgba(0, 0, 0, 0.3)",
           }}
         />
         {/* 아이템들 (deleted=false인 것만) */}
@@ -235,9 +245,10 @@ const MyGymRoomEdit = () => {
                   style={{ transform: "translateX(-10%)" }}
                 />
               </div>
-            </div>
+              </div>
           );
         })}
+        </div>
       </div>
     </div>
   );
