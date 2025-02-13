@@ -1,5 +1,6 @@
 package com.ssafy.bgs.mygym.controller;
 
+import com.ssafy.bgs.mygym.dto.request.ItemUpdateRequestDto;
 import com.ssafy.bgs.mygym.dto.response.ItemResponseDto;
 import com.ssafy.bgs.mygym.entity.Item;
 import com.ssafy.bgs.mygym.service.AdminItemService;
@@ -47,11 +48,11 @@ public class AdminItemController {
     @PatchMapping("/{itemId}")
     public ResponseEntity<?> updateItem(
             @PathVariable Integer itemId,
-            @RequestPart(name = "item") Item item,
+            @RequestPart(name = "item") ItemUpdateRequestDto itemDto,
             @RequestPart(required = false, name = "file") MultipartFile file
     ) {
-        item.setItemId(itemId);
-        adminItemService.updateItem(item, file);
+        itemDto.setItemId(itemId);
+        adminItemService.updateItem(itemDto, file);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

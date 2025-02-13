@@ -2,6 +2,7 @@ package com.ssafy.bgs.mygym.service;
 
 import com.ssafy.bgs.image.dto.response.ImageResponseDto;
 import com.ssafy.bgs.image.service.ImageService;
+import com.ssafy.bgs.mygym.dto.request.ItemUpdateRequestDto;
 import com.ssafy.bgs.mygym.dto.response.ItemResponseDto;
 import com.ssafy.bgs.mygym.entity.Item;
 import com.ssafy.bgs.mygym.exception.ItemNotFoundException;
@@ -63,13 +64,32 @@ public class AdminItemService {
         imageService.uploadImage(file, "item", Long.valueOf(savedItem.getItemId()));
     }
 
-    public void updateItem(Item item, MultipartFile file) {
-        Item savedItem = itemRepository.save(item);
-        if (file != null) {
-            imageService.deleteImage(imageService.getImage("item", savedItem.getItemId()).getImageId());
+    public void updateItem(ItemUpdateRequestDto itemDto, MultipartFile file) {
+        // 기존 엔티티 조회 (존재하지 않으면 예외 발생)
+        Item existingItem = itemRepository.findById(itemDto.getItemId())
+                .orElseThrow(() -> new RuntimeException("Item not found"));
+
+        // DTO의 값을 기존 엔티티에 반영 (필요한 필드만 업데이트)
+        existingItem.setItemName(itemDto.getItemName());
+        existingItem.setWidth(itemDto.getWidth());
+        existingItem.setHeight(itemDto.getHeight());
+        existingItem.setPrice(itemDto.getPrice());
+        existingItem.setUsable(itemDto.getUsable());
+        // 만약 imageUrl도 업데이트하려면 추가
+
+        // 업데이트된 엔티티 저장
+        Item savedItem = itemRepository.save(existingItem);
+
+        // 파일이 존재하면 이미지 교체 처리
+        if (file != null && !file.isEmpty()) {
+            ImageResponseDto existingImage = imageService.getImage("item", savedItem.getItemId());
+            if (existingImage != null) {
+                imageService.deleteImage(existingImage.getImageId());
+            }
             imageService.uploadImage(file, "item", Long.valueOf(savedItem.getItemId()));
         }
     }
+
 
     public void enableItem(Integer itemId) {
         Item savedItem = itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException(itemId));
