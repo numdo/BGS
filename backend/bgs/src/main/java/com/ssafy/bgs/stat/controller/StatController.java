@@ -33,6 +33,7 @@ public class StatController {
             @AuthenticationPrincipal Integer userId,
             @RequestBody WeightRequestDto weightRequestDto
     ) {
+        weightRequestDto.setUserId(userId);
         statService.addWeightHistory(weightRequestDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
