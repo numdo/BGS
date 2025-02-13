@@ -52,16 +52,6 @@ const DiaryDetailPage = () => {
     fetchComments();
   }, [diaryId]);
   useEffect(() => {
-    // const token = localStorage.getItem("accessToken");
-    // if (token) {
-    //   try {
-    //     const decodedToken = JSON.parse(atob(token.split(".")[1]));
-    //     setUserId(decodedToken.sub);
-    //   } catch (error) {
-    //     console.error("토큰 디코딩 오류:", error);
-    //   }
-    // }
-
     axiosInstance
       .get(`${API_URL}/${diaryId}`)
       .then((response) => {
@@ -210,14 +200,10 @@ const DiaryDetailPage = () => {
           <div className="mt-4">
             <p className="text-lg font-bold">{feed.content}</p>
             <div className="flex justify-end mr-3">
-              {likedCount > 0 ? (
-                <div className="text-gray-500 m-1"> {likedCount}</div>
-              ) : (
-                ""
-              )}
-              <img onClick={onLikeToggle} src={fire_colored} alt="" />
-              <div className="text-gray-500 m-1">{comments.length}</div>
+              <img src={fire_colored} alt="" />
+              <div className="text-gray-500 m-1"> {likedCount}</div>
               <img src={chat} alt="" />
+              <div className="text-gray-500 m-1">{comments.length}</div>
             </div>
             <div className="flex items-center justify-around m-2">
               <div>
@@ -239,7 +225,7 @@ const DiaryDetailPage = () => {
                 />
               </div>
               <div>
-                <img src={fitness_center} alt="" />
+                <img onClick={} src={fitness_center} alt="" />
               </div>
             </div>
           </div>
