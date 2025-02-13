@@ -411,7 +411,7 @@ public class EvaluationService {
     }
 
     /**
-     * 운동 기록 반영
+     * 운동 기록 반영 (기존 값보다 클 경우만 업데이트)
      */
     private void reflectWorkoutRecord(Evaluation evaluation) {
         WorkoutRecord record = workoutRecordRepository.findById(evaluation.getUserId())
@@ -421,16 +421,22 @@ public class EvaluationService {
 
         switch (evaluation.getWorkoutType()) {
             case "SQUAT":
-                record.setSquatEvaluation(evaluation.getEvaluationId());
-                record.setSquat(evaluation.getWeight());
+                if (record.getSquat() == null || evaluation.getWeight().compareTo(record.getSquat()) > 0) {
+                    record.setSquatEvaluation(evaluation.getEvaluationId());
+                    record.setSquat(evaluation.getWeight());
+                }
                 break;
             case "BENCH":
-                record.setBenchpressEvaluation(evaluation.getEvaluationId());
-                record.setBenchpress(evaluation.getWeight());
+                if (record.getBenchpress() == null || evaluation.getWeight().compareTo(record.getBenchpress()) > 0) {
+                    record.setBenchpressEvaluation(evaluation.getEvaluationId());
+                    record.setBenchpress(evaluation.getWeight());
+                }
                 break;
             case "DEAD":
-                record.setDeadliftEvaluation(evaluation.getEvaluationId());
-                record.setDeadlift(evaluation.getWeight());
+                if (record.getDeadlift() == null || evaluation.getWeight().compareTo(record.getDeadlift()) > 0) {
+                    record.setDeadliftEvaluation(evaluation.getEvaluationId());
+                    record.setDeadlift(evaluation.getWeight());
+                }
                 break;
             default:
                 throw new IllegalArgumentException("잘못된 운동 유형입니다.");

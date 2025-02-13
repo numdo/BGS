@@ -9,6 +9,8 @@ import com.ssafy.bgs.common.UnauthorizedAccessException;
 import com.ssafy.bgs.mygym.entity.CoinHistory;
 import com.ssafy.bgs.mygym.repository.CoinHistoryRepository;
 import com.ssafy.bgs.redis.service.RedisService;
+import com.ssafy.bgs.stat.entity.WeightHistory;
+import com.ssafy.bgs.stat.repository.WeightHistoryRepository;
 import com.ssafy.bgs.user.dto.request.PasswordResetRequestDto;
 import com.ssafy.bgs.user.dto.response.PasswordResetResponseDto;
 import com.ssafy.bgs.user.entity.AccountType;
@@ -54,6 +56,7 @@ public class AuthService {
     private final VerificationService verificationService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final CoinHistoryRepository coinHistoryRepository;
+    private final WeightHistoryRepository weightHistoryRepository;
 
     /**
      * 카카오 로그인 프로세스:
@@ -230,7 +233,10 @@ public class AuthService {
 
         // 변경 사항 저장
         User savedUser = userRepository.save(user);
+        // 코인 획득 내역 저장
         setDefaultCoin(savedUser);
+        // 체중 내역 저장
+        setDefaultWeight(savedUser);
 
         // 정식 accessToken 재발급
         String fullAccessToken = jwtTokenProvider.createAccessToken(user.getId(),"USER");
@@ -283,14 +289,10 @@ public class AuthService {
         // 기타 기본값 설정 (예: degree, totalWeight, coin 등)
         user.setAccountType(AccountType.LOCAL);
         User savedUser = userRepository.save(user);
+        // 코인 획득 내역 저장
         setDefaultCoin(savedUser);
-
-        CoinHistory coinHistory = new CoinHistory();
-        coinHistory.setUserId(savedUser.getId());
-        coinHistory.setAmount(3);
-        coinHistory.setUsageType("SIGNUP");
-        coinHistory.setUsageId(savedUser.getId());
-        coinHistoryRepository.save(coinHistory);
+        // 체중 내역 저장
+        setDefaultWeight(savedUser);
 
         // 가입 후 이메일 인증 정보 제거
         verificationService.removeVerificationCode(email);
@@ -308,6 +310,13 @@ public class AuthService {
         // 코인 보유랑 업데이트
         user.setCoin(user.getCoin() + DEFALUT_COIN);
         userRepository.save(user);
+    }
+
+    private void setDefaultWeight(User savedUser) {
+        WeightHistory weightHistory = new WeightHistory();
+        weightHistory.setUserId(savedUser.getId());
+        weightHistory.setWeight(savedUser.getWeight());
+        weightHistoryRepository.save(weightHistory);
     }
 
     // 로그인 처리 (로컬 계정)

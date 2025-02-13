@@ -17,8 +17,8 @@ public class AdminUserResponseDto {
     private String nickname;
     private LocalDate birthDate;
     private String sex;
-    private Integer height;
-    private Integer weight;
+    private Double height;
+    private Double weight;
     private Double degree;
     private String introduction;
     private Double totalWeight;
