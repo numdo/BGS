@@ -47,11 +47,11 @@ const MyGymRoomView = ({ userId }) => {
   };
 
   return (
-    <div className="relative flex flex-col items-center">
+    <div className="relative flex flex-col items-center gap-0 p-0">
       {/* 실제 방 컨테이너 */}
-      <div className="relative w-96 h-96">
+      <div className="relative w-96 h-80">  {/*w-64 h-64*/}
       <div
-        className="relative w-96 h-96"
+        className="relative w-96 h-96 m-0 p-0"
         style={{
           filter: "drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4))",
         }}
