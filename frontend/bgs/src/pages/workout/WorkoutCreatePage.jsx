@@ -9,6 +9,7 @@ import deletelogo from "../../assets/icons/delete.svg";
 import moreicon from "../../assets/icons/more.svg";
 import mic_colored from "../../assets/icons/mic_colored.svg";
 import SttWorkoutGuide from "../../components/workout/SttWorkoutGuide";
+import LoadingSpinner from "../../components/common/LoadingSpinner"; // import 스피너 컴포넌트
 import {
   showConfirmAlert,
   showErrorAlert,
@@ -19,6 +20,7 @@ export default function WorkoutCreatePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const selectedDate = location.state?.selectedDate;
+
   // 더보기 관련 상태
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   // STT 가이드 모달 관련 상태
@@ -69,7 +71,7 @@ export default function WorkoutCreatePage() {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const audioChunksRef = useRef([]);
   const [recordStartTime, setRecordStartTime] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // 로딩 스피너 상태
 
   // 해시태그 입력
   const [newHashtag, setNewHashtag] = useState("");
@@ -286,6 +288,7 @@ export default function WorkoutCreatePage() {
           setShowSttGuide(false);
           return;
         }
+        // 녹음 종료 후 로딩 스피너 시작
         setIsLoading(true);
         try {
           const formData = new FormData();
@@ -301,6 +304,7 @@ export default function WorkoutCreatePage() {
           console.log("STT 응답 데이터:", response.data);
           if (response.data.invalidInput) {
             showErrorAlert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
+            setIsLoading(false);
             setIsRecording(false);
             setShowSttGuide(false);
             return;
@@ -309,9 +313,7 @@ export default function WorkoutCreatePage() {
             setDiary((prevDiary) => {
               const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
               response.data.diaryWorkouts.forEach((dw) => {
-                if (
-                  !newDiaryWorkouts.some((x) => x.workoutId === dw.workoutId)
-                ) {
+                if (!newDiaryWorkouts.some((x) => x.workoutId === dw.workoutId)) {
                   newDiaryWorkouts.push(dw);
                 }
               });
@@ -322,6 +324,7 @@ export default function WorkoutCreatePage() {
           showErrorAlert("오류 발생! 운동을 인식할 수 없습니다.");
           console.error("음성 처리 실패:", err);
         }
+        // 응답 받았거나 에러가 발생한 후 스피너 종료
         setIsLoading(false);
         setIsRecording(false);
         setShowSttGuide(false);
@@ -770,7 +773,9 @@ export default function WorkoutCreatePage() {
                           </>
                         )}
                         <button
-                          onClick={() => handleDeleteSet(wIndex, setIndex)}
+                          onClick={() =>
+                            handleDeleteSet(wIndex, setIndex)
+                          }
                           className="px-1 py-1 bg-danger text-white rounded"
                         >
                           <img src={deletelogo} alt="" />
@@ -874,39 +879,6 @@ export default function WorkoutCreatePage() {
             <span className="ml-2 text-sm">비공개</span>
           </div>
         </div>
-        {/* <div className="mt-2">
-          <div className="flex gap-4 mt-1">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="allowedScope"
-                value="A"
-                checked={diary.allowedScope === "A"}
-                onChange={() => setDiary({ ...diary, allowedScope: "A" })}
-                className="hidden peer"
-              />
-              <div className="w-6 h-6 border-2 border-gray-500 rounded-full flex items-center justify-center peer-checked:bg-gray-600 transition-all">
-                <div className="w-3 h-3 bg-white rounded-full peer-checked:block hidden"></div>
-              </div>
-              <span className="text-sm text-gray-500">공개</span>
-            </label>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="allowedScope"
-                value="M"
-                checked={diary.allowedScope === "M"}
-                onChange={() => setDiary({ ...diary, allowedScope: "M" })}
-                className="hidden peer"
-              />
-              <div className="w-6 h-6 border-2 border-gray-500 rounded-full flex items-center justify-center peer-checked:bg-gray-600 transition-all">
-                <div className="w-3 h-3 bg-white rounded-full peer-checked:block hidden"></div>
-              </div>
-              <span className="text-sm text-gray-500">비공개</span>
-            </label>
-          </div>
-        </div> */}
         {/* 저장 버튼 */}
         <button
           onClick={handleDiarySubmit}
@@ -923,6 +895,12 @@ export default function WorkoutCreatePage() {
           toggleRecording={toggleRecording}
           isRecording={isRecording}
         />
+      )}
+      {/* 로딩 스피너 - 녹음 종료 후 응답 대기 시 */}
+      {isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <LoadingSpinner />
+        </div>
       )}
     </>
   );
