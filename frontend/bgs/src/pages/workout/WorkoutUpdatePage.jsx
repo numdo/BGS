@@ -125,6 +125,12 @@ export default function WorkoutUpdatePage() {
     }
   };
 
+  // Helper: 운동이 유산소/스포츠(시간 기반)인지 체크
+  const isCardioWorkout = (workoutId) => {
+    const workout = allWorkoutList.find((w) => w.workoutId === workoutId);
+    return workout && (workout.part === "유산소" || workout.part === "스포츠");
+  };
+
   const handleSearch = (keyword) => {
     setSearchKeyword(keyword);
     if (keyword.trim() === "") {
@@ -174,10 +180,15 @@ export default function WorkoutUpdatePage() {
           .filter(
             (wid) => !prevDiary.diaryWorkouts.some((dw) => dw.workoutId === wid)
           )
-          .map((wid) => ({
-            workoutId: wid,
-            sets: [{ weight: 10, repetition: 10, workoutTime: 10 }],
-          })),
+          .map((wid) => {
+            const cardio = isCardioWorkout(wid);
+            return {
+              workoutId: wid,
+              sets: cardio
+                ? [{ workoutTime: 10 }]
+                : [{ weight: 10, repetition: 10 }],
+            };
+          }),
       ];
       return { ...prevDiary, diaryWorkouts: newDiaryWorkouts };
     });
@@ -190,17 +201,20 @@ export default function WorkoutUpdatePage() {
       const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
       record.workoutIds.forEach((wid) => {
         if (!newDiaryWorkouts.some((dw) => dw.workoutId === wid)) {
+          const cardio = isCardioWorkout(wid);
           const setsForThisWorkout = record.sets
             .filter((s) => s.workoutId === wid)
-            .map((s) => ({
-              weight: s.weight || 10,
-              repetition: s.repetition || 10,
-              workoutTime: s.workoutTime || 10,
-            }));
+            .map((s) =>
+              cardio
+                ? { workoutTime: s.workoutTime || 10 }
+                : { weight: s.weight || 10, repetition: s.repetition || 10 }
+            );
           const finalSets =
             setsForThisWorkout.length > 0
               ? setsForThisWorkout
-              : [{ weight: 10, repetition: 10, workoutTime: 10 }];
+              : cardio
+              ? [{ workoutTime: 10 }]
+              : [{ weight: 10, repetition: 10 }];
           newDiaryWorkouts.push({
             workoutId: wid,
             sets: finalSets,
@@ -213,6 +227,7 @@ export default function WorkoutUpdatePage() {
     closePreviousModal();
   };
 
+  // STT 녹음 관련 함수 (create 페이지와 동일하게)
   const handleRecordButton = () => {
     if (isRecording) {
       if (mediaRecorder) {
@@ -224,7 +239,19 @@ export default function WorkoutUpdatePage() {
     if (!hideSttGuide) {
       setShowSttGuide(true);
     } else {
+      toggleRecording();
+    }
+  };
+
+  const toggleRecording = () => {
+    if (!isRecording) {
       startRecording();
+    } else {
+      if (mediaRecorder) {
+        mediaRecorder.stop();
+      }
+      setIsRecording(false);
+      setShowSttGuide(false);
     }
   };
 
@@ -253,6 +280,8 @@ export default function WorkoutUpdatePage() {
         const duration = Date.now() - recordStartTime;
         if (duration < 2000 || audioBlob.size < 5000) {
           alert("녹음이 너무 짧습니다. 다시 시도해주세요.");
+          setIsRecording(false);
+          setShowSttGuide(false);
           return;
         }
         setIsLoading(true);
@@ -270,15 +299,15 @@ export default function WorkoutUpdatePage() {
           console.log("📦 STT 응답 데이터:", response.data);
           if (response.data.invalidInput) {
             alert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
+            setIsRecording(false);
+            setShowSttGuide(false);
             return;
           }
           if (response.data.diaryWorkouts) {
             setDiary((prevDiary) => {
               const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
               response.data.diaryWorkouts.forEach((dw) => {
-                if (
-                  !newDiaryWorkouts.some((x) => x.workoutId === dw.workoutId)
-                ) {
+                if (!newDiaryWorkouts.some((x) => x.workoutId === dw.workoutId)) {
                   newDiaryWorkouts.push(dw);
                 }
               });
@@ -291,6 +320,7 @@ export default function WorkoutUpdatePage() {
         }
         setIsLoading(false);
         setIsRecording(false);
+        setShowSttGuide(false);
       };
       recorder.start();
     } catch (error) {
@@ -309,7 +339,7 @@ export default function WorkoutUpdatePage() {
       setHideSttGuide(true);
     }
     setShowSttGuide(false);
-    startRecording();
+    toggleRecording();
   };
 
   const handleDeleteWorkout = (workoutId) => {
@@ -327,12 +357,13 @@ export default function WorkoutUpdatePage() {
         (dw) => dw.workoutId === workoutId
       );
       if (idx === -1) return prevDiary;
+      const cardio = isCardioWorkout(workoutId);
       const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
       newDiaryWorkouts[idx] = {
         ...newDiaryWorkouts[idx],
         sets: [
           ...newDiaryWorkouts[idx].sets,
-          { weight: 10, repetition: 10, workoutTime: 10 },
+          cardio ? { workoutTime: 10 } : { weight: 10, repetition: 10 },
         ],
       };
       return { ...prevDiary, diaryWorkouts: newDiaryWorkouts };
@@ -456,22 +487,25 @@ export default function WorkoutUpdatePage() {
           />
         </div>
 
-        {/* 상단 버튼들 */}
-        <div className="flex items-center mt-3 rounded-lg">
-          <button
-            onClick={() => setIsExerciseModalOpen(true)}
-            className="px-4 py-2 bg-primary-light text-white text-sm rounded-l-md"
-          >
-            🏋️‍♂️ 운동 추가
-          </button>
-          <button
-            onClick={handleRecordButton}
-            className="flex items-center px-4 py-2 bg-primary-light border-l border-gray-400 text-white text-sm rounded-r-md"
-          >
-            <img src={miclogo} alt="녹음 버튼" className="w-5 h-5" />
-            {isRecording ? "⏹ 녹음 중..." : "🎙 녹음"}
-          </button>
+        {/* 상단 버튼들 - 운동 추가, 녹음 (반반 배치) */}
+        <div className="flex items-center">
+          <div className="grid grid-cols-2 items-center rounded-lg flex-grow">
+            <button
+              onClick={() => setIsExerciseModalOpen(true)}
+              className="px-4 py-2 bg-primary-light text-white text-sm rounded-l-md"
+            >
+              🏋️‍♂️ 운동 추가
+            </button>
+            <button
+              onClick={handleRecordButton}
+              className="flex items-center justify-center px-4 py-2 bg-primary-light border-l border-gray-400 text-white text-sm rounded-r-md"
+            >
+              <img src={miclogo} alt="녹음 버튼" className="w-5 h-5" />
+              {isRecording ? "⏹ 녹음 중..." : "🎙 녹음"}
+            </button>
+          </div>
         </div>
+
         <button
           onClick={() => setIsPreviousModalOpen(true)}
           className="m-3 p-2 bg-gray-200 text-gray-500 rounded text-sm"
@@ -479,11 +513,12 @@ export default function WorkoutUpdatePage() {
           이전 기록 보기
         </button>
 
-        {/* STT 가이드 모달 */}
+        {/* STT 가이드 모달 (create와 동일한 props 전달) */}
         {showSttGuide && (
           <SttWorkoutGuide
             onCancel={handleSttGuideCancel}
-            onStart={handleSttGuideStart}
+            toggleRecording={toggleRecording}
+            isRecording={isRecording}
           />
         )}
 
@@ -508,9 +543,7 @@ export default function WorkoutUpdatePage() {
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedPartFilter === part
-                        ? "bg-blue-500 text-white"
-                        : ""
+                      selectedPartFilter === part ? "bg-blue-500 text-white" : ""
                     }`}
                   >
                     {part}
@@ -533,9 +566,7 @@ export default function WorkoutUpdatePage() {
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedToolFilter === tool
-                        ? "bg-blue-500 text-white"
-                        : ""
+                      selectedToolFilter === tool ? "bg-blue-500 text-white" : ""
                     }`}
                   >
                     {tool}
@@ -680,54 +711,59 @@ export default function WorkoutUpdatePage() {
                     key={`set-${workout.workoutId}-${setIndex}`}
                     className="flex items-center space-x-4 mt-2"
                   >
-                    <div>
-                      <label className="mr-1">무게:</label>
-                      <input
-                        type="number"
-                        value={set.weight}
-                        onChange={(e) =>
-                          handleWorkoutSetChange(
-                            workout.workoutId,
-                            setIndex,
-                            "weight",
-                            e.target.value
-                          )
-                        }
-                        className="w-20 p-1 border rounded"
-                      />
-                    </div>
-                    <div>
-                      <label className="mr-1">횟수:</label>
-                      <input
-                        type="number"
-                        value={set.repetition}
-                        onChange={(e) =>
-                          handleWorkoutSetChange(
-                            workout.workoutId,
-                            setIndex,
-                            "repetition",
-                            e.target.value
-                          )
-                        }
-                        className="w-20 p-1 border rounded"
-                      />
-                    </div>
-                    <div>
-                      <label className="mr-1">시간:</label>
-                      <input
-                        type="number"
-                        value={set.workoutTime}
-                        onChange={(e) =>
-                          handleWorkoutSetChange(
-                            workout.workoutId,
-                            setIndex,
-                            "workoutTime",
-                            e.target.value
-                          )
-                        }
-                        className="w-20 p-1 border rounded"
-                      />
-                    </div>
+                    {isCardioWorkout(workout.workoutId) ? (
+                      <div>
+                        <label className="mr-1">시간:</label>
+                        <input
+                          type="number"
+                          value={set.workoutTime || ""}
+                          onChange={(e) =>
+                            handleWorkoutSetChange(
+                              workout.workoutId,
+                              setIndex,
+                              "workoutTime",
+                              e.target.value
+                            )
+                          }
+                          className="w-20 p-1 border rounded"
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <div>
+                          <label className="mr-1">무게:</label>
+                          <input
+                            type="number"
+                            value={set.weight || ""}
+                            onChange={(e) =>
+                              handleWorkoutSetChange(
+                                workout.workoutId,
+                                setIndex,
+                                "weight",
+                                e.target.value
+                              )
+                            }
+                            className="w-20 p-1 border rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="mr-1">횟수:</label>
+                          <input
+                            type="number"
+                            value={set.repetition || ""}
+                            onChange={(e) =>
+                              handleWorkoutSetChange(
+                                workout.workoutId,
+                                setIndex,
+                                "repetition",
+                                e.target.value
+                              )
+                            }
+                            className="w-20 p-1 border rounded"
+                          />
+                        </div>
+                      </>
+                    )}
                     <button
                       onClick={() =>
                         handleDeleteSet(workout.workoutId, setIndex)

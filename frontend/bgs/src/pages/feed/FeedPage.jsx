@@ -15,10 +15,12 @@ const FeedPage = () => {
   const [hasMore, setHasMore] = useState(true); // 추가 요청 가능 여부
   const [feedType, setFeedType] = useState("diary"); // 'diary' | 'evaluation'
   const [evaluationStatus, setEvaluationStatus] = useState("ongoing"); // '' | 'ongoing' | 'closed'
+  const [evaluationTabVisible, setEvaluationTabVisible] = useState(false);
+  const [feedsResetTrigger, setFeedsResetTrigger] = useState(0); // 피드 재요청을 위한 trigger
   const loaderRef = useRef(null);
   const navigate = useNavigate();
 
-  // 📌 API에서 데이터 가져오는 함수
+  // API에서 데이터 가져오는 함수
   const fetchFeeds = async () => {
     if (loading || !hasMore) return;
     setLoading(true);
@@ -49,7 +51,7 @@ const FeedPage = () => {
     }
   };
 
-  // 📌 Intersection Observer를 사용한 무한 스크롤
+  // Intersection Observer를 사용한 무한 스크롤
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -64,24 +66,31 @@ const FeedPage = () => {
     return () => {
       if (loaderRef.current) observer.unobserve(loaderRef.current);
     };
-  }, [loading, feedType, evaluationStatus]);
+  }, [loading, feedType, evaluationStatus, feedsResetTrigger]);
 
-  // 📌 상세 페이지 이동 함수
+  // 상세 페이지 이동 함수
   const handleImageClick = (id) => {
     if (feedType === "evaluation") navigate(`/feeds/evaluation/${id}`);
     else navigate(`/feeds/diary/${id}`);
   };
 
-  // 📌 선택 변경 시 피드 초기화
-  const handleFeedTypeChange = (event) => {
-    setFeedType(event.target.value);
+  // 피드 타입 탭 변경 함수
+  const handleFeedTypeChange = (type) => {
+    setFeedType(type);
     setFeeds([]);
     setPage(1);
     setHasMore(true);
+    // 평가 탭이 선택된 경우 평가 상태 탭을 보이게 함
+    if (type === "evaluation") {
+      setEvaluationTabVisible(true);
+    } else {
+      setEvaluationTabVisible(false);
+    }
   };
 
-  const handleEvaluationStatusChange = (event) => {
-    setEvaluationStatus(event.target.value);
+  // 평가 상태 탭 변경 함수
+  const handleEvaluationStatusChange = (status) => {
+    setEvaluationStatus(status);
     setFeeds([]);
     setPage(1);
     setHasMore(true);
@@ -91,32 +100,56 @@ const FeedPage = () => {
     <>
       <TopBar />
       <div className="max-w-4xl mx-auto p-4">
-        {/* 📌 피드 타입 선택 */}
+        {/* 피드 타입 탭 */}
         <div className="flex mb-4 space-x-2">
-          <select
-            value={feedType}
-            onChange={handleFeedTypeChange}
-            className="px-4 py-2 border rounded-md"
+          <button
+            onClick={() => handleFeedTypeChange("diary")}
+            className={`px-4 py-2 border rounded-md transition ${
+              feedType === "diary"
+                ? "bg-primary text-white"
+                : "bg-white text-gray-700"
+            }`}
           >
-            <option value="diary">일지</option>
-            <option value="evaluation">평가</option>
-          </select>
-
-          {/* 📌 평가 선택 시 진행 중 / 종료된 평가 필터 추가 */}
-          {feedType === "evaluation" && (
-            <select
-              defaultValue="ongoing"
-              value={evaluationStatus}
-              onChange={handleEvaluationStatusChange}
-              className="px-4 py-2 border rounded-md"
-            >
-              <option value="ongoing">진행 중 평가</option>
-              <option value="closed">종료된 평가</option>
-            </select>
-          )}
+            일지
+          </button>
+          <button
+            onClick={() => handleFeedTypeChange("evaluation")}
+            className={`px-4 py-2 border rounded-md transition ${
+              feedType === "evaluation"
+                ? "bg-primary text-white"
+                : "bg-white text-gray-700"
+            }`}
+          >
+            평가
+          </button>
         </div>
+        {/* 평가 상태 탭 (평가 탭이 선택되었을 때만 표시) */}
+        {feedType === "evaluation" && (
+          <div className="flex mb-4 space-x-2">
+            <button
+              onClick={() => handleEvaluationStatusChange("ongoing")}
+              className={`px-4 py-2 border rounded-md transition ${
+                evaluationStatus === "ongoing"
+                  ? "bg-primary text-white"
+                  : "bg-white text-gray-700"
+              }`}
+            >
+              진행 중 평가
+            </button>
+            <button
+              onClick={() => handleEvaluationStatusChange("closed")}
+              className={`px-4 py-2 border rounded-md transition ${
+                evaluationStatus === "closed"
+                  ? "bg-primary text-white"
+                  : "bg-white text-gray-700"
+              }`}
+            >
+              종료된 평가
+            </button>
+          </div>
+        )}
 
-        {/* 📌 피드 리스트 */}
+        {/* 피드 리스트 */}
         <div className="grid grid-cols-3 gap-1 md:gap-2">
           {feeds.map((feed) =>
             feed.imageUrl ? (
@@ -131,7 +164,7 @@ const FeedPage = () => {
           )}
         </div>
 
-        {/* 📌 로딩 트리거 (Intersection Observer 대상) */}
+        {/* 로딩 트리거 (Intersection Observer 대상) */}
         {hasMore && (
           <div
             ref={loaderRef}

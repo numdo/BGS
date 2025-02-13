@@ -1,18 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  CheckCircleIcon,
-  XMarkIcon,
-  MicrophoneIcon,
-} from "@heroicons/react/24/solid";
+import { CheckCircleIcon, XMarkIcon, MicrophoneIcon } from "@heroicons/react/24/solid";
 import { XCircleIcon } from "lucide-react";
 
-export default function SttWorkoutGuide({ onCancel, onStart }) {
+export default function SttWorkoutGuide({ onCancel, toggleRecording, isRecording }) {
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      {/* 애니메이션 효과 적용 */}
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -21,7 +16,7 @@ export default function SttWorkoutGuide({ onCancel, onStart }) {
       >
         {/* 닫기 버튼 */}
         <button
-          onClick={() => onCancel()}
+          onClick={onCancel}
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
         >
           <XMarkIcon className="w-5 h-5" />
@@ -74,17 +69,17 @@ export default function SttWorkoutGuide({ onCancel, onStart }) {
         {/* 버튼 영역 */}
         <div className="mt-4 flex justify-end space-x-3">
           <button
-            onClick={() => onCancel()}
+            onClick={onCancel}
             className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
           >
             취소
           </button>
           <button
-            onClick={() => onStart(dontShowAgain)}
+            onClick={toggleRecording}
             className="px-4 py-2 bg-primary text-white rounded-lg flex items-center space-x-2 transition"
           >
             <MicrophoneIcon className="w-5 h-5 text-white" />
-            <span>녹음 시작</span>
+            <span>{isRecording ? "녹음 중... (종료하려면 클릭)" : "녹음 시작"}</span>
           </button>
         </div>
       </motion.div>
