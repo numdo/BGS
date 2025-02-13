@@ -121,10 +121,7 @@ public class DiaryService {
 
         // 코인 지급: 오늘 첫 다이어리 작성이라면 지급
         if (!hasDiaryToday) {
-            System.out.println("오늘 첫 다이어리 작성! 코인 지급!");
-            giveCoinForDiary(userId);
-        } else {
-            System.out.println("이미 오늘 다이어리를 작성함! 코인 지급 X");
+            giveCoinForDiary(userId, savedDiary.getDiaryId());
         }
 
         // 해시태그 저장
@@ -148,7 +145,7 @@ public class DiaryService {
     /**
      * 하루 한 번 다이어리 작성 보상 (코인 +1)
      **/
-    private void giveCoinForDiary(Integer userId) {
+    private void giveCoinForDiary(Integer userId, Integer diaryId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         // 코인 +1 증가 (null 체크는 필요 시 추가)
@@ -160,6 +157,7 @@ public class DiaryService {
         coinHistory.setUserId(userId);
         coinHistory.setAmount(1); // 1 코인 지급
         coinHistory.setUsageType("DIARY");
+        coinHistory.setUsageId(diaryId);
         coinHistoryRepository.save(coinHistory);
     }
 

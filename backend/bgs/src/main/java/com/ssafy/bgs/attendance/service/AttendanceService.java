@@ -86,13 +86,14 @@ public class AttendanceService {
                     .gymName(nearestGym.getGymName())
                     .attendanceDate(today)
                     .build();
-            attendanceRepository.save(attendance);
+            Attendance savedAttendance = attendanceRepository.save(attendance);
 
             // 7. 코인 증가 내역을 코인히스토리에 기록
             CoinHistory coinHistory = new CoinHistory();
             coinHistory.setUserId(userId);
             coinHistory.setAmount(coinIncrement);
             coinHistory.setUsageType("ATTENDANCE");
+            coinHistory.setUsageId(savedAttendance.getAttendanceId());
             coinHistoryRepository.save(coinHistory);
 
         } catch (Exception e) {

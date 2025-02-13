@@ -169,7 +169,7 @@ public class EvaluationService {
 
         // 오늘 첫 평가 게시물 작성이면 코인 지급
         if (!hasEvaluationToday) {
-            giveCoinForEvaluation(userId);
+            giveCoinForEvaluation(userId, savedEvaluation.getEvaluationId());
         }
 
         if (images != null && !images.isEmpty()) {
@@ -184,7 +184,7 @@ public class EvaluationService {
     /**
      * 하루 한 번 평가 게시글 작성 보상 (코인 +1)
      */
-    private void giveCoinForEvaluation(Integer userId) {
+    private void giveCoinForEvaluation(Integer userId, Integer evaluationId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
         user.setCoin((user.getCoin() == null ? 0 : user.getCoin()) + 1);
@@ -194,6 +194,7 @@ public class EvaluationService {
         coinHistory.setUserId(userId);
         coinHistory.setAmount(1); // 1 코인 지급
         coinHistory.setUsageType("EVALUATION");
+        coinHistory.setUsageId(evaluationId);
         coinHistoryRepository.save(coinHistory);
     }
 
@@ -334,7 +335,7 @@ public class EvaluationService {
         closeEvaluation(evaluationId);
 
         // 투표 후 코인 보상 체크 (보상은 활성 투표 수 기준, 10의 배수마다 지급)
-        checkAndRewardVoteCoin(userId);
+        checkAndRewardVoteCoin(userId, evaluationId);
     }
 
     /**
@@ -342,7 +343,7 @@ public class EvaluationService {
      * 단, 투표 취소 등으로 인한 재투표 시 중복 지급되지 않도록,
      * 이미 지급된 보상(usageType="VOTE")의 합계와 비교하여 부족분만 지급.
      */
-    private void checkAndRewardVoteCoin(Integer userId) {
+    private void checkAndRewardVoteCoin(Integer userId, Integer evaluationId) {
         // 1. 활성 투표 수: 사용자가 현재 가지고 있는 투표 수 (취소되지 않은 투표)
         long activeVoteCount = voteRepository.countByUserId(userId);
 
@@ -371,6 +372,7 @@ public class EvaluationService {
                 coinHistory.setUserId(userId);
                 coinHistory.setAmount(1); // 1 coin 보상
                 coinHistory.setUsageType("VOTE");
+                coinHistory.setUsageId(evaluationId); // 마지막으로 투표를 한 평가게시물 ID 저장
                 coinHistoryRepository.save(coinHistory);
             }
             System.out.println("투표 보상 지급: " + newRewards + " coin 지급 (활성 투표 수: " + activeVoteCount + ")");
@@ -409,7 +411,7 @@ public class EvaluationService {
     }
 
     /**
-     * 운동 기록 반영
+     * 운동 기록 반영 (기존 값보다 클 경우만 업데이트)
      */
     private void reflectWorkoutRecord(Evaluation evaluation) {
         WorkoutRecord record = workoutRecordRepository.findById(evaluation.getUserId())
@@ -419,16 +421,22 @@ public class EvaluationService {
 
         switch (evaluation.getWorkoutType()) {
             case "SQUAT":
-                record.setSquatEvaluation(evaluation.getEvaluationId());
-                record.setSquat(evaluation.getWeight());
+                if (record.getSquat() == null || evaluation.getWeight().compareTo(record.getSquat()) > 0) {
+                    record.setSquatEvaluation(evaluation.getEvaluationId());
+                    record.setSquat(evaluation.getWeight());
+                }
                 break;
             case "BENCH":
-                record.setBenchpressEvaluation(evaluation.getEvaluationId());
-                record.setBenchpress(evaluation.getWeight());
+                if (record.getBenchpress() == null || evaluation.getWeight().compareTo(record.getBenchpress()) > 0) {
+                    record.setBenchpressEvaluation(evaluation.getEvaluationId());
+                    record.setBenchpress(evaluation.getWeight());
+                }
                 break;
             case "DEAD":
-                record.setDeadliftEvaluation(evaluation.getEvaluationId());
-                record.setDeadlift(evaluation.getWeight());
+                if (record.getDeadlift() == null || evaluation.getWeight().compareTo(record.getDeadlift()) > 0) {
+                    record.setDeadliftEvaluation(evaluation.getEvaluationId());
+                    record.setDeadlift(evaluation.getWeight());
+                }
                 break;
             default:
                 throw new IllegalArgumentException("잘못된 운동 유형입니다.");

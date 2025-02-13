@@ -5,13 +5,6 @@ const BASE_URL = "/attendance";
 
 // ✅ 오늘 출석 체크 (POST /api/attendance/check)
 export async function checkAttendance(attendanceData) {
-  // try {
-  //   const response = await axiosInstance.post(
-  //     `${BASE_URL}/check`,
-  //     attendanceData
-  //   );
-  //   return response.data;
-  // } 
   try {
     const response = await axiosInstance.post(
       `${BASE_URL}/check`,

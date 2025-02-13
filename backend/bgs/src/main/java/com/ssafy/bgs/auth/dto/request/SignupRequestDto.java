@@ -16,6 +16,6 @@ public class SignupRequestDto {
     private String name;
     private LocalDate birthDate;
     private String sex;
-    private Integer height;
-    private Integer weight;
+    private Double height;
+    private Double weight;
 }

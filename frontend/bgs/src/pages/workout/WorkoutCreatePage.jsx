@@ -829,25 +829,57 @@ export default function WorkoutCreatePage() {
           ))}
         </div>
         {/* 공개 범위 설정 */}
-        <div className="mt-2">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <span className="text-sm font-medium ml-2 text-gray-500">
-              피드에 공유
-            </span>
+        <div className="flex gap-2">
+          <div className="flex items-center">
             <input
-              type="checkbox"
+              type="radio"
               checked={diary.allowedScope === "A"}
-              onChange={() =>
-                setDiary({
-                  ...diary,
-                  allowedScope: diary.allowedScope === "A" ? "M" : "A",
-                })
-              }
-              className="peer hidden"
+              onChange={() => setDiary({ ...diary, allowedScope: "A" })}
             />
-            <div className="w-6 h-6 border-2 border-gray-500 rounded-full peer-checked:bg-gray-600 transition-all"></div>
-          </label>
+            <span className="ml-2 text-sm">공개</span>
+          </div>
+          <div className="flex items-center">
+            <input
+              type="radio"
+              checked={diary.allowedScope === "M"}
+              onChange={() => setDiary({ ...diary, allowedScope: "M" })}
+            />
+            <span className="ml-2 text-sm">비공개</span>
+          </div>
         </div>
+        {/* <div className="mt-2">
+          <div className="flex gap-4 mt-1">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="allowedScope"
+                value="A"
+                checked={diary.allowedScope === "A"}
+                onChange={() => setDiary({ ...diary, allowedScope: "A" })}
+                className="hidden peer"
+              />
+              <div className="w-6 h-6 border-2 border-gray-500 rounded-full flex items-center justify-center peer-checked:bg-gray-600 transition-all">
+                <div className="w-3 h-3 bg-white rounded-full peer-checked:block hidden"></div>
+              </div>
+              <span className="text-sm text-gray-500">공개</span>
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="allowedScope"
+                value="M"
+                checked={diary.allowedScope === "M"}
+                onChange={() => setDiary({ ...diary, allowedScope: "M" })}
+                className="hidden peer"
+              />
+              <div className="w-6 h-6 border-2 border-gray-500 rounded-full flex items-center justify-center peer-checked:bg-gray-600 transition-all">
+                <div className="w-3 h-3 bg-white rounded-full peer-checked:block hidden"></div>
+              </div>
+              <span className="text-sm text-gray-500">비공개</span>
+            </label>
+          </div>
+        </div> */}
         {/* 저장 버튼 */}
         <button
           onClick={handleDiarySubmit}

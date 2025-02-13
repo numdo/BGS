@@ -15,7 +15,8 @@ import fitness_center from "../../assets/icons/fitness_center.svg";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import useUserStore from "../../stores/useUserStore";
-
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
 const API_URL = "/diaries";
 
 const DiaryDetailPage = () => {
@@ -29,17 +30,28 @@ const DiaryDetailPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
-  useEffect(() => {
-    // const token = localStorage.getItem("accessToken");
-    // if (token) {
-    //   try {
-    //     const decodedToken = JSON.parse(atob(token.split(".")[1]));
-    //     setUserId(decodedToken.sub);
-    //   } catch (error) {
-    //     console.error("토큰 디코딩 오류:", error);
-    //   }
-    // }
+  const [comments, setComments] = useState([]);
 
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const response = await axiosInstance.get(
+          `${API_URL}/${diaryId}/comments`,
+          {
+            page: 1,
+            pageSize: 100,
+          }
+        );
+        console.log(response.data);
+        setComments(response.data);
+      } catch (error) {
+        console.error("댓글 불러오기 오류:", error);
+      }
+    };
+
+    fetchComments();
+  }, [diaryId]);
+  useEffect(() => {
     axiosInstance
       .get(`${API_URL}/${diaryId}`)
       .then((response) => {
@@ -108,23 +120,28 @@ const DiaryDetailPage = () => {
     <>
       <TopBar />
       <div className="relative max-w-2xl mx-auto">
-        <div className="p-4 pb-20">
+        <div className="p-4 pb-20 pt-2">
           {/* 프로필 & 작성자 */}
           <div className="flex items-center mb-4">
             <img
               src={feed.profileImageUrl || ProfileDefaultImage}
               alt="프로필"
-              className="w-10 h-10 rounded-full cursor-pointer"
+              className="w-10 h-10 rounded-full cursor-pointer m-1"
               onClick={handleProfileClick}
             />
-            <div className="p-2">
+            <div className="ml-1 p-2 pb-1">
               <p
-                className="ml-2 font-bold cursor-pointer"
+                className="font-bold cursor-pointer"
                 onClick={handleProfileClick}
               >
                 {feed.writer}
               </p>
-              <p className="text-sm text-gray-500">{feed.workoutDate}</p>
+              <p className="text-sm text-gray-500">
+                {formatDistanceToNow(new Date(feed.workoutDate), {
+                  addSuffix: true,
+                  locale: ko,
+                })}
+              </p>
             </div>
 
             {/* 메뉴바 */}
@@ -182,10 +199,15 @@ const DiaryDetailPage = () => {
           {/* 게시글 정보 */}
           <div className="mt-4">
             <p className="text-lg font-bold">{feed.content}</p>
-            <p>{likedCount}번의 응원을 받았습니다</p>
-            <div className="flex justify-around m-2">
+            <div className="flex justify-end mr-3">
+              <img src={fire_colored} alt="" />
+              <div className="text-gray-500 m-1"> {likedCount}</div>
+              <img src={chat} alt="" />
+              <div className="text-gray-500 m-1">{comments.length}</div>
+            </div>
+            <div className="flex items-center justify-around m-2">
               <div>
-                <p className="text-gray-700 cursor-pointer">
+                <p className="flex text-gray-700 cursor-pointer">
                   {isLiked ? (
                     <img onClick={onLikeToggle} src={fire_colored} alt="" />
                   ) : (
@@ -193,7 +215,7 @@ const DiaryDetailPage = () => {
                   )}
                 </p>
               </div>
-              <div>
+              <div className="flex">
                 <img
                   onClick={() => {
                     setIsCommentsOpen(!isCommentsOpen);
@@ -217,7 +239,7 @@ const DiaryDetailPage = () => {
                   setRefreshKey((prev) => prev + 1);
                 }}
               />
-              <CommentList key={refreshKey} diaryId={diaryId} />
+              <CommentList key={refreshKey} comments={comments} />
             </div>
           )}
         </div>

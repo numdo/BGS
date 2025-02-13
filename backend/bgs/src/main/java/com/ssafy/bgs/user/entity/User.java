@@ -45,10 +45,10 @@ public class User {
     private Character sex;
 
     @Column(name = "height")
-    private Integer height;
+    private Double height;
 
     @Column(name = "weight")
-    private Integer weight;
+    private Double weight;
 
     @ColumnDefault("36.5")
     @Column(name = "degree", precision = 3, scale = 1)
@@ -98,7 +98,7 @@ public class User {
             this.totalWeight = BigDecimal.ZERO;
         }
         if (this.coin == null) {
-            this.coin = 3;
+            this.coin = 0;
         }
         if (this.deleted == null) {
             this.deleted = false;

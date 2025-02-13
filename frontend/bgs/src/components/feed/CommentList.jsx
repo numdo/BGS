@@ -1,32 +1,9 @@
-import { useEffect, useState } from "react";
-import axiosInstance from "../../utils/axiosInstance";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
 import person from "../../assets/icons/person.svg";
 import more_horiz from "../../assets/icons/more_horiz.svg";
-const API_URL = "/diaries";
 
-const CommentList = ({ diaryId }) => {
-  const [comments, setComments] = useState([]);
-
-  useEffect(() => {
-    const fetchComments = async () => {
-      try {
-        const response = await axiosInstance.get(
-          `${API_URL}/${diaryId}/comments`,
-          {
-            page: 1,
-            pageSize: 100,
-          }
-        );
-        console.log(response.data);
-        setComments(response.data);
-      } catch (error) {
-        console.error("댓글 불러오기 오류:", error);
-      }
-    };
-
-    fetchComments();
-  }, [diaryId]);
-
+const CommentList = ({ comments }) => {
   return (
     <div>
       <ul className="mt-2">
@@ -43,7 +20,10 @@ const CommentList = ({ diaryId }) => {
                   <div className="flex items-center">
                     <p className="text-sm font-semibold">{comment.writer}</p>
                     <p className="ml-3 text-xs text-gray-400">
-                      {comment.createdAt}
+                      {formatDistanceToNow(new Date(comment.createdAt), {
+                        addSuffix: true,
+                        locale: ko,
+                      })}
                     </p>
                   </div>
                   <p className="text-sm">{comment.content}</p>
@@ -53,7 +33,7 @@ const CommentList = ({ diaryId }) => {
             </div>
           ))
         ) : (
-          <p className="text-sm text-gray-500">댓글이 없습니다.</p>
+          <p className="text-sm text-gray-500 m-3">댓글이 없습니다.</p>
         )}
       </ul>
     </div>

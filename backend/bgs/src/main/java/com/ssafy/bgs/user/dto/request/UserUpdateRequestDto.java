@@ -13,6 +13,6 @@ public class UserUpdateRequestDto {
     private String nickname;
     private String introduction;
     private LocalDate birthDate;
-    private Integer height;
-    private Integer weight;
+    private Double height;
+    private Double weight;
 }

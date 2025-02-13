@@ -114,9 +114,7 @@ const WorkoutCalendar = ({ onDateSelect, selectedDate, diaryDates = [] }) => {
             <div
               key={index}
               className={`relative px-1 py-2 rounded-md border border-gray-200 cursor-pointer ${
-                isSelected
-                  ? "bg-[#987D11] text-white"
-                  : "bg-white text-gray-500"
+                isSelected ? "bg-primary text-white" : "bg-white text-gray-500"
               }`}
               onClick={onClick}
             >
