@@ -5,6 +5,7 @@ import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import SttWorkoutGuide from "../../components/workout/SttWorkoutGuide";
 import miclogo from "../../assets/icons/mic.svg";
+import moreicon from "../../assets/icons/more.svg";
 
 export default function WorkoutUpdatePage() {
   const navigate = useNavigate();
@@ -58,6 +59,9 @@ export default function WorkoutUpdatePage() {
 
   // 5) 해시태그 입력
   const [newHashtag, setNewHashtag] = useState("");
+
+  // 추가: 더보기 드롭다운 상태
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   useEffect(() => {
     if (!diaryId) {
@@ -227,7 +231,7 @@ export default function WorkoutUpdatePage() {
     closePreviousModal();
   };
 
-  // STT 녹음 관련 함수 (create 페이지와 동일하게)
+  // STT 녹음 관련 (create 페이지와 동일)
   const handleRecordButton = () => {
     if (isRecording) {
       if (mediaRecorder) {
@@ -472,23 +476,9 @@ export default function WorkoutUpdatePage() {
   return (
     <>
       <TopBar />
-      <div className="m-5 pb-24">
-        {/* 날짜 */}
-        <div className="border border-gray-100 text-gray-500 w-44 rounded-md pl-2 mb-4">
-          <label htmlFor="date">날짜 </label>
-          <input
-            type="date"
-            id="date"
-            value={diary.workoutDate}
-            onChange={(e) =>
-              setDiary({ ...diary, workoutDate: e.target.value })
-            }
-            className="bg-transparent outline-none"
-          />
-        </div>
-
-        {/* 상단 버튼들 - 운동 추가, 녹음 (반반 배치) */}
-        <div className="flex items-center">
+      <div className="m-5 pb-24 relative">
+        {/* 상단 버튼들: 운동 추가, 녹음, 더보기 */}
+        <div className="flex items-center justify-between mt-4">
           <div className="grid grid-cols-2 items-center rounded-lg flex-grow">
             <button
               onClick={() => setIsExerciseModalOpen(true)}
@@ -504,16 +494,42 @@ export default function WorkoutUpdatePage() {
               {isRecording ? "⏹ 녹음 중..." : "🎙 녹음"}
             </button>
           </div>
+          {/* 더보기 버튼을 운동 추가/녹음 버튼 바로 옆에 배치 */}
+          <div className="relative ml-3">
+            <button
+              onClick={() => setIsMoreOpen((prev) => !prev)}
+              className="bg-gray-100 rounded-md w-8 h-8 flex items-center justify-center"
+            >
+              <img src={moreicon} alt="더보기 버튼" className="w-5 h-5" />
+            </button>
+            {isMoreOpen && (
+              <div className="absolute right-0 top-full mt-1 bg-white p-2 border rounded-md shadow-md z-10">
+                <div className="border border-gray-100 text-gray-500 w-44 rounded-md pl-2 py-1">
+                  <label htmlFor="date" className="text-sm">
+                    날짜{" "}
+                  </label>
+                  <input
+                    type="date"
+                    id="date"
+                    value={diary.workoutDate}
+                    onChange={(e) =>
+                      setDiary({ ...diary, workoutDate: e.target.value })
+                    }
+                    className="w-full text-sm p-1 bg-transparent outline-none"
+                  />
+                </div>
+                <button
+                  onClick={() => setIsPreviousModalOpen(true)}
+                  className="w-44 h-10 flex justify-center items-center border border-gray-100 text-gray-500 rounded text-sm mt-2"
+                >
+                  이전 기록 보기
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        <button
-          onClick={() => setIsPreviousModalOpen(true)}
-          className="m-3 p-2 bg-gray-200 text-gray-500 rounded text-sm"
-        >
-          이전 기록 보기
-        </button>
-
-        {/* STT 가이드 모달 (create와 동일한 props 전달) */}
+        {/* STT 가이드 모달 */}
         {showSttGuide && (
           <SttWorkoutGuide
             onCancel={handleSttGuideCancel}
@@ -820,7 +836,9 @@ export default function WorkoutUpdatePage() {
             style={{ display: "none" }}
           />
           <div className="flex flex-col">
-            <label className="font-bold mb-2">새 이미지 첨부 (최대 6장)</label>
+            <label className="font-bold mb-2">
+              새 이미지 첨부 (최대 6장)
+            </label>
             <div className="overflow-x-auto whitespace-nowrap flex gap-2">
               {previewUrls.map((url, idx) => (
                 <div
@@ -842,7 +860,7 @@ export default function WorkoutUpdatePage() {
               ))}
               {existingImages.length + previewUrls.length < 6 && (
                 <button
-                  className="flex-shrink-0 w-40 h-40 bg-gray-400 text-white rounded-md flex items-center justify-center"
+                  className="flex-shrink-0 w-40 h-40 bg-gray-300 text-white rounded-md flex items-center justify-center"
                   onClick={() => fileInputRef.current.click()}
                 >
                   +
