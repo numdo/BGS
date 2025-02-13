@@ -21,9 +21,11 @@ export default function WorkoutCreatePage() {
   const location = useLocation();
 
   // ---------------------------
-  // 더보기 관련 상태태
+  // 더보기 관련 상태
   // ---------------------------
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const selectedDate = location.state?.selectedDate;
+
   // ---------------------------
   // STT 가이드 관련 상태
   // ---------------------------
@@ -36,7 +38,14 @@ export default function WorkoutCreatePage() {
   // 일지 상태
   // ---------------------------
   const [diary, setDiary] = useState({
-    workoutDate: new Date().toISOString().split("T")[0],
+    workoutDate: selectedDate
+      .toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+      .replace(/\. /g, "-")
+      .replace(".", ""),
     content: "",
     allowedScope: "A",
     hashtags: [],
@@ -96,7 +105,7 @@ export default function WorkoutCreatePage() {
       .then((res) => {
         setAllWorkoutList(res.data);
         setWorkoutList(res.data);
-        console.log("운동목록 : ", res.data);
+        //console.log("운동목록 : ", res.data);
       })
       .catch((err) => console.error("🚨 운동 목록 불러오기 실패:", err));
 
@@ -488,9 +497,10 @@ export default function WorkoutCreatePage() {
                 type="date"
                 id="date"
                 value={diary.workoutDate}
-                onChange={(e) =>
-                  setDiary({ ...diary, workoutDate: e.target.value })
-                }
+                onChange={(e) => {
+                  setDiary({ ...diary, workoutDate: e.target.value });
+                  console.log(e.target.value);
+                }}
               />
             </div>
             <button

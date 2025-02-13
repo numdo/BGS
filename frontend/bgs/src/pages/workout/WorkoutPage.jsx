@@ -176,7 +176,9 @@ export default function WorkoutPage() {
         </div>
         <div className="w-full h-32"></div>
         <button
-          onClick={() => navigate("/workoutcreate")}
+          onClick={() =>
+            navigate("/workoutcreate", { state: { selectedDate } })
+          }
           className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-primary-light text-white font-bold py-3 px-6 rounded-full transition-all duration-300"
         >
           운동 기록하기
