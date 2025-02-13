@@ -98,7 +98,7 @@ public class User {
             this.totalWeight = BigDecimal.ZERO;
         }
         if (this.coin == null) {
-            this.coin = 3;
+            this.coin = 0;
         }
         if (this.deleted == null) {
             this.deleted = false;
