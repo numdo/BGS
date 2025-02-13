@@ -1,4 +1,6 @@
 import { Route, Routes, BrowserRouter } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import KakaoRedirectPage from "./pages/auth/KakaoRedirectPage";
@@ -30,6 +32,7 @@ import FollowerFollowingListPage from "./pages/info/FollowerFollowingListPage";
 import AdminMainPage from "./pages/admin/AdminMainPage";
 import ForbiddenPage from "./pages/error/ForbiddenPage"; // 403 페이지 추가
 import ItemShopPage from "./pages/mygym/ItemShopPage";
+import MyInfoViewPage from "./pages/info/MyInfoViewPage";
 
 function App() {
   return (
@@ -44,7 +47,7 @@ function App() {
         <Route path="/change-password" element={<ChangePasswordPage />} />
         <Route path="/social-signup" element={<SocialSignupPage />} />
         <Route path="/admin/*" element={<AdminMainPage />} />
-        
+
         {/* 403 Forbidden 페이지 */}
         <Route path="/403" element={<ForbiddenPage />} />
 
@@ -64,6 +67,7 @@ function App() {
               element={<EvaluationDetailPage />}
             />
             <Route path="/myinfo" element={<MyInfoPage />} />
+            <Route path="/myinfoview" element={<MyInfoViewPage />} />
             <Route path="/myinfoedit" element={<MyInfoEditPage />} />
             <Route path="/profile/:userId" element={<UserInfoPage />} />
             <Route

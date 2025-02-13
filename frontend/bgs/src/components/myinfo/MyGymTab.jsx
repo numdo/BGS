@@ -1,6 +1,5 @@
 // MyGymTab.jsx
 import MyGymRoomView from "../../components/mygym/MyGymRoomView";
-import VisitorMemo from "../../components/mygym/VisitorMemo";
 import { useEffect } from "react";
 import { getMygym } from "../../api/Mygym";
 import useMyGymStore from "../../stores/useMyGymStore";
@@ -18,7 +17,6 @@ export default function MyGymTab({ friendId }) {
   return (
     <>
       <MyGymRoomView />
-      <VisitorMemo userId={friendId} />
     </>
   );
 }
