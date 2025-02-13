@@ -18,7 +18,7 @@ import {
 export default function WorkoutCreatePage() {
   const navigate = useNavigate();
   const location = useLocation();
-
+  const selectedDate = location.state?.selectedDate;
   // 더보기 관련 상태
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   // STT 가이드 모달 관련 상태
@@ -29,7 +29,15 @@ export default function WorkoutCreatePage() {
 
   // 일지 상태
   const [diary, setDiary] = useState({
-    workoutDate: new Date().toISOString().split("T")[0],
+    workoutDate: selectedDate
+      .toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        timeZone: "Asia/Seoul",
+      })
+      .replace(/. /g, "-")
+      .replace(".", ""),
     content: "",
     allowedScope: "A",
     hashtags: [],
@@ -180,7 +188,9 @@ export default function WorkoutCreatePage() {
         const cardio = isCardioWorkout(wid);
         updatedDiaryWorkouts.push({
           workoutId: wid,
-          sets: cardio ? [{ workoutTime: 10 }] : [{ weight: 10, repetition: 10 }],
+          sets: cardio
+            ? [{ workoutTime: 10 }]
+            : [{ weight: 10, repetition: 10 }],
         });
       });
       return { ...prevDiary, diaryWorkouts: updatedDiaryWorkouts };
@@ -280,10 +290,14 @@ export default function WorkoutCreatePage() {
         try {
           const formData = new FormData();
           formData.append("audioFile", audioBlob);
-          const response = await axiosInstance.post("/ai-diary/auto", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-            withCredentials: true,
-          });
+          const response = await axiosInstance.post(
+            "/ai-diary/auto",
+            formData,
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+              withCredentials: true,
+            }
+          );
           console.log("STT 응답 데이터:", response.data);
           if (response.data.invalidInput) {
             showErrorAlert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
@@ -295,7 +309,9 @@ export default function WorkoutCreatePage() {
             setDiary((prevDiary) => {
               const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
               response.data.diaryWorkouts.forEach((dw) => {
-                if (!newDiaryWorkouts.some((x) => x.workoutId === dw.workoutId)) {
+                if (
+                  !newDiaryWorkouts.some((x) => x.workoutId === dw.workoutId)
+                ) {
                   newDiaryWorkouts.push(dw);
                 }
               });
@@ -518,7 +534,9 @@ export default function WorkoutCreatePage() {
                 <button
                   onClick={() => setSelectedPartFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${
-                    selectedPartFilter === "" ? "bg-primary-light text-white" : ""
+                    selectedPartFilter === ""
+                      ? "bg-primary-light text-white"
+                      : ""
                   }`}
                 >
                   전체
@@ -528,7 +546,9 @@ export default function WorkoutCreatePage() {
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedPartFilter === part ? "bg-primary-light text-white" : ""
+                      selectedPartFilter === part
+                        ? "bg-primary-light text-white"
+                        : ""
                     }`}
                   >
                     {part}
@@ -541,7 +561,9 @@ export default function WorkoutCreatePage() {
                 <button
                   onClick={() => setSelectedToolFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${
-                    selectedToolFilter === "" ? "bg-primary-light text-white" : ""
+                    selectedToolFilter === ""
+                      ? "bg-primary-light text-white"
+                      : ""
                   }`}
                 >
                   전체
@@ -551,7 +573,9 @@ export default function WorkoutCreatePage() {
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedToolFilter === tool ? "bg-primary-light text-white" : ""
+                      selectedToolFilter === tool
+                        ? "bg-primary-light text-white"
+                        : ""
                     }`}
                   >
                     {tool}
@@ -823,7 +847,10 @@ export default function WorkoutCreatePage() {
         </div>
         <div className="mt-2">
           {diary.hashtags.map((tag) => (
-            <span key={tag} className="p-1 bg-gray-200 rounded-full text-sm mr-2">
+            <span
+              key={tag}
+              className="p-1 bg-gray-200 rounded-full text-sm mr-2"
+            >
               #{tag}
             </span>
           ))}
