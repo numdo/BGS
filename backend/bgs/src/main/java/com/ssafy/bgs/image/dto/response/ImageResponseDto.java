@@ -8,5 +8,6 @@ import lombok.Setter;
 public class ImageResponseDto {
     private Long imageId;
     private String url;
+    private String thumbnailUrl;
     private String extension;
 }

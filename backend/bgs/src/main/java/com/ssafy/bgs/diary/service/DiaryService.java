@@ -76,7 +76,7 @@ public class DiaryService {
             // 이미지 조회
             ImageResponseDto image = imageService.getImage("diary", diary.getDiaryId());
             if (image != null) {
-                diary.setImageUrl(imageService.getS3Url(image.getUrl()));
+                diary.setImageUrl(imageService.getS3Url(image.getThumbnailUrl()));
             }
 
             // 좋아요 수 조회
@@ -140,7 +140,9 @@ public class DiaryService {
 
         // 이미지 저장
         if (files != null && !files.isEmpty())
-            imageService.uploadImages(files, "diary", Long.valueOf(savedDiary.getDiaryId()));
+            files.forEach(file -> {
+                imageService.uploadImageWithThumbnail(file, "diary", Long.valueOf(savedDiary.getDiaryId()));
+            });
     }
 
     /**
@@ -411,9 +413,10 @@ public class DiaryService {
                 imageService.deleteImage(image.getImageId());
             }
         }
-        if (files != null && !files.isEmpty()) {
-            imageService.uploadImages(files, "diary", Long.valueOf(savedDiary.getDiaryId()));
-        }
+        if (files != null && !files.isEmpty())
+            files.forEach(file -> {
+                imageService.uploadImageWithThumbnail(file, "diary", Long.valueOf(savedDiary.getDiaryId()));
+            });
     }
 
 
