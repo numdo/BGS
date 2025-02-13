@@ -5,6 +5,13 @@ import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import SttWorkoutGuide from "../../components/workout/SttWorkoutGuide";
 import miclogo from "../../assets/icons/mic.svg";
+import moreicon from "../../assets/icons/more.svg";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import {
+  showConfirmAlert,
+  showErrorAlert,
+  showSuccessAlert,
+} from "../../utils/toastrAlert";
 
 export default function WorkoutUpdatePage() {
   const navigate = useNavigate();
@@ -59,9 +66,12 @@ export default function WorkoutUpdatePage() {
   // 5) 해시태그 입력
   const [newHashtag, setNewHashtag] = useState("");
 
+  // 추가: 더보기 드롭다운 상태
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+
   useEffect(() => {
     if (!diaryId) {
-      alert("수정할 일지 ID가 없습니다.");
+      showErrorAlert("수정할 일지 ID가 없습니다.");
       navigate("/workout");
       return;
     }
@@ -96,7 +106,7 @@ export default function WorkoutUpdatePage() {
       }
     } catch (err) {
       console.error("❌ 일지 불러오기 실패:", err);
-      alert("일지를 불러오지 못했습니다.");
+      showErrorAlert("일지를 불러오지 못했습니다.");
       navigate("/workout");
     }
   };
@@ -170,7 +180,7 @@ export default function WorkoutUpdatePage() {
 
   const handleWorkoutSelection = () => {
     if (selectedWorkouts.length === 0) {
-      alert("운동을 하나 이상 선택해주세요!");
+      showErrorAlert("운동을 하나 이상 선택해주세요!");
       return;
     }
     setDiary((prevDiary) => {
@@ -223,11 +233,11 @@ export default function WorkoutUpdatePage() {
       });
       return { ...prevDiary, diaryWorkouts: newDiaryWorkouts };
     });
-    alert(`"${record.workoutName}" 운동들이 추가되었습니다.`);
+    showSuccessAlert(`${record.workoutName} 운동들이 추가되었습니다.`);
     closePreviousModal();
   };
 
-  // STT 녹음 관련 함수 (create 페이지와 동일하게)
+  // STT 녹음 관련 (create 페이지와 동일)
   const handleRecordButton = () => {
     if (isRecording) {
       if (mediaRecorder) {
@@ -279,11 +289,12 @@ export default function WorkoutUpdatePage() {
         });
         const duration = Date.now() - recordStartTime;
         if (duration < 2000 || audioBlob.size < 5000) {
-          alert("녹음이 너무 짧습니다. 다시 시도해주세요.");
+          showErrorAlert("녹음이 너무 짧습니다. 다시 시도해주세요.");
           setIsRecording(false);
           setShowSttGuide(false);
           return;
         }
+        // 녹음 종료 후 로딩 스피너 시작
         setIsLoading(true);
         try {
           const formData = new FormData();
@@ -298,7 +309,8 @@ export default function WorkoutUpdatePage() {
           );
           console.log("📦 STT 응답 데이터:", response.data);
           if (response.data.invalidInput) {
-            alert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
+            showErrorAlert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
+            setIsLoading(false);
             setIsRecording(false);
             setShowSttGuide(false);
             return;
@@ -315,16 +327,17 @@ export default function WorkoutUpdatePage() {
             });
           }
         } catch (err) {
-          alert("🚨 오류 발생! 운동을 인식할 수 없습니다.");
+          showErrorAlert("🚨 오류 발생! 운동을 인식할 수 없습니다.");
           console.error("음성 처리 실패:", err);
         }
+        // 응답을 받았거나 에러 발생 시 스피너 종료
         setIsLoading(false);
         setIsRecording(false);
         setShowSttGuide(false);
       };
       recorder.start();
     } catch (error) {
-      alert("🚨 마이크 접근 오류! 마이크 사용 권한을 확인해주세요.");
+      showErrorAlert("🚨 마이크 접근 오류! 마이크 사용 권한을 확인해주세요.");
       console.error("마이크 접근 오류:", error);
     }
   };
@@ -407,12 +420,12 @@ export default function WorkoutUpdatePage() {
     const maxAllowedSize = 1 * 1024 * 1024;
     for (let file of selectedFiles) {
       if (file.size > maxAllowedSize) {
-        alert(`파일이 너무 큽니다: ${file.name}`);
+        showErrorAlert(`파일이 너무 큽니다: ${file.name}`);
         return;
       }
     }
     if (existingImages.length + files.length + selectedFiles.length > 6) {
-      alert("이미지는 최대 6장까지 업로드할 수 있습니다.");
+      showErrorAlert("이미지는 최대 6장까지 업로드할 수 있습니다.");
       return;
     }
     setFiles((prev) => [...prev, ...selectedFiles]);
@@ -427,7 +440,7 @@ export default function WorkoutUpdatePage() {
 
   const handleDiaryUpdate = async () => {
     if (!diary.diaryId) {
-      alert("수정할 일지 ID가 없습니다!");
+      showErrorAlert("수정할 일지 ID가 없습니다!");
       return;
     }
     const formData = new FormData();
@@ -448,11 +461,11 @@ export default function WorkoutUpdatePage() {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
-      alert("✅ 수정 완료!");
+      await showConfirmAlert("✅ 수정 완료!");
       navigate("/workout");
     } catch (err) {
       console.error("❌ 수정 오류:", err);
-      alert("🚨 수정 실패!");
+      await showErrorAlert("🚨 수정 실패!");
     }
   };
 
@@ -472,23 +485,9 @@ export default function WorkoutUpdatePage() {
   return (
     <>
       <TopBar />
-      <div className="m-5 pb-24">
-        {/* 날짜 */}
-        <div className="border border-gray-100 text-gray-500 w-44 rounded-md pl-2 mb-4">
-          <label htmlFor="date">날짜 </label>
-          <input
-            type="date"
-            id="date"
-            value={diary.workoutDate}
-            onChange={(e) =>
-              setDiary({ ...diary, workoutDate: e.target.value })
-            }
-            className="bg-transparent outline-none"
-          />
-        </div>
-
-        {/* 상단 버튼들 - 운동 추가, 녹음 (반반 배치) */}
-        <div className="flex items-center">
+      <div className="m-5 pb-24 relative">
+        {/* 상단 버튼들: 운동 추가, 녹음, 더보기 */}
+        <div className="flex items-center justify-between mt-4">
           <div className="grid grid-cols-2 items-center rounded-lg flex-grow">
             <button
               onClick={() => setIsExerciseModalOpen(true)}
@@ -504,16 +503,42 @@ export default function WorkoutUpdatePage() {
               {isRecording ? "⏹ 녹음 중..." : "🎙 녹음"}
             </button>
           </div>
+          {/* 더보기 버튼을 운동 추가/녹음 버튼 바로 옆에 배치 */}
+          <div className="relative ml-3">
+            <button
+              onClick={() => setIsMoreOpen((prev) => !prev)}
+              className="bg-gray-100 rounded-md w-8 h-8 flex items-center justify-center"
+            >
+              <img src={moreicon} alt="더보기 버튼" className="w-5 h-5" />
+            </button>
+            {isMoreOpen && (
+              <div className="absolute right-0 top-full mt-1 bg-white p-2 border rounded-md shadow-md z-10">
+                <div className="border border-gray-100 text-gray-500 w-44 rounded-md pl-2 py-1">
+                  <label htmlFor="date" className="text-sm">
+                    날짜{" "}
+                  </label>
+                  <input
+                    type="date"
+                    id="date"
+                    value={diary.workoutDate}
+                    onChange={(e) =>
+                      setDiary({ ...diary, workoutDate: e.target.value })
+                    }
+                    className="w-full text-sm p-1 bg-transparent outline-none"
+                  />
+                </div>
+                <button
+                  onClick={() => setIsPreviousModalOpen(true)}
+                  className="w-44 h-10 flex justify-center items-center border border-gray-100 text-gray-500 rounded text-sm mt-2"
+                >
+                  이전 기록 보기
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        <button
-          onClick={() => setIsPreviousModalOpen(true)}
-          className="m-3 p-2 bg-gray-200 text-gray-500 rounded text-sm"
-        >
-          이전 기록 보기
-        </button>
-
-        {/* STT 가이드 모달 (create와 동일한 props 전달) */}
+        {/* STT 가이드 모달 */}
         {showSttGuide && (
           <SttWorkoutGuide
             onCancel={handleSttGuideCancel}
@@ -533,7 +558,9 @@ export default function WorkoutUpdatePage() {
                 <button
                   onClick={() => setSelectedPartFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${
-                    selectedPartFilter === "" ? "bg-blue-500 text-white" : ""
+                    selectedPartFilter === ""
+                      ? "bg-primary-light text-white"
+                      : ""
                   }`}
                 >
                   전체
@@ -543,7 +570,7 @@ export default function WorkoutUpdatePage() {
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedPartFilter === part ? "bg-blue-500 text-white" : ""
+                      selectedPartFilter === part ? "bg-primary-light text-white" : ""
                     }`}
                   >
                     {part}
@@ -556,7 +583,9 @@ export default function WorkoutUpdatePage() {
                 <button
                   onClick={() => setSelectedToolFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${
-                    selectedToolFilter === "" ? "bg-blue-500 text-white" : ""
+                    selectedToolFilter === ""
+                      ? "bg-primary-light text-white"
+                      : ""
                   }`}
                 >
                   전체
@@ -566,7 +595,7 @@ export default function WorkoutUpdatePage() {
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedToolFilter === tool ? "bg-blue-500 text-white" : ""
+                      selectedToolFilter === tool ? "bg-primary-light text-white" : ""
                     }`}
                   >
                     {tool}
@@ -585,7 +614,7 @@ export default function WorkoutUpdatePage() {
               <div className="mb-4">
                 <button
                   onClick={toggleRecentExercisesVisibility}
-                  className="px-4 py-2 bg-purple-500 text-white rounded"
+                  className="px-4 py-2 bg-gray-200 text-gray-600 rounded"
                 >
                   {showRecentExercises ? "최근 운동 숨기기" : "최근 운동 보기"}
                 </button>
@@ -607,7 +636,7 @@ export default function WorkoutUpdatePage() {
               )}
               {/* 필터 후 목록 */}
               <div className="space-y-2 max-h-60 overflow-y-auto border-t pt-2">
-                {filteredWorkoutList.map((workout) => (
+                {workoutList.map((workout) => (
                   <div
                     key={`w-${workout.workoutId}`}
                     className="flex justify-between items-center p-2 border rounded hover:bg-gray-100 cursor-pointer"
@@ -621,6 +650,7 @@ export default function WorkoutUpdatePage() {
                     </div>
                     <input
                       type="checkbox"
+                      className="accent-primary"
                       checked={selectedWorkouts.includes(workout.workoutId)}
                       readOnly
                     />
@@ -637,7 +667,7 @@ export default function WorkoutUpdatePage() {
                 </button>
                 <button
                   onClick={handleWorkoutSelection}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  className="px-4 py-2 bg-blue-500 text-white rounded"
                 >
                   추가 완료
                 </button>
@@ -645,7 +675,6 @@ export default function WorkoutUpdatePage() {
             </div>
           </div>
         )}
-
         {/* 이전 기록 모달 */}
         {isPreviousModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -675,109 +704,107 @@ export default function WorkoutUpdatePage() {
             </div>
           </div>
         )}
-
         {/* 이미 추가된 운동 목록 */}
         <div className="mt-4">
-          {diary.diaryWorkouts
-            .filter((dw) => !dw.deleted)
-            .map((workout, idx) => (
-              <div
-                key={
-                  workout.diaryWorkoutId
-                    ? `workout-${workout.diaryWorkoutId}`
-                    : `workout-${workout.workoutId}-${idx}`
-                }
-                className="border p-2 rounded mb-2"
-              >
-                <div className="flex justify-between items-center">
-                  <h2>{getWorkoutName(workout.workoutId)}</h2>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleAddSet(workout.workoutId)}
-                      className="px-2 py-1 bg-success text-white rounded"
-                    >
-                      +세트
-                    </button>
-                    <button
-                      onClick={() => handleDeleteWorkout(workout.workoutId)}
-                      className="px-2 py-1 bg-danger text-white rounded"
-                    >
-                      🗑️운동
-                    </button>
-                  </div>
-                </div>
-                {workout.sets.map((set, setIndex) => (
-                  <div
-                    key={`set-${workout.workoutId}-${setIndex}`}
-                    className="flex items-center space-x-4 mt-2"
-                  >
-                    {isCardioWorkout(workout.workoutId) ? (
-                      <div>
-                        <label className="mr-1">시간:</label>
-                        <input
-                          type="number"
-                          value={set.workoutTime || ""}
-                          onChange={(e) =>
-                            handleWorkoutSetChange(
-                              workout.workoutId,
-                              setIndex,
-                              "workoutTime",
-                              e.target.value
-                            )
-                          }
-                          className="w-20 p-1 border rounded"
-                        />
+          {diary.diaryWorkouts.length === 0 ? (
+            <p className="text-gray-500">운동을 추가해보세요</p>
+          ) : (
+            <>
+              {diary.diaryWorkouts.map((workout, wIndex) => {
+                const cardio = isCardioWorkout(workout.workoutId);
+                return (
+                  <div key={`dw-${wIndex}`} className="border p-2 rounded mb-2">
+                    <div className="flex justify-between items-center">
+                      <h2>{getWorkoutName(workout.workoutId)}</h2>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleAddSet(workout.workoutId)}
+                          className="px-2 py-1 bg-success text-white rounded"
+                        >
+                          +세트
+                        </button>
+                        <button
+                          onClick={() => handleDeleteWorkout(workout.workoutId)}
+                          className="px-2 py-1 bg-danger text-white rounded"
+                        >
+                          🗑️운동
+                        </button>
                       </div>
-                    ) : (
-                      <>
-                        <div>
-                          <label className="mr-1">무게:</label>
-                          <input
-                            type="number"
-                            value={set.weight || ""}
-                            onChange={(e) =>
-                              handleWorkoutSetChange(
-                                workout.workoutId,
-                                setIndex,
-                                "weight",
-                                e.target.value
-                              )
-                            }
-                            className="w-20 p-1 border rounded"
-                          />
-                        </div>
-                        <div>
-                          <label className="mr-1">횟수:</label>
-                          <input
-                            type="number"
-                            value={set.repetition || ""}
-                            onChange={(e) =>
-                              handleWorkoutSetChange(
-                                workout.workoutId,
-                                setIndex,
-                                "repetition",
-                                e.target.value
-                              )
-                            }
-                            className="w-20 p-1 border rounded"
-                          />
-                        </div>
-                      </>
-                    )}
-                    <button
-                      onClick={() =>
-                        handleDeleteSet(workout.workoutId, setIndex)
-                      }
-                      className="px-2 py-1 bg-danger text-white rounded"
-                    >
-                      🗑️세트
-                    </button>
+                    </div>
+                    {workout.sets.map((set, setIndex) => (
+                      <div
+                        key={`set-${workout.workoutId}-${setIndex}`}
+                        className="flex items-center space-x-4 mt-2"
+                      >
+                        {cardio ? (
+                          <div>
+                            <label className="mr-1">시간:</label>
+                            <input
+                              type="number"
+                              value={set.workoutTime || ""}
+                              onChange={(e) =>
+                                handleWorkoutSetChange(
+                                  workout.workoutId,
+                                  setIndex,
+                                  "workoutTime",
+                                  e.target.value
+                                )
+                              }
+                              className="w-20 p-1 border rounded"
+                            />
+                          </div>
+                        ) : (
+                          <>
+                            <div>
+                              <label className="mr-1">무게:</label>
+                              <input
+                                type="number"
+                                value={set.weight || ""}
+                                onChange={(e) =>
+                                  handleWorkoutSetChange(
+                                    workout.workoutId,
+                                    setIndex,
+                                    "weight",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-20 p-1 border rounded"
+                              />
+                            </div>
+                            <div>
+                              <label className="mr-1">횟수:</label>
+                              <input
+                                type="number"
+                                value={set.repetition || ""}
+                                onChange={(e) =>
+                                  handleWorkoutSetChange(
+                                    workout.workoutId,
+                                    setIndex,
+                                    "repetition",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-20 p-1 border rounded"
+                              />
+                            </div>
+                          </>
+                        )}
+                        <button
+                          onClick={() =>
+                            handleDeleteSet(workout.workoutId, setIndex)
+                          }
+                          className="px-2 py-1 bg-danger text-white rounded"
+                        >
+                          🗑️세트
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ))}
+                );
+              })}
+            </>
+          )}
         </div>
-
         {/* 기존 이미지 목록 */}
         {existingImages.length > 0 && (
           <div className="mt-6">
@@ -808,7 +835,6 @@ export default function WorkoutUpdatePage() {
             </div>
           </div>
         )}
-
         {/* 새 이미지 업로드 */}
         <div className="mt-4">
           <input
@@ -820,7 +846,9 @@ export default function WorkoutUpdatePage() {
             style={{ display: "none" }}
           />
           <div className="flex flex-col">
-            <label className="font-bold mb-2">새 이미지 첨부 (최대 6장)</label>
+            <label className="font-bold mb-2">
+              새 이미지 첨부 (최대 6장)
+            </label>
             <div className="overflow-x-auto whitespace-nowrap flex gap-2">
               {previewUrls.map((url, idx) => (
                 <div
@@ -842,7 +870,7 @@ export default function WorkoutUpdatePage() {
               ))}
               {existingImages.length + previewUrls.length < 6 && (
                 <button
-                  className="flex-shrink-0 w-40 h-40 bg-gray-400 text-white rounded-md flex items-center justify-center"
+                  className="flex-shrink-0 w-40 h-40 bg-gray-300 text-white rounded-md flex items-center justify-center"
                   onClick={() => fileInputRef.current.click()}
                 >
                   +
@@ -851,15 +879,13 @@ export default function WorkoutUpdatePage() {
             </div>
           </div>
         </div>
-
         {/* 운동일지 내용 */}
         <textarea
           className="w-full h-24 mt-4 p-2 border rounded"
           value={diary.content}
           onChange={(e) => setDiary({ ...diary, content: e.target.value })}
-          placeholder="운동일지 내용을 입력하세요."
+          placeholder="메모를 입력해보세요"
         />
-
         {/* 해시태그 추가 */}
         <div className="mt-4">
           <input
@@ -877,46 +903,57 @@ export default function WorkoutUpdatePage() {
           </button>
         </div>
         <div className="mt-2">
-          {diary.hashtags.map((tag, idx) => (
+          {diary.hashtags.map((tag) => (
             <span
-              key={`hashtag-${idx}`}
+              key={tag}
               className="p-1 bg-gray-200 rounded-full text-sm mr-2"
             >
               #{tag}
             </span>
           ))}
         </div>
-
         {/* 공개 범위 설정 */}
-        <div className="mt-2">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <span className="text-sm font-medium ml-2 text-gray-500">
-              피드에 공유
-            </span>
+        <div className="flex gap-2">
+          <div className="flex items-center">
             <input
-              type="checkbox"
+              type="radio"
               checked={diary.allowedScope === "A"}
-              onChange={() =>
-                setDiary({
-                  ...diary,
-                  allowedScope: diary.allowedScope === "A" ? "M" : "A",
-                })
-              }
-              className="peer hidden"
+              onChange={() => setDiary({ ...diary, allowedScope: "A" })}
             />
-            <div className="w-6 h-6 border-2 border-gray-500 rounded-full peer-checked:bg-primary transition-all"></div>
-          </label>
+            <span className="ml-2 text-sm">공개</span>
+          </div>
+          <div className="flex items-center">
+            <input
+              type="radio"
+              checked={diary.allowedScope === "M"}
+              onChange={() => setDiary({ ...diary, allowedScope: "M" })}
+            />
+            <span className="ml-2 text-sm">비공개</span>
+          </div>
         </div>
-
         {/* 수정 버튼 */}
         <button
           onClick={handleDiaryUpdate}
-          className="mt-4 p-2 bg-gray-500 text-white rounded"
+          className="w-full mt-4 p-2 bg-primary text-white rounded"
         >
           수정
         </button>
       </div>
       <BottomBar />
+      {/* STT 가이드 모달 */}
+      {showSttGuide && (
+        <SttWorkoutGuide
+          onCancel={handleSttGuideCancel}
+          toggleRecording={toggleRecording}
+          isRecording={isRecording}
+        />
+      )}
+      {/* 로딩 스피너 */}
+      {isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <LoadingSpinner />
+        </div>
+      )}
     </>
   );
 }
