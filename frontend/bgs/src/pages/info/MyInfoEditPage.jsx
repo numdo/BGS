@@ -33,7 +33,7 @@ export default function MyInfoEditPage() {
       const updatedUser = await getUser(); // ✅ 최신 데이터 가져오기
       setMe(updatedUser); // ✅ Zustand 상태 업데이트
       alert("회원정보 수정 성공했습니다");
-      navigate(-1); // ✅ 이전 페이지(뒤로가기)
+      navigate(-1);
     } catch (error) {
       console.error("❌ 회원정보 수정 실패:", error);
       alert("회원정보 수정 실패했습니다.");

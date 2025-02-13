@@ -95,7 +95,7 @@ export default function FollowerFollowingListPage() {
             }`}
             onClick={() => handleTabChange("followers")}
           >
-            팔로워 <span className="font-bold">({followers.length})</span>
+            팔로워 <span className="font-bold"> {followers.length} </span>
           </button>
           <button
             className={`w-1/2 text-center py-2 font-semibold ${
@@ -105,7 +105,7 @@ export default function FollowerFollowingListPage() {
             }`}
             onClick={() => handleTabChange("following")}
           >
-            팔로잉 <span className="font-bold">({following.length})</span>
+            팔로잉 <span className="font-bold"> {following.length} </span>
           </button>
         </div>
 

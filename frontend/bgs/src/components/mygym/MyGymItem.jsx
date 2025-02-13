@@ -1,5 +1,5 @@
 // src/components/mygym/MyGymItem.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
 // 예시 아이템 이미지 import
 import BenchPress from "../../assets/items/benchpress.png";
@@ -12,18 +12,18 @@ import dumbbell from "../../assets/items/dumbbell.png";
 import men from "../../assets/items/men.png";
 import women from "../../assets/items/women.png";
 
-const MyGymItem = () => {
+const MyGymItem = ({forceOpen = false, setItems}) => {
   const { myGym, setMyGym } = useMyGymStore();
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (forceOpen) {
+      setIsOpen(true);
+    }
+  },[forceOpen]);
+
   const addItem = (item) => {
     console.log(`${item.name} 추가`);
-
-    // 기존 items를 가져오기
-    // 만약 props로 받는 경우, 상위에서 items도 필요하니...
-    // 여기선 Zustand를 직접 써도 됨:
-    // const { items, setItems } = useMyGymStore.getState();
-
-    // (간단) Zustand에서 현재 items 가져옴
 
     // 중복 체크(예: name)
     if (myGym.places.some((prev) => prev.name === item.name && !prev.deleted)) {

@@ -1,13 +1,13 @@
 // MyGymTab.jsx
 import MyGymRoomView from "../../components/mygym/MyGymRoomView";
-import VisitorMemo from "../../components/mygym/VisitorMemo";
 import { useEffect } from "react";
 import { getMygym } from "../../api/Mygym";
 import useMyGymStore from "../../stores/useMyGymStore";
-
+import VisitorMemo from "../mygym/VisitorMemo";
+import useUserStore from "../../stores/useUserStore";
 export default function MyGymTab({ friendId }) {
   const { myGym, setMyGym } = useMyGymStore();
-
+  const {user} = useUserStore();
   useEffect(() => {
     if (!friendId) return;
     getMygym(friendId).then((fetched) => {
@@ -18,7 +18,9 @@ export default function MyGymTab({ friendId }) {
   return (
     <>
       <MyGymRoomView />
-      <VisitorMemo userId={friendId} />
+        <div className="mt-4 flex-1 bg-white rounded-3xl">
+          <VisitorMemo userId={user.userId}/>
+        </div>
     </>
   );
 }

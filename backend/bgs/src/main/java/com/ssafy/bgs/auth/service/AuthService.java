@@ -6,10 +6,13 @@ import com.ssafy.bgs.auth.dto.response.LoginResponseDto;
 import com.ssafy.bgs.common.DuplicatedException;
 import com.ssafy.bgs.auth.dto.response.SocialLoginResponseDto;
 import com.ssafy.bgs.common.UnauthorizedAccessException;
+import com.ssafy.bgs.mygym.entity.CoinHistory;
+import com.ssafy.bgs.mygym.repository.CoinHistoryRepository;
 import com.ssafy.bgs.redis.service.RedisService;
+import com.ssafy.bgs.stat.entity.WeightHistory;
+import com.ssafy.bgs.stat.repository.WeightHistoryRepository;
 import com.ssafy.bgs.user.dto.request.PasswordResetRequestDto;
 import com.ssafy.bgs.user.dto.response.PasswordResetResponseDto;
-import com.ssafy.bgs.user.dto.response.UserResponseDto;
 import com.ssafy.bgs.user.entity.AccountType;
 import com.ssafy.bgs.user.entity.User;
 import com.ssafy.bgs.auth.jwt.JwtTokenProvider;
@@ -37,6 +40,8 @@ import java.util.Random;
 @Transactional
 public class AuthService {
 
+    private static final int DEFALUT_COIN = 3;
+
     @Value("${kakao.oauth.client-id}")
     private String clientId;
 
@@ -50,6 +55,8 @@ public class AuthService {
     private final EmailService emailService;
     private final VerificationService verificationService;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final CoinHistoryRepository coinHistoryRepository;
+    private final WeightHistoryRepository weightHistoryRepository;
 
     /**
      * 카카오 로그인 프로세스:
@@ -225,7 +232,12 @@ public class AuthService {
         user.setWeight(socialSignupRequestDto.getWeight());
 
         // 변경 사항 저장
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        // 코인 획득 내역 저장
+        setDefaultCoin(savedUser);
+        // 체중 내역 저장
+        setDefaultWeight(savedUser);
+
         // 정식 accessToken 재발급
         String fullAccessToken = jwtTokenProvider.createAccessToken(user.getId(),"USER");
         String refreshToken = jwtTokenProvider.createReFreshToken(user.getId());
@@ -276,10 +288,35 @@ public class AuthService {
         user.setWeight(requestDto.getWeight());
         // 기타 기본값 설정 (예: degree, totalWeight, coin 등)
         user.setAccountType(AccountType.LOCAL);
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        // 코인 획득 내역 저장
+        setDefaultCoin(savedUser);
+        // 체중 내역 저장
+        setDefaultWeight(savedUser);
 
         // 가입 후 이메일 인증 정보 제거
         verificationService.removeVerificationCode(email);
+    }
+
+    private void setDefaultCoin(User user) {
+        // 코인 내역 저장
+        CoinHistory coinHistory = new CoinHistory();
+        coinHistory.setUserId(user.getId());
+        coinHistory.setAmount(DEFALUT_COIN);
+        coinHistory.setUsageType("SIGNUP");
+        coinHistory.setUsageId(user.getId());
+        coinHistoryRepository.save(coinHistory);
+
+        // 코인 보유랑 업데이트
+        user.setCoin(user.getCoin() + DEFALUT_COIN);
+        userRepository.save(user);
+    }
+
+    private void setDefaultWeight(User savedUser) {
+        WeightHistory weightHistory = new WeightHistory();
+        weightHistory.setUserId(savedUser.getId());
+        weightHistory.setWeight(savedUser.getWeight());
+        weightHistoryRepository.save(weightHistory);
     }
 
     // 로그인 처리 (로컬 계정)

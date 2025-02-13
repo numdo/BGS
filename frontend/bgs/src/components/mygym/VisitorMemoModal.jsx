@@ -108,7 +108,6 @@ const VisitorMemoModal = ({ isOpen, onClose, visitorMemos, setVisitorMemos, user
       <div className="bg-transparent" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}></div>
       <div className="w-full max-w-md bg-white rounded-t-3xl shadow-lg p-4 overflow-y-auto max-h-[70vh]">
         <button className="text-gray-500 text-center w-full" onClick={onClose}>▼</button>
-        {/* 댓글 입력 컴포넌트 */}
         <CommentInput newComment={newComment} setNewComment={setNewComment} onAddComment={handleAddComment} />
         {/* 댓글 목록 */}
         <div className="space-y-4 mt-4">

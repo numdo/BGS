@@ -1,4 +1,6 @@
 import { Route, Routes, BrowserRouter } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import KakaoRedirectPage from "./pages/auth/KakaoRedirectPage";

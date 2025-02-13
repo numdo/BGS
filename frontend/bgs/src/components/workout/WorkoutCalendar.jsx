@@ -75,12 +75,6 @@ const WorkoutCalendar = ({ onDateSelect, selectedDate, diaryDates = [] }) => {
           {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
         </h2>
         <button onClick={() => handleChangeMonth(1)}>&gt;</button>
-        <button
-          onClick={goToToday}
-          className="text-gray-500 rounded-lg bg-gray-200 p-1"
-        >
-          오늘
-        </button>
       </div>
 
       {/* 요일 헤더 */}
@@ -120,9 +114,7 @@ const WorkoutCalendar = ({ onDateSelect, selectedDate, diaryDates = [] }) => {
             <div
               key={index}
               className={`relative px-1 py-2 rounded-md border border-gray-200 cursor-pointer ${
-                isSelected
-                  ? "bg-[#987D11] text-white"
-                  : "bg-white text-gray-500"
+                isSelected ? "bg-primary text-white" : "bg-white text-gray-500"
               }`}
               onClick={onClick}
             >

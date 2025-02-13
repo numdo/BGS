@@ -76,7 +76,7 @@ public class DiaryService {
             // 이미지 조회
             ImageResponseDto image = imageService.getImage("diary", diary.getDiaryId());
             if (image != null) {
-                diary.setImageUrl(imageService.getS3Url(image.getUrl()));
+                diary.setImageUrl(imageService.getS3Url(image.getThumbnailUrl()));
             }
 
             // 좋아요 수 조회
@@ -121,10 +121,7 @@ public class DiaryService {
 
         // 코인 지급: 오늘 첫 다이어리 작성이라면 지급
         if (!hasDiaryToday) {
-            System.out.println("오늘 첫 다이어리 작성! 코인 지급!");
-            giveCoinForDiary(userId);
-        } else {
-            System.out.println("이미 오늘 다이어리를 작성함! 코인 지급 X");
+            giveCoinForDiary(userId, savedDiary.getDiaryId());
         }
 
         // 해시태그 저장
@@ -140,13 +137,15 @@ public class DiaryService {
 
         // 이미지 저장
         if (files != null && !files.isEmpty())
-            imageService.uploadImages(files, "diary", Long.valueOf(savedDiary.getDiaryId()));
+            files.forEach(file -> {
+                imageService.uploadImageWithThumbnail(file, "diary", Long.valueOf(savedDiary.getDiaryId()));
+            });
     }
 
     /**
      * 하루 한 번 다이어리 작성 보상 (코인 +1)
      **/
-    private void giveCoinForDiary(Integer userId) {
+    private void giveCoinForDiary(Integer userId, Integer diaryId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         // 코인 +1 증가 (null 체크는 필요 시 추가)
@@ -158,6 +157,7 @@ public class DiaryService {
         coinHistory.setUserId(userId);
         coinHistory.setAmount(1); // 1 코인 지급
         coinHistory.setUsageType("DIARY");
+        coinHistory.setUsageId(diaryId);
         coinHistoryRepository.save(coinHistory);
     }
 
@@ -225,16 +225,16 @@ public class DiaryService {
     /**
      * Diary 단건 조회
      **/
+    @Transactional
     public DiaryResponseDto getDiary(Integer viewerId, Integer diaryId) {
         DiaryResponseDto diaryResponseDto = new DiaryResponseDto();
 
-        // 미존재
+        // 1) 다이어리 기본 조회
         Diary diary = diaryRepository.findById(diaryId).orElse(null);
         if (diary == null || diary.getDeleted()) {
             throw new DiaryNotFoundException(diaryId);
         }
 
-        // Diary 조회
         diaryResponseDto.setDiaryId(diary.getDiaryId());
         diaryResponseDto.setUserId(diary.getUserId());
         diaryResponseDto.setWorkoutDate(diary.getWorkoutDate());
@@ -243,29 +243,28 @@ public class DiaryService {
         diaryResponseDto.setCreatedAt(diary.getCreatedAt());
         diaryResponseDto.setModifiedAt(diary.getModifiedAt());
 
-        // 작성자 조회
+        // 2) 작성자 정보
         User writer = userRepository.findById(diaryResponseDto.getUserId()).orElse(null);
         if (writer != null) {
             diaryResponseDto.setWriter(writer.getNickname());
-            ImageResponseDto image = imageService.getImage("profile", writer.getId());
-            if (image != null) {
-                diaryResponseDto.setProfileImageUrl(imageService.getS3Url(image.getUrl()));
+            ImageResponseDto profileImage = imageService.getImage("profile", writer.getId());
+            if (profileImage != null) {
+                diaryResponseDto.setProfileImageUrl(imageService.getS3Url(profileImage.getUrl()));
             }
         }
 
-        // 좋아요 누른 여부 & 좋아요 수 조회
+        // 3) 좋아요 여부 & 개수
         DiaryLiked diaryLiked = diaryLikedRepository.findById(new DiaryLikedId(diaryId, viewerId)).orElse(null);
-        diaryResponseDto.setIsLiked(diaryLiked == null ? false : true);
+        diaryResponseDto.setIsLiked(diaryLiked != null);
         diaryResponseDto.setLikedCount(diaryLikedRepository.countDiaryLikedByIdDiaryId(diaryId));
 
-        // Hashtag 조회
+        // 4) 해시태그
         List<Hashtag> hashtags = hashtagRepository.findByIdDiaryId(diaryId);
         for (Hashtag hashtag : hashtags) {
             diaryResponseDto.getHashtags().add(hashtag.getId().getTag());
         }
 
-
-        // Diary Workout 조회
+        // 5) DiaryWorkout 조회
         List<DiaryWorkout> diaryWorkouts = diaryWorkoutRepository.findByDiaryIdAndDeletedFalse(diaryId);
         for (DiaryWorkout diaryWorkout : diaryWorkouts) {
             DiaryWorkoutResponseDto diaryWorkoutResponseDto = new DiaryWorkoutResponseDto();
@@ -274,7 +273,14 @@ public class DiaryService {
             diaryWorkoutResponseDto.setCreatedAt(diaryWorkout.getCreatedAt());
             diaryWorkoutResponseDto.setModifiedAt(diaryWorkout.getModifiedAt());
 
-            // WorkoutSet 조회
+            // 5-1) workoutId에 해당하는 Workout 정보 추가 조회
+            Workout w = workoutRepository.findById(diaryWorkout.getWorkoutId()).orElse(null);
+            if (w != null) {
+                diaryWorkoutResponseDto.setWorkoutName(w.getWorkoutName()); // 실제 운동이름
+                diaryWorkoutResponseDto.setPart(w.getPart());
+            }
+
+            // 6) WorkoutSet 조회
             List<WorkoutSet> workoutSets = workoutSetRepository.findByDiaryWorkoutIdAndDeletedFalse(diaryWorkout.getDiaryWorkoutId());
             for (WorkoutSet workoutSet : workoutSets) {
                 WorkoutSetResponseDto workoutSetResponseDto = new WorkoutSetResponseDto();
@@ -285,28 +291,26 @@ public class DiaryService {
                 workoutSetResponseDto.setCreatedAt(workoutSet.getCreatedAt());
                 workoutSetResponseDto.setModifiedAt(workoutSet.getModifiedAt());
 
-                // workoutSets 리스트에 추가
                 diaryWorkoutResponseDto.getSets().add(workoutSetResponseDto);
             }
 
-            // diaryWorkouts 리스트에 추가
+            // 7) 위에서 완성된 workoutResponseDto를 최종 추가
             diaryResponseDto.getDiaryWorkouts().add(diaryWorkoutResponseDto);
         }
 
-        // Image 조회
+        // 8) 이미지 조회
         List<Image> images = imageService.getImages("diary", diaryId);
         for (Image image : images) {
             ImageResponseDto imageResponseDto = new ImageResponseDto();
             imageResponseDto.setImageId(image.getImageId());
             imageResponseDto.setUrl(imageService.getS3Url(image.getUrl()));
             imageResponseDto.setExtension(image.getExtension());
-
-            // images 리스트에 추가
             diaryResponseDto.getImages().add(imageResponseDto);
         }
 
         return diaryResponseDto;
     }
+
 
     /**
      * Diary update
@@ -411,9 +415,10 @@ public class DiaryService {
                 imageService.deleteImage(image.getImageId());
             }
         }
-        if (files != null && !files.isEmpty()) {
-            imageService.uploadImages(files, "diary", Long.valueOf(savedDiary.getDiaryId()));
-        }
+        if (files != null && !files.isEmpty())
+            files.forEach(file -> {
+                imageService.uploadImageWithThumbnail(file, "diary", Long.valueOf(savedDiary.getDiaryId()));
+            });
     }
 
 

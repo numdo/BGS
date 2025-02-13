@@ -83,6 +83,35 @@ public class ImageService {
         }
     }
 
+    @Transactional
+    public Image uploadImageWithThumbnail(MultipartFile file, String usageType, Long usageId) {
+        try {
+            // 1) 원본 이미지 S3 업로드 -> key 반환
+            String s3Key = s3Uploader.upload(file, "images/" + usageType + "/" + usageId);
+
+            // 2) 썸네일 생성 및 S3 업로드 -> key 반환
+            String thumbnailKey = s3Uploader.uploadThumbnail(file, "thumbnails/" + usageType + "/" + usageId);
+
+            // 3) 파일 확장자 추출
+            String ext = getFileExtension(file.getOriginalFilename());
+
+            // 4) DB에 이미지 저장
+            Image image = Image.builder()
+                    .url(s3Key)  // 원본 이미지 URL
+                    .thumbnailUrl(thumbnailKey)
+                    .extension(ext)
+                    .createdAt(LocalDateTime.now())
+                    .deleted(false)
+                    .usageType(usageType)
+                    .usageId(usageId)
+                    .build();
+            return imageRepository.save(image);
+        } catch (Exception e) {
+            throw new ImageUploadException();
+        }
+    }
+
+
     public Image getImage(Long imageId) {
         return imageRepository.findById(imageId)
                 .orElseThrow(() -> new ImageNotFoundException(imageId));
@@ -99,6 +128,7 @@ public class ImageService {
 
         imageResponseDto.setImageId(images.get(0).getImageId());
         imageResponseDto.setUrl(images.get(0).getUrl());
+        imageResponseDto.setThumbnailUrl(images.get(0).getThumbnailUrl());
         imageResponseDto.setExtension(images.get(0).getExtension());
 
         return imageResponseDto;
@@ -116,6 +146,8 @@ public class ImageService {
             // DB & S3 삭제
             imageRepository.save(image);
             s3Uploader.delete(image.getUrl());
+            if (image.getThumbnailUrl() != null)
+                s3Uploader.delete(image.getThumbnailUrl());
         }
     }
 

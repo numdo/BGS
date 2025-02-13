@@ -18,6 +18,8 @@ public class Image {
 
     // S3 업로드 후의 key(또는 full url) 저장
     private String url;
+    private String thumbnailUrl;
+
     private String extension;
 
     private LocalDateTime createdAt;
