@@ -7,15 +7,8 @@ const CommentInput = React.memo(
   ({ newComment, setNewComment, onAddComment }) => {
     const { user } = useUserStore();
 
-    const handleKeyDown = (e) => {
-      if(e.key === "Enter") {
-        e.preventDefault();
-        onAddComment();
-      }
-    };
-
     return (
-      <div className="flex items-center space-x-3 p-3 border-b w-full">
+      <div className="flex items-center space-x-3 p-3 border-b">
         <img
           src={user.profileImageUrl || myinfo}
           alt="프로필"
@@ -25,8 +18,7 @@ const CommentInput = React.memo(
           type="text"
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="방명록 추가..."
+          placeholder="댓글 추가..."
           className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <button onClick={onAddComment} className="text-blue-500 font-bold">

@@ -1,8 +1,6 @@
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
 import moreicon from "../../assets/icons/more.svg";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 export default function WorkoutRealtimePage() {
   return (
@@ -49,16 +47,6 @@ export default function WorkoutRealtimePage() {
           className="bg-primary-light text-white font-bold py-3 px-6 rounded-full transition-all duration-300"
         >
           운동 기록하기
-        </button>
-      </div>
-      <div>
-        <button
-          onClick={() => {
-            toast("그렇게 하면 안됩니다");
-          }}
-          className="bg-primary"
-        >
-          alert
         </button>
       </div>
       <BottomBar />

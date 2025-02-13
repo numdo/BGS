@@ -2,9 +2,12 @@
 import React, { useState, useEffect } from "react";
 import itemApi from "../../api/Item";
 import { Paginator } from "primereact/paginator";
+import { Upload, Button } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
+import AdminItemCreateModal from "./AdminItemCreateModal";
 
 export default function AdminItemManagement() {
   const [items, setItems] = useState([]);
@@ -25,6 +28,17 @@ export default function AdminItemManagement() {
   });
   const [image, setImage] = useState(null);
 
+  // 신규 아이템 등록 모달 관련 상태
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newItemData, setNewItemData] = useState({
+    itemName: "",
+    width: "",
+    height: "",
+    price: "",
+    usable: true,
+  });
+  const [newImage, setNewImage] = useState(null);
+
   // fetchItems 함수를 매개변수를 받을 수 있도록 수정 (기본값은 현재 상태)
   const fetchItems = async (
     pageParam = page,
@@ -33,11 +47,17 @@ export default function AdminItemManagement() {
   ) => {
     setLoading(true);
     try {
-      const data = await itemApi.getAllItems(pageParam, pageSizeParam, keywordParam);
+      const data = await itemApi.getAllItems(
+        pageParam,
+        pageSizeParam,
+        keywordParam
+      );
       // 백엔드가 Page 객체라면 data.content와 data.totalElements 사용,
       // 아니라면 data 배열로 처리
       setItems(data.content ? data.content : data);
-      setTotalRecords(data.totalElements ? data.totalElements : data.length || 0);
+      setTotalRecords(
+        data.totalElements ? data.totalElements : data.length || 0
+      );
     } catch (error) {
       console.error("아이템 목록 조회 실패:", error);
     } finally {
@@ -45,10 +65,10 @@ export default function AdminItemManagement() {
     }
   };
 
-  // 컴포넌트 마운트 시 초기 목록 조회 (직접 호출)
+  // 컴포넌트 마운트 시 초기 목록 조회
   useEffect(() => {
     fetchItems();
-  }, []); // 최초 한 번만 호출
+  }, []);
 
   // 인라인 편집 폼 입력 변경 핸들러
   const handleChange = (e) => {
@@ -65,19 +85,46 @@ export default function AdminItemManagement() {
     await fetchItems(newPage, pageSize, keyword);
   };
 
-  // 이미지 파일 선택 핸들러
-  const handleImageChange = (e) => {
-    setImage(e.target.files[0]);
+  // 인라인 수정 이미지 파일 선택 핸들러
+  const handleImageChange = (file) => {
+    setImage(file);
   };
 
-  // 수정 요청 시 사용할 FormData 생성
+  // 신규 아이템 입력 변경 핸들러 (모달)
+  const handleNewItemChange = (e) => {
+    setNewItemData({ ...newItemData, [e.target.name]: e.target.value });
+  };
+
+  // 신규 아이템 이미지 선택 핸들러 (모달)
+  // 수정 후: 파일 객체를 직접 받음
+  const handleNewImageChange = (file) => {
+    setNewImage(file);
+  };
+
   const createFormData = () => {
     const formData = new FormData();
     formData.append(
       "item",
-      new Blob([JSON.stringify(editingData)], { type: "application/json" })
+      new Blob([JSON.stringify(editingData)], { type: "application/json" }),
+      "item.json" // filename 추가
     );
-    if (image) formData.append("file", image);
+    if (image) {
+      formData.append("file", image);
+    }
+    return formData;
+  };
+  
+  // 신규 아이템 등록 시 FormData 생성 (모달)
+  const createNewItemFormData = () => {
+    const formData = new FormData();
+    formData.append(
+      "item",
+      new Blob([JSON.stringify(newItemData)], { type: "application/json" }),
+      "item.json" // filename 추가
+    );
+    if (newImage) {
+      formData.append("file", newImage);
+    }
     return formData;
   };
 
@@ -87,7 +134,7 @@ export default function AdminItemManagement() {
     try {
       await itemApi.updateItem(editingItemId, createFormData());
       window.alert("아이템이 수정되었습니다.");
-      await fetchItems(); // 최신 상태로 목록 갱신
+      await fetchItems();
       // 편집 상태 초기화
       setEditingItemId(null);
       setEditingData({
@@ -110,7 +157,7 @@ export default function AdminItemManagement() {
     try {
       await itemApi.toggleItemStatus(itemId, newStatus ? "enable" : "disable");
       window.alert(`아이템이 ${newStatus ? "활성화" : "비활성화"}되었습니다.`);
-      await fetchItems(); // 변경 후 목록 갱신
+      await fetchItems();
     } catch (error) {
       console.error(`아이템 ${newStatus ? "활성화" : "비활성화"} 실패:`, error);
     }
@@ -125,22 +172,66 @@ export default function AdminItemManagement() {
       height: item.height,
       price: item.price,
       usable: item.usable,
+      imageUrl: item.imageUrl, // 기존 이미지 URL 추가
     });
     setImage(null);
   };
 
-  // 페이지네이션 핸들러: e.page는 0-based index이므로 1-based로 변환 후 직접 호출
+  // 페이지네이션 핸들러
   const onPageChange = async (e) => {
     const newPage = e.page + 1;
     setPage(newPage);
     await fetchItems(newPage, pageSize, searchKeyword);
   };
 
+  // 모달 열기/닫기 핸들러
+  const openCreateModal = () => {
+    setShowCreateModal(true);
+  };
+  const closeCreateModal = () => {
+    setShowCreateModal(false);
+    // 폼 초기화
+    setNewItemData({
+      itemName: "",
+      width: "",
+      height: "",
+      price: "",
+      usable: true,
+    });
+    setNewImage(null);
+  };
+
+  // 신규 아이템 등록 처리
+  const handleCreateItem = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = createNewItemFormData();
+      await itemApi.createItem(formData);
+      window.alert("아이템이 등록되었습니다.");
+      closeCreateModal();
+      await fetchItems();
+    } catch (error) {
+      console.error("아이템 등록 실패:", error);
+      window.alert("아이템 등록에 실패하였습니다.");
+    }
+  };
+
   return (
     <div className="p-4">
-      {/* 검색 폼: 엔터키 제출 시 handleSearch가 호출됩니다. */}
+      {/* 상단: 제목과 아이템 등록 버튼 */}
+      <div className="mb-4 flex justify-between items-center">
+        <h2 className="text-xl font-semibold">아이템 관리</h2>
+        <button
+          onClick={openCreateModal}
+          className="px-4 py-2 bg-primary-light text-white rounded"
+        >
+          아이템 등록
+        </button>
+      </div>
+
+      {/* 검색 폼 */}
       <div className="mb-4">
-        <form onSubmit={handleSearch} className="ml-4">
+        <form onSubmit={handleSearch}>
           <input
             type="text"
             name="searchKeyword"
@@ -155,6 +246,17 @@ export default function AdminItemManagement() {
           </button>
         </form>
       </div>
+
+      {/* 신규 아이템 등록 모달 (별도 컴포넌트 사용) */}
+      {showCreateModal && (
+        <AdminItemCreateModal
+          newItemData={newItemData}
+          onNewItemChange={handleNewItemChange}
+          onNewImageChange={handleNewImageChange}
+          onSubmit={handleCreateItem}
+          onClose={closeCreateModal}
+        />
+      )}
 
       {/* 인라인 편집 폼 */}
       {editingItemId && (
@@ -193,11 +295,67 @@ export default function AdminItemManagement() {
               onChange={handleChange}
               className="p-2 border rounded w-1/6"
             />
-            <input
-              type="file"
-              onChange={handleImageChange}
-              className="p-2 border rounded w-1/4"
-            />
+            {/* antd Upload 컴포넌트로 파일 업로드 */}
+            <div className="w-1/4 m-2">
+              <Upload
+                maxCount={1} // 단일 파일만 허용
+                fileList={
+                  image
+                    ? [
+                        {
+                          uid: "-1",
+                          name: image.name,
+                          status: "done",
+                          url: URL.createObjectURL(image),
+                        },
+                      ]
+                    : editingData.imageUrl
+                    ? [
+                        {
+                          uid: "-1",
+                          name: "현재 이미지",
+                          status: "done",
+                          url: editingData.imageUrl,
+                        },
+                      ]
+                    : []
+                }
+                beforeUpload={(file) => {
+                  // 새 이미지 선택 시 파일 객체를 저장
+                  handleImageChange(file);
+                  return false; // 자동 업로드 방지
+                }}
+                onRemove={() => {
+                  setImage(null);
+                }}
+                accept="image/*"
+                showUploadList={{
+                  showPreviewIcon: true,
+                  showRemoveIcon: true,
+                }}
+              >
+                <Button
+                  icon={<UploadOutlined />}
+                  className="bg-primary-light text-white"
+                >
+                  파일 선택
+                </Button>
+              </Upload>
+              {/* 새로 선택한 이미지가 있으면 미리보기 이미지 표시 */}
+              {image ? (
+                <img
+                  src={URL.createObjectURL(image)}
+                  alt="새 이미지 미리보기"
+                  className="mt-2 w-32 h-32 object-cover border rounded"
+                />
+              ) : editingData.imageUrl ? (
+                <img
+                  src={editingData.imageUrl}
+                  alt="현재 이미지"
+                  className="mt-2 w-32 h-32 object-cover border rounded"
+                />
+              ) : null}
+            </div>
           </div>
           <div className="mt-4">
             <button
@@ -216,7 +374,7 @@ export default function AdminItemManagement() {
         </div>
       )}
 
-      {/* 아이템 목록 테이블 (plain HTML table) */}
+      {/* 아이템 목록 테이블 */}
       {loading ? (
         <p>로딩중...</p>
       ) : (
@@ -287,7 +445,7 @@ export default function AdminItemManagement() {
         </table>
       )}
 
-      {/* 페이지네이션 컨트롤: PrimeReact Paginator 사용 */}
+      {/* 페이지네이션 */}
       <div className="mt-4">
         <Paginator
           first={(page - 1) * pageSize}

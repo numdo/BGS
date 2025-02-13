@@ -1,13 +1,10 @@
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import useUserStore from "../../stores/useUserStore";
 import TopBar from "../../components/bar/TopBar";
-import { updateUser, getUser } from "../../api/User";
+import { updateUser } from "../../api/User";
 import axiosInstance from "../../utils/axiosInstance";
-
 export default function MyInfoEditPage() {
-  const { me, setMe } = useUserStore();
-  const navigate = useNavigate();
+  const { me } = useUserStore();
   const fileInputRef = useRef(null);
   const [previewUrl, setPreviewUrl] = useState();
   const [formData, setFormData] = useState({
@@ -26,20 +23,12 @@ export default function MyInfoEditPage() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      await updateUser(formData); // ✅ 서버에 업데이트 요청
-      const updatedUser = await getUser(); // ✅ 최신 데이터 가져오기
-      setMe(updatedUser); // ✅ Zustand 상태 업데이트
-      alert("회원정보 수정 성공했습니다");
-      navigate(-1);
-    } catch (error) {
-      console.error("❌ 회원정보 수정 실패:", error);
-      alert("회원정보 수정 실패했습니다.");
-    }
+    console.log("Form submitted:", formData);
+    updateUser(formData);
+    alert("회원정보 수정 성공했습니다");
   };
-
   const handleImageChange = async (e) => {
     const selectedFile = e.target.files[0];
     const maxAllowedSize = 1 * 1024 * 1024;

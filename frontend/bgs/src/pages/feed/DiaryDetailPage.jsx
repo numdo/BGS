@@ -54,10 +54,8 @@ const DiaryDetailPage = () => {
 
   // ✅ 프로필 클릭 시 해당 유저 프로필 페이지로 이동하는 함수
   const handleProfileClick = () => {
-    if (feed.userId === me.userId) {
-      navigate(`/myinfo`); // ✅ 내 정보 페이지로 이동
-    } else {
-      navigate(`/profile/${feed.userId}`); // ✅ 해당 유저의 프로필 페이지로 이동
+    if (feed.userId) {
+      navigate(`/profile/${feed.userId}`); // ✅ 유저 ID 기반으로 이동
     }
   };
 
