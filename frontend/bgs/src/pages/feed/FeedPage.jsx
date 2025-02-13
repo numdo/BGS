@@ -118,15 +118,17 @@ const FeedPage = () => {
 
         {/* 📌 피드 리스트 */}
         <div className="grid grid-cols-3 gap-1 md:gap-2">
-          {feeds.map((feed) => (
-            <FeedItem
-              key={feed.diaryId || feed.evaluationId}
-              feed={feed}
-              onClick={() =>
-                handleImageClick(feed.diaryId || feed.evaluationId)
-              }
-            />
-          ))}
+          {feeds.map((feed) =>
+            feed.imageUrl ? (
+              <FeedItem
+                key={feed.diaryId || feed.evaluationId}
+                feed={feed}
+                onClick={() =>
+                  handleImageClick(feed.diaryId || feed.evaluationId)
+                }
+              />
+            ) : null
+          )}
         </div>
 
         {/* 📌 로딩 트리거 (Intersection Observer 대상) */}
