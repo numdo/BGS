@@ -12,7 +12,11 @@ import java.util.List;
 public class DiaryWorkoutResponseDto {
     private Integer diaryWorkoutId;
     private Integer workoutId;
+    private String workoutName;
+    private String part;
     private Timestamp createdAt;
     private Timestamp modifiedAt;
+
     private List<WorkoutSetResponseDto> sets = new ArrayList<>();
 }
+
