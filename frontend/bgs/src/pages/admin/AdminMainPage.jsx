@@ -1,5 +1,5 @@
 // src/pages/admin/AdminMainPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminTopBar from "../../components/admin/AdminTopBar";
 import AdminUserManagement from "../../components/admin/AdminUserManagement";
@@ -7,7 +7,15 @@ import AdminItemManagement from "../../components/admin/AdminItemManagement";
 
 export default function AdminMainPage() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("user"); // "user" 또는 "item"
+  const [activeTab, setActiveTab] = useState(() => {
+    // localStorage에 저장된 탭값이 있으면 사용, 없으면 "user"를 기본값으로 사용
+    return localStorage.getItem("adminActiveTab") || "user";
+  });
+
+  // activeTab 변경 시 localStorage에 저장
+  useEffect(() => {
+    localStorage.setItem("adminActiveTab", activeTab);
+  }, [activeTab]);
 
   return (
     <div className="admin-page min-h-screen">
