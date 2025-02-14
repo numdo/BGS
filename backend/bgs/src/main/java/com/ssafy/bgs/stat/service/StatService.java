@@ -42,7 +42,7 @@ public class StatService {
     public void addWeightHistory(WeightRequestDto weightRequestDto) {
         WeightHistory weightHistory = new WeightHistory();
         weightHistory.setUserId(weightRequestDto.getUserId());
-        weightHistory.setWeight(weightHistory.getWeight());
+        weightHistory.setWeight(weightRequestDto.getWeight());
         weightHistoryRepository.save(weightHistory);
 
         User user = userRepository.findById(weightRequestDto.getUserId()).orElseThrow(() -> new UserNotFoundException(weightHistory.getUserId()));
