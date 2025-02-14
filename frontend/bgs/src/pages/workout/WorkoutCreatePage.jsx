@@ -407,7 +407,7 @@ export default function WorkoutCreatePage() {
   // 이미지 업로드 핸들러
   const handleImageChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-    const maxAllowedSize = 1 * 1024 * 1024;
+    const maxAllowedSize = 20 * 1024 * 1024;
     for (let file of selectedFiles) {
       if (file.size > maxAllowedSize) {
         showErrorAlert(`파일이 너무 큽니다: ${file.name}`);
