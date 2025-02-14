@@ -138,7 +138,7 @@ const MyGymRoomEdit = () => {
     <div className="relative flex flex-col items-center">
       <div
         ref={roomRef}
-        className="relative w-96 h-96"
+        className="relative w-96 h-80"
         style={{ touchAction: "none" }}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}

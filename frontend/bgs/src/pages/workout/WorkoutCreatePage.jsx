@@ -9,6 +9,7 @@ import deletelogo from "../../assets/icons/delete.svg";
 import moreicon from "../../assets/icons/more.svg";
 import mic_colored from "../../assets/icons/mic_colored.svg";
 import SttWorkoutGuide from "../../components/workout/SttWorkoutGuide";
+import LoadingSpinner from "../../components/common/LoadingSpinner"; // import 스피너 컴포넌트
 import {
   showConfirmAlert,
   showErrorAlert,
@@ -18,6 +19,7 @@ import {
 export default function WorkoutCreatePage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const selectedDate = location.state?.selectedDate;
 
   // 더보기 관련 상태
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -29,7 +31,15 @@ export default function WorkoutCreatePage() {
 
   // 일지 상태
   const [diary, setDiary] = useState({
-    workoutDate: new Date().toISOString().split("T")[0],
+    workoutDate: selectedDate
+      .toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        timeZone: "Asia/Seoul",
+      })
+      .replace(/. /g, "-")
+      .replace(".", ""),
     content: "",
     allowedScope: "A",
     hashtags: [],
@@ -61,7 +71,7 @@ export default function WorkoutCreatePage() {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const audioChunksRef = useRef([]);
   const [recordStartTime, setRecordStartTime] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // 로딩 스피너 상태
 
   // 해시태그 입력
   const [newHashtag, setNewHashtag] = useState("");
@@ -180,7 +190,9 @@ export default function WorkoutCreatePage() {
         const cardio = isCardioWorkout(wid);
         updatedDiaryWorkouts.push({
           workoutId: wid,
-          sets: cardio ? [{ workoutTime: 10 }] : [{ weight: 10, repetition: 10 }],
+          sets: cardio
+            ? [{ workoutTime: 10 }]
+            : [{ weight: 10, repetition: 10 }],
         });
       });
       return { ...prevDiary, diaryWorkouts: updatedDiaryWorkouts };
@@ -276,17 +288,23 @@ export default function WorkoutCreatePage() {
           setShowSttGuide(false);
           return;
         }
+        // 녹음 종료 후 로딩 스피너 시작
         setIsLoading(true);
         try {
           const formData = new FormData();
           formData.append("audioFile", audioBlob);
-          const response = await axiosInstance.post("/ai-diary/auto", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-            withCredentials: true,
-          });
+          const response = await axiosInstance.post(
+            "/ai-diary/auto",
+            formData,
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+              withCredentials: true,
+            }
+          );
           console.log("STT 응답 데이터:", response.data);
           if (response.data.invalidInput) {
             showErrorAlert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
+            setIsLoading(false);
             setIsRecording(false);
             setShowSttGuide(false);
             return;
@@ -306,6 +324,7 @@ export default function WorkoutCreatePage() {
           showErrorAlert("오류 발생! 운동을 인식할 수 없습니다.");
           console.error("음성 처리 실패:", err);
         }
+        // 응답 받았거나 에러가 발생한 후 스피너 종료
         setIsLoading(false);
         setIsRecording(false);
         setShowSttGuide(false);
@@ -518,7 +537,9 @@ export default function WorkoutCreatePage() {
                 <button
                   onClick={() => setSelectedPartFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${
-                    selectedPartFilter === "" ? "bg-primary-light text-white" : ""
+                    selectedPartFilter === ""
+                      ? "bg-primary-light text-white"
+                      : ""
                   }`}
                 >
                   전체
@@ -528,7 +549,9 @@ export default function WorkoutCreatePage() {
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedPartFilter === part ? "bg-primary-light text-white" : ""
+                      selectedPartFilter === part
+                        ? "bg-primary-light text-white"
+                        : ""
                     }`}
                   >
                     {part}
@@ -541,7 +564,9 @@ export default function WorkoutCreatePage() {
                 <button
                   onClick={() => setSelectedToolFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${
-                    selectedToolFilter === "" ? "bg-primary-light text-white" : ""
+                    selectedToolFilter === ""
+                      ? "bg-primary-light text-white"
+                      : ""
                   }`}
                 >
                   전체
@@ -551,7 +576,9 @@ export default function WorkoutCreatePage() {
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedToolFilter === tool ? "bg-primary-light text-white" : ""
+                      selectedToolFilter === tool
+                        ? "bg-primary-light text-white"
+                        : ""
                     }`}
                   >
                     {tool}
@@ -746,7 +773,9 @@ export default function WorkoutCreatePage() {
                           </>
                         )}
                         <button
-                          onClick={() => handleDeleteSet(wIndex, setIndex)}
+                          onClick={() =>
+                            handleDeleteSet(wIndex, setIndex)
+                          }
                           className="px-1 py-1 bg-danger text-white rounded"
                         >
                           <img src={deletelogo} alt="" />
@@ -823,7 +852,10 @@ export default function WorkoutCreatePage() {
         </div>
         <div className="mt-2">
           {diary.hashtags.map((tag) => (
-            <span key={tag} className="p-1 bg-gray-200 rounded-full text-sm mr-2">
+            <span
+              key={tag}
+              className="p-1 bg-gray-200 rounded-full text-sm mr-2"
+            >
               #{tag}
             </span>
           ))}
@@ -847,39 +879,6 @@ export default function WorkoutCreatePage() {
             <span className="ml-2 text-sm">비공개</span>
           </div>
         </div>
-        {/* <div className="mt-2">
-          <div className="flex gap-4 mt-1">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="allowedScope"
-                value="A"
-                checked={diary.allowedScope === "A"}
-                onChange={() => setDiary({ ...diary, allowedScope: "A" })}
-                className="hidden peer"
-              />
-              <div className="w-6 h-6 border-2 border-gray-500 rounded-full flex items-center justify-center peer-checked:bg-gray-600 transition-all">
-                <div className="w-3 h-3 bg-white rounded-full peer-checked:block hidden"></div>
-              </div>
-              <span className="text-sm text-gray-500">공개</span>
-            </label>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="allowedScope"
-                value="M"
-                checked={diary.allowedScope === "M"}
-                onChange={() => setDiary({ ...diary, allowedScope: "M" })}
-                className="hidden peer"
-              />
-              <div className="w-6 h-6 border-2 border-gray-500 rounded-full flex items-center justify-center peer-checked:bg-gray-600 transition-all">
-                <div className="w-3 h-3 bg-white rounded-full peer-checked:block hidden"></div>
-              </div>
-              <span className="text-sm text-gray-500">비공개</span>
-            </label>
-          </div>
-        </div> */}
         {/* 저장 버튼 */}
         <button
           onClick={handleDiarySubmit}
@@ -896,6 +895,12 @@ export default function WorkoutCreatePage() {
           toggleRecording={toggleRecording}
           isRecording={isRecording}
         />
+      )}
+      {/* 로딩 스피너 - 녹음 종료 후 응답 대기 시 */}
+      {isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <LoadingSpinner />
+        </div>
       )}
     </>
   );

@@ -6,11 +6,8 @@ import MyGymRoomEdit from "../../components/mygym/MyGymRoomEdit";
 import MyGymRoomView from "../../components/mygym/MyGymRoomView";
 import MyGymItem from "../../components/mygym/MyGymItem";
 import SelectColor from "../../components/mygym/SelectColor";
-import MyGymRoomBgColor from "../../components/mygym/MyGymRoomBgColor";
-import CommentInput from "../../components/mygym/CommentInput";
-import CommentList from "../../components/mygym/CommentList";
-import VisitorComment from "../../components/mygym/VisitorComment";
 import "../../style.css";
+import editicon from "../../assets/icons/editicon.png";
 
 import useUserStore from "../../stores/useUserStore";
 import useMyGymStore from "../../stores/useMyGymStore";
@@ -18,12 +15,16 @@ import { getMygym, updateMygym, getGuestBooks } from "../../api/Mygym";
 import { getUser } from "../../api/User";
 
 import mygymbackimg from "../../assets/images/mygymbackimg.png";
+import VisitorMemoModal from "../../components/mygym/VisitorMemoModal";
 
 const MyGymPage = () => {
   // 유저 정보 및 마이짐 상태
   const { user, setUser } = useUserStore();
-  const { myGym, setMyGym, pageBgColor, setPageBgColor, setWallColor, setItems } = useMyGymStore();
+  const { myGym, setMyGym, setWallColor, setItems } = useMyGymStore();
 
+  // 메모모달
+  const [isOpen, setIsOpen] = useState(true);
+  
   // 편집 모드 여부
   const [isEditing, setIsEditing] = useState(false);
   const handleEditMode = () => setIsEditing(true);
@@ -66,8 +67,6 @@ const MyGymPage = () => {
   const handleAddComment = async () => {
     if (newComment.trim() === "") return;
     try {
-      // 예시: 새 댓글을 API로 추가한 후 최신 댓글 배열을 불러오거나
-      // 임시로 상태 업데이트
       const newMemo = {
         guestbookId: Date.now(), // 임시 ID
         guestId: user.userId,
@@ -75,7 +74,6 @@ const MyGymPage = () => {
         createdAt: new Date().toISOString(),
         deleted: false,
       };
-      // 최신 댓글이 위쪽에 표시되도록 배열의 앞에 추가
       setVisitorMemos([newMemo, ...visitorMemos]);
       setNewComment("");
     } catch (error) {
@@ -99,16 +97,10 @@ const MyGymPage = () => {
       <TopBar />
 
       <div className="flex justify-center items-center">
-        <h1 className="text-3xl font-extrabold text-center py-2  drop-shadow-lg bg-blue-300 w-80 rounded-xl">
+        <h1 className="text-3xl font-extrabold text-center py-2 drop-shadow-lg bg-blue-300 w-80 rounded-xl">
           {user.nickname} 마이짐
         </h1>
-        {isEditing && (
-          <div className="ml-4">
-            <MyGymRoomBgColor setBgColor={setPageBgColor} />
-          </div>
-        )}
       </div>
-
 
       <div className="absolute top-2 right-2">
         {isEditing ? (
@@ -121,9 +113,9 @@ const MyGymPage = () => {
         ) : (
           <button
             onClick={handleEditMode}
-            className="bg-blue-400 text-white px-4 py-2 rounded-full"
+            className="bg-white text-white px-4 py-2 rounded-xl shadow-md"
           >
-            편집
+            <img src={editicon} alt="편집" className="w-6 h-6" />
           </button>
         )}
       </div>
@@ -133,15 +125,22 @@ const MyGymPage = () => {
         <>
           <MyGymRoomEdit />
           <SelectColor setRoomColor={setWallColor} />
-          <MyGymItem setItems={setItems} />
+          {/* 편집버튼을 누르면 MyGymItem의 forceOpen이 true가 되어 슬라이드 업 */}
+          <MyGymItem setItems={setItems} forceOpen={true} />
         </>
       ) : (
         // 보기 모드
         <>
           <MyGymRoomView userId={user.userId} />
           {/* 댓글 영역: 항상 보이도록 */}
-          <div className="mt-4 flex-1 bg-white rounded-3xl">
-            <VisitorComment userId={user.userId}/>
+          <div className="mt-4 flex-1 bg-white rounded-3xl" style={{ zIndex: 10 }}>
+            <VisitorMemoModal
+              isOpen={isOpen}
+              onClose={() => setIsOpen(false)}
+              visitorMemos={visitorMemos}
+              setVisitorMemos={setVisitorMemos}
+              userId={user.userId}
+            />
           </div>
         </>
       )}

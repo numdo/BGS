@@ -2,18 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useUserStore from "../../stores/useUserStore";
 import TopBar from "../../components/bar/TopBar";
-import settings from "../../assets/icons/settings.svg";
-import myinfo from "../../assets/icons/myinfo.png";
 import BottomBar from "../../components/bar/BottomBar";
+import logoutIcon from "../../assets/icons/signout.svg"; // ✅ 로그아웃 아이콘
+import myinfo from "../../assets/icons/myinfo.png";
 import { handleLogout } from "../../api/Auth";
-import { deleteUser, getUser } from "../../api/User";
+import { deleteUser } from "../../api/User";
 
 export default function MyInfoViewPage() {
   const navigate = useNavigate();
-  const { me } = useUserStore(); // ✅ Zustand에서 유저 데이터 가져오기
-
-  // ✅ 설정 메뉴 상태 추가
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { me } = useUserStore();
 
   // ✅ 회원 탈퇴 처리 함수
   const handleDeleteUser = () => {
@@ -28,61 +25,50 @@ export default function MyInfoViewPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <TopBar />
-      <div className="px-6 pt-2 max-w-3xl mx-auto">
-        {/* ✅ 상단 프로필 섹션 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <img
-              src={me.profileImageUrl || myinfo} // ✅ 프로필 이미지 (없으면 기본 이미지)
-              alt="Profile"
-              className="rounded-full h-24 w-24"
-            />
-            <div className="ml-6">
-              <h2 className="mt-4 text-2xl font-semibold text-gray-800">
-                {me.nickname || "닉네임 없음"}
-              </h2>
-              <p className="text-gray-600 mt-2">
-                {me.introduction || "자기소개 없음"}
-              </p>
-            </div>
-          </div>
-          {/* ✅ 설정 버튼 (클릭 시 메뉴 열림) */}
-          <button onClick={() => setIsSettingsOpen(!isSettingsOpen)}>
-            <img src={settings} alt="설정" />
-          </button>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* ✅ 상단바 */}
+      <div className="relative">
+        <TopBar />
+        {/* ✅ 로그아웃 버튼 (상단바 우측) */}
+        <button
+          onClick={() => handleLogout(navigate)}
+          className="absolute top-3.5 right-4"
+        >
+          <img src={logoutIcon} alt="로그아웃" className="w-6 h-6" />
+        </button>
+      </div>
 
-          {/* ✅ 설정 드롭다운 메뉴 */}
-          {isSettingsOpen && (
-            <div className="absolute right-3 top-32 w-36 rounded-md bg-gray-100 border border-gray-200 ring-1 ring-black ring-opacity-5 z-10">
-              <div role="menu">
-                <div
-                  onClick={() => navigate("/myinfoview")}
-                  className="hover:bg-gray-100 p-2"
-                >
-                  <p className="inline-block align-middle">프로필</p>
-                </div>
-                <div className="border-b border-gray-200"></div>
-                <div
-                  onClick={() => handleLogout(navigate)}
-                  className="hover:bg-gray-100 p-2 border-b border-gray-200"
-                >
-                  <p className="inline-block align-middle">로그아웃</p>
-                </div>
-                <div
-                  onClick={handleDeleteUser}
-                  className="text-danger hover:bg-gray-100 p-2"
-                >
-                  <p className="inline-block align-middle">회원탈퇴</p>
-                </div>
-              </div>
-            </div>
-          )}
+      <div className="flex-1 flex flex-col items-center px-6 pt-4 max-w-3xl mx-auto w-full pb-16">
+        {/* ✅ 프로필 섹션 */}
+        <div className="relative flex flex-col items-center w-full">
+          {/* 프로필 이미지 */}
+          <img
+            src={me.profileImageUrl || myinfo}
+            alt="Profile"
+            className="rounded-full h-28 w-28 border border-gray-300"
+          />
+
+          {/* 닉네임 */}
+          <h2 className="mt-2 text-xl font-semibold">
+            {me.nickname || "닉네임 없음"}
+          </h2>
+
+          {/* 자기소개 */}
+          <p className="text-gray-500 text-center px-4">
+            {me.introduction || "자기소개 없음"}
+          </p>
+
+          {/* ✅ 프로필 수정 버튼 */}
+          <button
+            onClick={() => navigate("/myinfoedit")}
+            className="mt-4 bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition duration-200"
+          >
+            프로필 수정
+          </button>
         </div>
 
-        {/* ✅ 유저 정보 (읽기 전용 입력 필드 디자인) */}
-        <div className="mt-4">
+        {/* ✅ 유저 정보 (input 대신 div로 변경) */}
+        <div className="mt-6 bg-white shadow-md rounded-lg p-4 w-full max-w-xl">
           {[
             { label: "이름", value: me.name || "정보 없음" },
             { label: "생년월일", value: me.birthDate || "정보 없음" },
@@ -108,37 +94,34 @@ export default function MyInfoViewPage() {
             { label: "최근 출석일", value: me.lastAttendance || "정보 없음" },
             { label: "보유 코인", value: me.coin ? `${me.coin} 개` : "0 개" },
           ].map((item, index) => (
-            <div key={index} className="space-y-2 mb-4">
-              <label className="block text-sm font-medium text-gray-700">
+            <div
+              key={index}
+              className="py-3 border-b last:border-none flex justify-between"
+            >
+              <span className="text-sm font-medium text-gray-600">
                 {item.label}
-              </label>
-              <input
-                type="text"
-                value={item.value}
-                readOnly
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white-50 focus:outline-none"
-              />
+              </span>
+              <span className="text-sm text-gray-800">{item.value}</span>
             </div>
           ))}
         </div>
 
-        {/* ✅ 버튼 그룹 */}
-        <div className="flex flex-col space-y-4 mt-6">
-          <button
-            onClick={() => navigate("/myinfoedit")}
-            className="bg-primary text-white py-2 px-4 rounded-md text-center"
-          >
-            수정하기
-          </button>
-          <button
-            onClick={() => navigate("/change-password")}
-            className="bg-gray-500 text-white py-2 px-4 rounded-md text-center"
-          >
-            비밀번호 변경
-          </button>
+        {/* ✅ 회원 탈퇴 (버튼 스타일 없이 텍스트만 표시) */}
+        <div
+          onClick={handleDeleteUser}
+          className="w-full max-w-xl mt-6 cursor-pointer"
+        >
+          <hr className="border-gray-300 my-4" /> {/* 상단 구분선 */}
+          <p className="text-right text-red-600 font-semibold py-3 hover:text-red-700">
+            회원 탈퇴
+          </p>
         </div>
       </div>
-      <BottomBar />
+
+      {/* ✅ 하단바 공간 확보 */}
+      <div className="pb-16">
+        <BottomBar />
+      </div>
     </div>
   );
 }
