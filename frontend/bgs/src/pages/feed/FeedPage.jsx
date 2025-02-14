@@ -106,7 +106,6 @@ const FeedPage = () => {
 
       const response = await axiosInstance.get(url);
       const newFeeds = response.data;
-      console.log("받은 피드", response.data);
       if (newFeeds.length === 0) {
         setHasMore(false);
       } else {
@@ -129,7 +128,6 @@ const FeedPage = () => {
 
       const response = await axiosInstance.get(url);
       const newEvaluations = response.data;
-      console.log("받은 평가", response.data);
       if (newEvaluations.length === 0) {
         setHasMoreEvaluation(false);
       } else {
