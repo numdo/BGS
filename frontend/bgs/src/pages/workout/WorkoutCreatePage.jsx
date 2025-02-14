@@ -1,3 +1,4 @@
+// src/pages/WorkoutCreatePage.jsx
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
@@ -209,26 +210,26 @@ export default function WorkoutCreatePage() {
       const workoutIds = record.workoutIds
         ? record.workoutIds
         : record.workoutId
-        ? [record.workoutId]
-        : [];
+          ? [record.workoutId]
+          : [];
       workoutIds.forEach((wid) => {
         if (!newDiaryWorkouts.some((dw) => dw.workoutId === wid)) {
           const cardio = isCardioWorkout(wid);
           const setsForThisWorkout = record.sets
             ? record.sets
-                .filter((s) => s.workoutId === wid)
-                .map((s) =>
-                  cardio
-                    ? { workoutTime: s.workoutTime || 10 }
-                    : { weight: s.weight || 10, repetition: s.repetition || 10 }
-                )
+              .filter((s) => s.workoutId === wid)
+              .map((s) =>
+                cardio
+                  ? { workoutTime: s.workoutTime || 10 }
+                  : { weight: s.weight || 10, repetition: s.repetition || 10 }
+              )
             : [];
           const finalSets =
             setsForThisWorkout.length > 0
               ? setsForThisWorkout
               : cardio
-              ? [{ workoutTime: 10 }]
-              : [{ weight: 10, repetition: 10 }];
+                ? [{ workoutTime: 10 }]
+                : [{ weight: 10, repetition: 10 }];
           newDiaryWorkouts.push({
             workoutId: wid,
             sets: finalSets,
@@ -532,11 +533,10 @@ export default function WorkoutCreatePage() {
                 <span className="mr-2 font-semibold">부위: </span>
                 <button
                   onClick={() => setSelectedPartFilter("")}
-                  className={`mr-2 px-2 py-1 border rounded ${
-                    selectedPartFilter === ""
-                      ? "bg-primary-light text-white"
-                      : ""
-                  }`}
+                  className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === ""
+                    ? "bg-primary-light text-white"
+                    : ""
+                    }`}
                 >
                   전체
                 </button>
@@ -544,9 +544,8 @@ export default function WorkoutCreatePage() {
                   <button
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
-                    className={`mr-2 px-2 py-1 border rounded ${
-                      selectedPartFilter === part ? "bg-primary-light text-white" : ""
-                    }`}
+                    className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === part ? "bg-primary-light text-white" : ""
+                      }`}
                   >
                     {part}
                   </button>
@@ -557,11 +556,10 @@ export default function WorkoutCreatePage() {
                 <span className="mr-2 font-semibold">기구: </span>
                 <button
                   onClick={() => setSelectedToolFilter("")}
-                  className={`mr-2 px-2 py-1 border rounded ${
-                    selectedToolFilter === ""
-                      ? "bg-primary-light text-white"
-                      : ""
-                  }`}
+                  className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === ""
+                    ? "bg-primary-light text-white"
+                    : ""
+                    }`}
                 >
                   전체
                 </button>
@@ -569,9 +567,8 @@ export default function WorkoutCreatePage() {
                   <button
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
-                    className={`mr-2 px-2 py-1 border rounded ${
-                      selectedToolFilter === tool ? "bg-primary-light text-white" : ""
-                    }`}
+                    className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === tool ? "bg-primary-light text-white" : ""
+                      }`}
                   >
                     {tool}
                   </button>
@@ -690,96 +687,112 @@ export default function WorkoutCreatePage() {
               {diary.diaryWorkouts.map((workout, wIndex) => {
                 const cardio = isCardioWorkout(workout.workoutId);
                 return (
-                  <div key={`dw-${wIndex}`} className="border p-2 rounded mb-2">
-                    <div className="flex justify-between items-center">
-                      <h2>{getWorkoutName(workout.workoutId)}</h2>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleAddSet(wIndex)}
-                          className="w-8 px-2 py-1 bg-success text-gray-400 rounded"
-                        >
-                          +
-                        </button>
-                        <button
-                          onClick={() => handleDeleteWorkout(wIndex)}
-                          className="px-1 py-1 bg-danger text-white rounded"
-                        >
-                          <img src={deletelogo} alt="" />
-                        </button>
-                      </div>
-                    </div>
-                    {workout.sets.map((set, setIndex) => (
-                      <div
-                        key={`set-${wIndex}-${setIndex}`}
-                        className="flex items-center space-x-4 mt-2"
+                  <div key={`dw-${wIndex}`} className="border p-4 rounded-md mb-4 bg-white shadow">
+                    {/* 운동명 및 삭제 버튼 */}
+                    <div className="flex justify-between items-center pb-2 border-b">
+                      <h2 className="text-base font-semibold text-gray-800">{getWorkoutName(workout.workoutId)}</h2>
+                      <button
+                        onClick={() => handleDeleteWorkout(wIndex)}
+                        className="text-gray-500 hover:text-red-500 text-lg"
                       >
-                        {cardio ? (
-                          <div>
-                            <label className="mr-1">시간:</label>
-                            <input
-                              type="number"
-                              value={set.workoutTime || ""}
-                              onChange={(e) =>
-                                handleWorkoutSetChange(
-                                  wIndex,
-                                  setIndex,
-                                  "workoutTime",
-                                  e.target.value
-                                )
-                              }
-                              className="w-20 p-1 border rounded"
-                            />
-                          </div>
-                        ) : (
-                          <>
-                            <div>
-                              <label className="mr-1">무게:</label>
-                              <input
-                                type="number"
-                                value={set.weight || ""}
-                                onChange={(e) =>
-                                  handleWorkoutSetChange(
-                                    wIndex,
-                                    setIndex,
-                                    "weight",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-20 p-1 border rounded"
-                              />
-                            </div>
-                            <div>
-                              <label className="mr-1">횟수:</label>
-                              <input
-                                type="number"
-                                value={set.repetition || ""}
-                                onChange={(e) =>
-                                  handleWorkoutSetChange(
-                                    wIndex,
-                                    setIndex,
-                                    "repetition",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-20 p-1 border rounded"
-                              />
-                            </div>
-                          </>
-                        )}
-                        <button
-                          onClick={() => handleDeleteSet(wIndex, setIndex)}
-                          className="px-1 py-1 bg-danger text-white rounded"
+                        ✖
+                      </button>
+                    </div>
+
+                    {/* 세트 목록 */}
+                    <div className="mt-3 space-y-2">
+                      {workout.sets.map((set, setIndex) => (
+                        <div
+                          key={`set-${wIndex}-${setIndex}`}
+                          className="flex items-center justify-between px-4 py-2 rounded-md bg-gray-100"
                         >
-                          <img src={deletelogo} alt="" />
-                        </button>
-                      </div>
-                    ))}
+                          {/* 세트 번호 */}
+                          <span className="text-gray-700 font-medium text-sm">{setIndex + 1}세트</span>
+
+                          {/* 무게 및 횟수 입력 */}
+                          {cardio ? (
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="number"
+                                value={set.workoutTime || ""}
+                                onChange={(e) =>
+                                  handleWorkoutSetChange(
+                                    wIndex,
+                                    setIndex,
+                                    "workoutTime",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-16 p-1 text-center border rounded text-gray-900"
+                              />
+                              <span className="text-gray-600 text-sm">분</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center space-x-4">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="number"
+                                  value={set.weight || ""}
+                                  onChange={(e) =>
+                                    handleWorkoutSetChange(
+                                      wIndex,
+                                      setIndex,
+                                      "weight",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-16 p-1 text-center border rounded text-gray-900"
+                                />
+                                <span className="text-gray-600 text-sm">kg</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="number"
+                                  value={set.repetition || ""}
+                                  onChange={(e) =>
+                                    handleWorkoutSetChange(
+                                      wIndex,
+                                      setIndex,
+                                      "repetition",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-16 p-1 text-center border rounded text-gray-900"
+                                />
+                                <span className="text-gray-600 text-sm">회</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 세트 삭제 버튼 */}
+                          <button
+                            onClick={() => handleDeleteSet(wIndex, setIndex)}
+                            className="text-gray-500 hover:text-red-500 text-lg"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* 세트 추가 버튼 */}
+                    <div className="mt-3 flex justify-center">
+                      <button
+                        onClick={() => handleAddSet(wIndex)}
+                        className="w-full px-4 py-2 bg-[#5968eb] hover:bg-[#4a57c7] rounded-md text-white font-semibold text-sm"
+                      >
+                        세트 추가
+                      </button>
+                    </div>
                   </div>
+
                 );
               })}
             </>
           )}
         </div>
+
+
 
         {/* 이미지 업로드 섹션 */}
         <div className="mt-4">
@@ -835,11 +848,11 @@ export default function WorkoutCreatePage() {
           </div>
         </div>
 
-        {/* 해시태그 추가 - flex row로 버튼 밀림 방지, 글자수 제한 */}
+        {/* 해시태그 추가 - flex row로 버튼 밀림 방지, 글자수 제한 10자 */}
         <div className="mt-4 flex items-center">
           <input
             type="text"
-            className="flex-grow p-2 border rounded resize-none"
+            className="p-2 border rounded resize-none w-[15ch]"
             value={newHashtag}
             onChange={(e) => setNewHashtag(e.target.value)}
             placeholder="해시태그 입력"
