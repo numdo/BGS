@@ -1,7 +1,9 @@
 package com.ssafy.bgs.stat.service;
 
 import com.ssafy.bgs.diary.repository.DiaryWorkoutRepository;
+import com.ssafy.bgs.diary.repository.WorkoutSetRepository;
 import com.ssafy.bgs.stat.dto.request.WeightRequestDto;
+import com.ssafy.bgs.stat.dto.response.PartVolumeResponseDto;
 import com.ssafy.bgs.stat.dto.response.WorkoutBalanceResponseDto;
 import com.ssafy.bgs.stat.entity.WeightHistory;
 import com.ssafy.bgs.stat.entity.WorkoutPart;
@@ -11,6 +13,7 @@ import com.ssafy.bgs.user.exception.UserNotFoundException;
 import com.ssafy.bgs.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -23,11 +26,13 @@ public class StatService {
     private final WeightHistoryRepository weightHistoryRepository;
     private final UserRepository userRepository;
     private final DiaryWorkoutRepository diaryWorkoutRepository;
+    private final WorkoutSetRepository workoutSetRepository;
 
-    public StatService(WeightHistoryRepository weightHistoryRepository, UserRepository userRepository, DiaryWorkoutRepository diaryWorkoutRepository) {
+    public StatService(WeightHistoryRepository weightHistoryRepository, UserRepository userRepository, DiaryWorkoutRepository diaryWorkoutRepository, WorkoutSetRepository workoutSetRepository) {
         this.weightHistoryRepository = weightHistoryRepository;
         this.userRepository = userRepository;
         this.diaryWorkoutRepository = diaryWorkoutRepository;
+        this.workoutSetRepository = workoutSetRepository;
     }
 
     public List<WeightHistory> getWeightHistories(Integer userId) {
@@ -101,4 +106,50 @@ public class StatService {
     }
 
 
+    public Map<String, PartVolumeResponseDto> getPartVolume(Integer userId) {
+        Map<String, PartVolumeResponseDto> weeklyPartVolume = new HashMap<>();
+
+        // 날짜 범위 설정
+        Date thisWeekStart = Date.valueOf(LocalDate.now().minusDays(6));
+        Date lastWeekStart = Date.valueOf(LocalDate.now().minusDays(13));
+        Date twoWeeksAgoStart = Date.valueOf(LocalDate.now().minusDays(20));
+
+        Date thisWeekEnd = Date.valueOf(LocalDate.now());
+        Date lastWeekEnd = Date.valueOf(LocalDate.now().minusDays(7));
+        Date twoWeeksAgoEnd = Date.valueOf(LocalDate.now().minusDays(14));
+
+        // 데이터 조회
+        weeklyPartVolume.put("thisWeek", fetchPartVolume(userId, thisWeekStart, thisWeekEnd));
+        weeklyPartVolume.put("lastWeek", fetchPartVolume(userId, lastWeekStart, lastWeekEnd));
+        weeklyPartVolume.put("twoWeeksAgo", fetchPartVolume(userId, twoWeeksAgoStart, twoWeeksAgoEnd));
+
+        return weeklyPartVolume;
+    }
+
+    // 부위별 볼륨 조회 메서드
+    private PartVolumeResponseDto fetchPartVolume(Integer userId, Date startDate, Date endDate) {
+        List<Object[]> results = workoutSetRepository.findWorkoutVolumeByPart(userId, startDate, endDate);
+        PartVolumeResponseDto responseDto = new PartVolumeResponseDto();
+
+        // 기본값 0으로 초기화
+        responseDto.setChest(0);
+        responseDto.setLat(0);
+        responseDto.setShoulder(0);
+        responseDto.setLeg(0);
+
+        for (Object[] row : results) {
+            String part = (String) row[0]; // 운동 부위
+            Integer totalVolume = ((Double) row[1]).intValue(); // 볼륨 값
+
+            // 부위별로 매핑
+            switch (part) {
+                case "가슴" -> responseDto.setChest(totalVolume);
+                case "등" -> responseDto.setLat(totalVolume);
+                case "어깨" -> responseDto.setShoulder(totalVolume);
+                case "하체" -> responseDto.setLeg(totalVolume);
+            }
+        }
+
+        return responseDto;
+    }
 }
