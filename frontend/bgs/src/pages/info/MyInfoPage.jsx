@@ -45,49 +45,44 @@ export default function MyInfoPage() {
   return (
     <>
       <TopBar />
-      <div className="px-6 pt-2 max-w-3xl mx-auto">
+      <div className="px-6 pt-4 max-w-3xl mx-auto">
         {/* ✅ 상단 프로필 섹션 */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            {/* ✅ 프로필 이미지 (크기 축소) */}
-            <img
-              src={me.profileImageUrl || myinfo}
-              alt="Profile"
-              className="rounded-full h-16 w-16"
-            />
-            <div className="ml-4">
-              {/* ✅ 닉네임 */}
-              <h2 className="text-lg font-semibold text-gray-800">
-                {me.nickname}
-              </h2>
-              {/* ✅ 자기소개 */}
-              <p className="text-gray-600 text-sm mt-1">{me.introduction}</p>
+          {/* 프로필 이미지 */}
+          <img
+            src={me.profileImageUrl || myinfo}
+            alt="Profile"
+            className="rounded-full h-20 w-20"
+          />
+
+          <div className="flex flex-col">
+            <h2 className="text-lg font-semibold text-gray-800">
+              {me.nickname}
+            </h2>
+            <p className="text-gray-600 text-sm mt-1">{me.introduction}</p>
+            <div className="flex space-x-4 mt-2">
+              <div
+                className="cursor-pointer"
+                onClick={() => navigate("/follow/followers")}
+              >
+                팔로워 <span className="font-bold">{followerCount}</span>
+              </div>
+              <div
+                className="cursor-pointer"
+                onClick={() => navigate("/follow/following")}
+              >
+                팔로잉 <span className="font-bold">{followingCount}</span>
+              </div>
             </div>
           </div>
 
-          {/* ✅ 내 정보 관리 버튼 (세로 크기 증가) */}
+          {/* 상세정보 버튼 */}
           <button
             onClick={() => navigate("/myinfoview")}
-            className="px-3 py-2 text-sm bg-gray-200 rounded-md hover:bg-gray-300 inline-flex whitespace-nowrap ml-4"
+            className="px-3 py-2 text-sm text-white bg-primary rounded-md whitespace-nowrap"
           >
             상세정보
           </button>
-        </div>
-
-        {/* ✅ 팔로워 & 팔로잉 섹션 */}
-        <div className="flex items-center mt-3 ml-20">
-          <div
-            className="cursor-pointer"
-            onClick={() => navigate("/follow/followers")}
-          >
-            팔로워 <span className="font-bold">{followerCount}</span>
-          </div>
-          <div
-            className="cursor-pointer ml-6"
-            onClick={() => navigate("/follow/following")}
-          >
-            팔로잉 <span className="font-bold">{followingCount}</span>
-          </div>
         </div>
 
         {/* ✅ 탭 네비게이션 */}

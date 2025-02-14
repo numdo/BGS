@@ -2,20 +2,27 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import useUserStore from "../../stores/useUserStore";
 import TopBar from "../../components/bar/TopBar";
-import { updateUser, getUser } from "../../api/User";
+import { updateUser, getUser, checkNickname, deleteUser } from "../../api/User";
 import axiosInstance from "../../utils/axiosInstance";
+import BeatLoader from "../../components/common/LoadingSpinner";
+import myinfo from "../../assets/icons/myinfo.png";
 
 export default function MyInfoEditPage() {
   const { me, setMe } = useUserStore();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [previewUrl, setPreviewUrl] = useState();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+  const [nicknameChecked, setNicknameChecked] = useState(false);
+  const [nicknameValid, setNicknameValid] = useState(null);
+
   const [formData, setFormData] = useState({
     nickname: me.nickname || "",
-    birthDate: me.birthDate || "",
     height: me.height || "",
     weight: me.weight || "",
     introduction: me.introduction || "",
+    birthDate: me.birthDate || "",
   });
 
   const handleChange = (e) => {
@@ -24,19 +31,67 @@ export default function MyInfoEditPage() {
       ...prev,
       [name]: value,
     }));
+
+    if (name === "nickname") {
+      setNicknameChecked(false);
+      setNicknameValid(null);
+    }
+  };
+
+  const handleCheckNickname = async () => {
+    if (!formData.nickname.trim()) {
+      alert("닉네임을 입력해주세요.");
+      return;
+    }
+
+    setIsChecking(true);
+    try {
+      const isAvailable = await checkNickname(formData.nickname);
+      if (isAvailable) {
+        setNicknameValid(true);
+        alert("닉네임을 사용할 수 있습니다.");
+      } else {
+        setNicknameValid(false);
+        alert("이미 사용 중인 닉네임입니다.");
+      }
+      setNicknameChecked(true);
+    } catch (error) {
+      console.error("닉네임 중복 확인 실패:", error);
+      alert("닉네임 중복 확인 중 오류가 발생했습니다.");
+    } finally {
+      setIsChecking(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+
     try {
-      await updateUser(formData); // ✅ 서버에 업데이트 요청
-      const updatedUser = await getUser(); // ✅ 최신 데이터 가져오기
-      setMe(updatedUser); // ✅ Zustand 상태 업데이트
+      let updateData = { ...formData };
+
+      updateData.birthDate = me.birthDate;
+
+      if (!nicknameChecked || !nicknameValid) {
+        updateData.nickname = me.nickname;
+      }
+
+      await updateUser(updateData);
+      const updatedUser = await getUser();
+      setMe(updatedUser);
       alert("회원정보 수정 성공했습니다");
       navigate(-1);
     } catch (error) {
       console.error("❌ 회원정보 수정 실패:", error);
-      alert("회원정보 수정 실패했습니다.");
+
+      // ✅ 500 에러 발생 시 키와 몸무게 길이 제한 안내
+      if (error.response && error.response.status === 500) {
+        alert("몸무게와 키는 4자리 이상 입력할 수 없습니다.");
+      } else {
+        alert("회원정보 수정 실패했습니다.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -60,20 +115,50 @@ export default function MyInfoEditPage() {
     setPreviewUrl(newPreview);
   };
 
+  // ✅ 회원 탈퇴 처리 함수
+  const handleDeleteUser = async () => {
+    console.log("[handleDeleteUser] User clicked 'Delete' button");
+    const isConfirmed = window.confirm("정말로 탈퇴하시겠습니까?");
+    console.log(`[handleDeleteUser] Confirm result: ${isConfirmed}`);
+
+    if (isConfirmed) {
+      try {
+        // deleteUser() API 호출 전
+        console.log("[handleDeleteUser] Calling deleteUser() API...");
+        const result = await deleteUser();
+        // API 호출 후 응답
+        console.log("[handleDeleteUser] deleteUser() success. Result:", result);
+
+        alert("회원 탈퇴가 완료되었습니다.");
+
+        // 로컬 스토리지 토큰 삭제
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+
+        // 로그인 페이지로 이동
+        console.log("[handleDeleteUser] Navigating to /login");
+        navigate("/login");
+      } catch (error) {
+        console.error("[handleDeleteUser] Error while deleting user:", error);
+        alert("회원 탈퇴 중 오류가 발생했습니다.");
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ✅ TopBar & 저장 버튼 배치 */}
-      <div className="relative">
+    <div className="min-h-screen bg-gray-50 relative">
+      <div className="relative z-30">
         <TopBar />
-        <button
-          onClick={handleSubmit}
-          className="absolute top-3 right-4 text-primary font-semibold text-lg"
-        >
-          저장
-        </button>
       </div>
 
-      <div className="max-w-2xl mx-auto p-4">
+      <button
+        onClick={handleSubmit}
+        className="absolute top-3.5 right-2 z-40 text-primary font-semibold text-lg"
+      >
+        저장
+      </button>
+
+      <div className="max-w-xl mx-auto p-4">
         <h1 className="text-center text-xl text-gray-600 font-bold mb-6">
           프로필 편집
         </h1>
@@ -89,7 +174,7 @@ export default function MyInfoEditPage() {
               style={{ display: "none" }}
             />
             <img
-              src={previewUrl || me.profileImageUrl}
+              src={previewUrl || me.profileImageUrl || myinfo}
               alt="프로필 이미지"
               className="w-36 h-36 rounded-full object-cover"
             />
@@ -103,12 +188,12 @@ export default function MyInfoEditPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  닉네임
-                </label>
+          <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                닉네임
+              </label>
+              <div className="flex gap-2">
                 <input
                   type="text"
                   name="nickname"
@@ -116,78 +201,71 @@ export default function MyInfoEditPage() {
                   onChange={handleChange}
                   placeholder="닉네임을 입력하세요"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  maxLength={12}
                 />
+                <button
+                  type="button"
+                  onClick={handleCheckNickname}
+                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary flex items-center justify-center"
+                  disabled={isChecking}
+                >
+                  {isChecking ? (
+                    <BeatLoader size={10} color="white" />
+                  ) : (
+                    <span className="whitespace-nowrap">중복 체크</span>
+                  )}
+                </button>
               </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  생년월일
-                </label>
-                <input
-                  type="date"
-                  name="birthDate"
-                  value={formData.birthDate}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  키 (cm)
-                </label>
-                <input
-                  type="number"
-                  name="height"
-                  value={formData.height}
-                  onChange={handleChange}
-                  placeholder="키를 입력하세요"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  몸무게 (kg)
-                </label>
-                <input
-                  type="number"
-                  name="weight"
-                  value={formData.weight}
-                  onChange={handleChange}
-                  placeholder="몸무게를 입력하세요"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  자기소개
-                </label>
-                <textarea
-                  name="introduction"
-                  value={formData.introduction}
-                  onChange={handleChange}
-                  placeholder="자기소개를 입력하세요"
-                  rows="3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
+              <p className="text-sm text-gray-500 ml-2 mt-1">
+                닉네임은 최대 12글자까지 입력할 수 있습니다.
+              </p>
             </div>
+
+            {["height", "weight"].map((field) => (
+              <div key={field} className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  {field === "height" ? "키 (cm)" : "몸무게 (kg)"}
+                </label>
+                <input
+                  type="text"
+                  name={field}
+                  value={formData[field]}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            ))}
+
+            {/* ✅ 자기소개 (세로 3줄 가능하도록 확장) */}
+            <label className="block text-sm font-medium text-gray-700">
+              자기소개
+            </label>
+            <textarea
+              name="introduction"
+              value={formData.introduction}
+              onChange={handleChange}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="자기소개를 입력하세요"
+            />
           </div>
         </form>
-
-        {/* ✅ 비밀번호 변경 버튼 (텍스트 클릭 가능) */}
         <div
-          onClick={() => navigate("/change-password")}
+          onClick={handleDeleteUser}
           className="w-full max-w-xl mt-6 cursor-pointer"
         >
-          <hr className="border-gray-300 my-4" /> {/* 상단 구분선 */}
-          <p className="text-right text-blue-600 font-semibold py-3 hover:text-blue-700">
-            비밀번호 변경
+          <hr className="border-gray-300 my-4 w-full max-w-xl mx-auto" />
+          <p className="text-right text-red-600 font-semibold py-3 hover:text-red-700">
+            회원 탈퇴
           </p>
         </div>
       </div>
+
+      {isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <BeatLoader size={15} color="white" />
+        </div>
+      )}
     </div>
   );
 }
