@@ -70,6 +70,24 @@ export default function WorkoutUpdatePage() {
   // 추가: 더보기 드롭다운 상태
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
+  // 헬퍼: 운동 타입 결정 함수  
+  // "time" → part가 유산소 또는 스포츠  
+  // "repetitionOnly" → tool이 밴드 또는 맨몸 (단, 시간운동이 아닌 경우)  
+  // "weightRepetition" → 기본
+  const getWorkoutType = (workoutId) => {
+    const workout = allWorkoutList.find((w) => w.workoutId === workoutId);
+    if (!workout) return "weightRepetition";
+    if (workout.part === "유산소" || workout.part === "스포츠") return "time";
+    if (workout.tool === "밴드" || workout.tool === "맨몸") return "repetitionOnly";
+    return "weightRepetition";
+  };
+
+  // 헬퍼: workoutId -> 운동 이름
+  const getWorkoutName = (workoutId) => {
+    const found = allWorkoutList.find((w) => w.workoutId === workoutId);
+    return found ? found.workoutName : workoutId;
+  };
+
   useEffect(() => {
     if (!diaryId) {
       showErrorAlert("수정할 일지 ID가 없습니다.");
@@ -137,18 +155,6 @@ export default function WorkoutUpdatePage() {
     }
   };
 
-  // Helper: 운동이 유산소/스포츠(시간 기반)인지 체크
-  const isCardioWorkout = (workoutId) => {
-    const workout = allWorkoutList.find((w) => w.workoutId === workoutId);
-    return workout && (workout.part === "유산소" || workout.part === "스포츠");
-  };
-
-  // Helper: workoutId -> 운동 이름
-  const getWorkoutName = (workoutId) => {
-    const found = allWorkoutList.find((w) => w.workoutId === workoutId);
-    return found ? found.workoutName : workoutId;
-  };
-
   const handleSearch = (keyword) => {
     setSearchKeyword(keyword);
     if (keyword.trim() === "") {
@@ -192,6 +198,7 @@ export default function WorkoutUpdatePage() {
     );
   };
 
+  // 운동 선택 시 diaryWorkouts에 추가 (타입에 따라 기본 세트 값 결정)
   const handleWorkoutSelection = () => {
     if (selectedWorkouts.length === 0) {
       showErrorAlert("운동을 하나 이상 선택해주세요!");
@@ -205,13 +212,16 @@ export default function WorkoutUpdatePage() {
             (wid) => !prevDiary.diaryWorkouts.some((dw) => dw.workoutId === wid)
           )
           .map((wid) => {
-            const cardio = isCardioWorkout(wid);
-            return {
-              workoutId: wid,
-              sets: cardio
-                ? [{ workoutTime: 10 }]
-                : [{ weight: 10, repetition: 10 }],
-            };
+            const type = getWorkoutType(wid);
+            let defaultSet;
+            if (type === "time") {
+              defaultSet = { workoutTime: 10 };
+            } else if (type === "repetitionOnly") {
+              defaultSet = { repetition: 10 };
+            } else {
+              defaultSet = { weight: 10, repetition: 10 };
+            }
+            return { workoutId: wid, sets: [defaultSet] };
           }),
       ];
       return { ...prevDiary, diaryWorkouts: newDiaryWorkouts };
@@ -230,25 +240,18 @@ export default function WorkoutUpdatePage() {
           : [];
       workoutIds.forEach((wid) => {
         if (!newDiaryWorkouts.some((dw) => dw.workoutId === wid)) {
-          const cardio = isCardioWorkout(wid);
-          const setsForThisWorkout = record.sets
-            ? record.sets
-                .filter((s) => s.workoutId === wid)
-                .map((s) =>
-                  cardio
-                    ? { workoutTime: s.workoutTime || 10 }
-                    : { weight: s.weight || 10, repetition: s.repetition || 10 }
-                )
-            : [];
-          const finalSets =
-            setsForThisWorkout.length > 0
-              ? setsForThisWorkout
-              : cardio
-              ? [{ workoutTime: 10 }]
-              : [{ weight: 10, repetition: 10 }];
+          const type = getWorkoutType(wid);
+          let defaultSet;
+          if (type === "time") {
+            defaultSet = { workoutTime: 10 };
+          } else if (type === "repetitionOnly") {
+            defaultSet = { repetition: 10 };
+          } else {
+            defaultSet = { weight: 10, repetition: 10 };
+          }
           newDiaryWorkouts.push({
             workoutId: wid,
-            sets: finalSets,
+            sets: [defaultSet],
           });
         }
       });
@@ -384,20 +387,26 @@ export default function WorkoutUpdatePage() {
     }));
   };
 
+  // 세트 추가 시에도 운동 타입에 따라 기본 세트 객체 결정
   const handleAddSet = (workoutId) => {
     setDiary((prevDiary) => {
       const idx = prevDiary.diaryWorkouts.findIndex(
         (dw) => dw.workoutId === workoutId
       );
       if (idx === -1) return prevDiary;
-      const cardio = isCardioWorkout(workoutId);
+      const type = getWorkoutType(workoutId);
+      let newSet;
+      if (type === "time") {
+        newSet = { workoutTime: 10 };
+      } else if (type === "repetitionOnly") {
+        newSet = { repetition: 10 };
+      } else {
+        newSet = { weight: 10, repetition: 10 };
+      }
       const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
       newDiaryWorkouts[idx] = {
         ...newDiaryWorkouts[idx],
-        sets: [
-          ...newDiaryWorkouts[idx].sets,
-          cardio ? { workoutTime: 10 } : { weight: 10, repetition: 10 },
-        ],
+        sets: [...newDiaryWorkouts[idx].sets, newSet],
       };
       return { ...prevDiary, diaryWorkouts: newDiaryWorkouts };
     });
@@ -715,7 +724,7 @@ export default function WorkoutUpdatePage() {
           ) : (
             <>
               {diary.diaryWorkouts.map((workout, wIndex) => {
-                const cardio = isCardioWorkout(workout.workoutId);
+                const type = getWorkoutType(workout.workoutId);
                 return (
                   <div key={`dw-${wIndex}`} className="border p-4 rounded-md mb-4 bg-white shadow">
                     {/* 운동명 및 삭제 버튼 */}
@@ -741,7 +750,7 @@ export default function WorkoutUpdatePage() {
                           <span className="text-gray-700 font-medium text-sm">
                             {setIndex + 1}세트
                           </span>
-                          {cardio ? (
+                          {type === "time" ? (
                             <div className="flex items-center space-x-2">
                               <input
                                 type="number"
@@ -757,6 +766,23 @@ export default function WorkoutUpdatePage() {
                                 className="w-16 p-1 text-center border rounded text-gray-900"
                               />
                               <span className="text-gray-600 text-sm">분</span>
+                            </div>
+                          ) : type === "repetitionOnly" ? (
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="number"
+                                value={set.repetition || ""}
+                                onChange={(e) =>
+                                  handleWorkoutSetChange(
+                                    workout.workoutId,
+                                    setIndex,
+                                    "repetition",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-16 p-1 text-center border rounded text-gray-900"
+                              />
+                              <span className="text-gray-600 text-sm">회</span>
                             </div>
                           ) : (
                             <div className="flex items-center space-x-4">
