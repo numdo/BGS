@@ -9,7 +9,7 @@ import deletelogo from "../../assets/icons/delete.svg";
 import moreicon from "../../assets/icons/more.svg";
 import mic_colored from "../../assets/icons/mic_colored.svg";
 import SttWorkoutGuide from "../../components/workout/SttWorkoutGuide";
-import LoadingSpinner from "../../components/common/LoadingSpinner"; // import 스피너 컴포넌트
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import {
   showConfirmAlert,
   showErrorAlert,
@@ -38,7 +38,7 @@ export default function WorkoutCreatePage() {
         day: "2-digit",
         timeZone: "Asia/Seoul",
       })
-      .replace(/. /g, "-")
+      .replace(/\. /g, "-")
       .replace(".", ""),
     content: "",
     allowedScope: "A",
@@ -75,6 +75,7 @@ export default function WorkoutCreatePage() {
 
   // 해시태그 입력
   const [newHashtag, setNewHashtag] = useState("");
+  const maxInputLength = 255; // DB varchar(255)
 
   // Helper: 운동이 유산소/스포츠(시간 기반)인지 체크
   const isCardioWorkout = (workoutId) => {
@@ -241,19 +242,16 @@ export default function WorkoutCreatePage() {
   };
 
   // 음성 녹음 관련 핸들러
-  // 외부 녹음 버튼은 단순히 모달을 띄웁니다.
   const handleRecordButton = () => {
     setShowSttGuide(true);
   };
 
-  // 모달 내에서 녹음 시작/종료를 토글하는 함수
   const toggleRecording = () => {
     if (!isRecording) {
       startRecording();
     } else {
       if (mediaRecorder) {
         mediaRecorder.stop();
-        // 녹음 종료 시 모달 닫기
         setShowSttGuide(false);
       }
     }
@@ -288,7 +286,6 @@ export default function WorkoutCreatePage() {
           setShowSttGuide(false);
           return;
         }
-        // 녹음 종료 후 로딩 스피너 시작
         setIsLoading(true);
         try {
           const formData = new FormData();
@@ -324,7 +321,6 @@ export default function WorkoutCreatePage() {
           showErrorAlert("오류 발생! 운동을 인식할 수 없습니다.");
           console.error("음성 처리 실패:", err);
         }
-        // 응답 받았거나 에러가 발생한 후 스피너 종료
         setIsLoading(false);
         setIsRecording(false);
         setShowSttGuide(false);
@@ -549,9 +545,7 @@ export default function WorkoutCreatePage() {
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedPartFilter === part
-                        ? "bg-primary-light text-white"
-                        : ""
+                      selectedPartFilter === part ? "bg-primary-light text-white" : ""
                     }`}
                   >
                     {part}
@@ -576,9 +570,7 @@ export default function WorkoutCreatePage() {
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedToolFilter === tool
-                        ? "bg-primary-light text-white"
-                        : ""
+                      selectedToolFilter === tool ? "bg-primary-light text-white" : ""
                     }`}
                   >
                     {tool}
@@ -658,6 +650,7 @@ export default function WorkoutCreatePage() {
             </div>
           </div>
         )}
+
         {/* 이전 기록 모달 */}
         {isPreviousModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -687,6 +680,7 @@ export default function WorkoutCreatePage() {
             </div>
           </div>
         )}
+
         {/* 이미 추가된 운동 목록 */}
         <div className="mt-4">
           {diary.diaryWorkouts.length === 0 ? (
@@ -773,9 +767,7 @@ export default function WorkoutCreatePage() {
                           </>
                         )}
                         <button
-                          onClick={() =>
-                            handleDeleteSet(wIndex, setIndex)
-                          }
+                          onClick={() => handleDeleteSet(wIndex, setIndex)}
                           className="px-1 py-1 bg-danger text-white rounded"
                         >
                           <img src={deletelogo} alt="" />
@@ -788,6 +780,7 @@ export default function WorkoutCreatePage() {
             </>
           )}
         </div>
+
         {/* 이미지 업로드 섹션 */}
         <div className="mt-4">
           <input
@@ -827,29 +820,43 @@ export default function WorkoutCreatePage() {
             </div>
           </div>
         </div>
-        {/* 운동일지 내용 */}
-        <textarea
-          className="w-full h-24 mt-4 p-2 border rounded"
-          value={diary.content}
-          onChange={(e) => setDiary({ ...diary, content: e.target.value })}
-          placeholder="메모를 입력해보세요"
-        />
-        {/* 해시태그 추가 */}
+
+        {/* 운동일지 내용 (글자수 제한 및 크기 조절 못하도록 설정) */}
         <div className="mt-4">
+          <textarea
+            className="w-full h-24 mt-4 p-2 border rounded resize-none"
+            value={diary.content}
+            onChange={(e) => setDiary({ ...diary, content: e.target.value })}
+            placeholder="메모를 입력해보세요"
+            maxLength={255}
+          />
+          <div className="text-right text-xs text-gray-400">
+            {diary.content.length}/255
+          </div>
+        </div>
+
+        {/* 해시태그 추가 - flex row로 버튼 밀림 방지, 글자수 제한 */}
+        <div className="mt-4 flex items-center">
           <input
             type="text"
-            className="p-2 border rounded"
+            className="flex-grow p-2 border rounded resize-none"
             value={newHashtag}
             onChange={(e) => setNewHashtag(e.target.value)}
             placeholder="해시태그 입력"
+            maxLength={10}
           />
+          <span className="ml-2 text-sm text-gray-400">
+            {newHashtag.length}/10
+          </span>
           <button
             onClick={handleAddHashtag}
-            className="p-2 bg-primary-light text-white rounded ml-2"
+            className="ml-2 p-2 bg-primary-light text-white rounded whitespace-nowrap"
           >
             추가
           </button>
         </div>
+
+        {/* 해시태그 출력 */}
         <div className="mt-2">
           {diary.hashtags.map((tag) => (
             <span
@@ -860,8 +867,9 @@ export default function WorkoutCreatePage() {
             </span>
           ))}
         </div>
+
         {/* 공개 범위 설정 */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-2">
           <div className="flex items-center">
             <input
               type="radio"
@@ -879,6 +887,7 @@ export default function WorkoutCreatePage() {
             <span className="ml-2 text-sm">비공개</span>
           </div>
         </div>
+
         {/* 저장 버튼 */}
         <button
           onClick={handleDiarySubmit}
