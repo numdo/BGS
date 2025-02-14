@@ -15,7 +15,6 @@ import { getMygym, updateMygym, getGuestBooks } from "../../api/Mygym";
 import { getUser } from "../../api/User";
 
 import mygymbackimg from "../../assets/images/mygymbackimg.png";
-import VisitorMemoModal from "../../components/mygym/VisitorMemoModal";
 
 const MyGymPage = () => {
   // 유저 정보 및 마이짐 상태
