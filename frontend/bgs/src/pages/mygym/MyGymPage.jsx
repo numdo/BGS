@@ -91,9 +91,7 @@ const MyGymPage = () => {
         position: "relative",
       }}
     >
-      <TopBar />
-
-      <div className="flex justify-center items-center">
+      <div className="flex justify-center items-center mb-5">
         <h1 className="text-3xl font-extrabold text-center py-2 drop-shadow-lg">
           {user.nickname} 마이짐
         </h1>
@@ -103,14 +101,14 @@ const MyGymPage = () => {
         {isEditing ? (
           <button
             onClick={handleFinishEdit}
-            className="bg-green-500 px-4 py-2 rounded-full text-white"
+            className="bg-primary px-4 py-2 rounded-full text-white w-14 h-10"
           >
-            완료
+            ✔
           </button>
         ) : (
           <button
             onClick={handleEditMode}
-            className="bg-white text-white px-4 py-2 rounded-xl shadow-md"
+            className="bg-white text-white px-4 py-2 rounded-full shadow-md"
           >
             <img src={editicon} alt="편집" className="w-6 h-6" />
           </button>
@@ -129,6 +127,10 @@ const MyGymPage = () => {
         // 편집 모드
         <>
           <MyGymRoomEdit />
+          <SelectColor
+            setRoomColor={setWallColor}
+            onClick={handlePaletteClick}
+          />
           <SelectColor
             setRoomColor={setWallColor}
             onClick={handlePaletteClick}
