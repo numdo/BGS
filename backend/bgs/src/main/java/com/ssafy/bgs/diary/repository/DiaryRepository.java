@@ -21,6 +21,15 @@ public interface DiaryRepository extends JpaRepository<Diary, Integer> {
             "ORDER BY d.createdAt DESC ")
     List<DiaryFeedResponseDto> findByAllowedScopeAndDeletedFalse(String allowedScope, Pageable pageable);
 
+    @Query("SELECT new  com.ssafy.bgs.diary.dto.response.DiaryFeedResponseDto(d.diaryId, d.allowedScope) " +
+            "FROM Diary d " +
+            "JOIN Hashtag h ON d.diaryId = h.id.diaryId " +
+            "WHERE d.allowedScope = :allowedScope " +
+            "AND d.deleted = false " +
+            "AND h.id.tag LIKE CONCAT('%', :hashtag, '%' )" +
+            "ORDER BY d.createdAt DESC ")
+    List<DiaryFeedResponseDto> findByAllowedScopeAndDeletedFalse(String allowedScope, String hashtag, Pageable pageable);
+
     @Query("SELECT new com.ssafy.bgs.diary.dto.response.DiaryFeedResponseDto(d.diaryId, d.allowedScope) " +
             "FROM Diary d WHERE d.userId = :userId AND d.deleted = false " +
             "ORDER BY d.createdAt DESC ")

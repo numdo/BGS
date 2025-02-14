@@ -30,10 +30,11 @@ public class DiaryController {
     public ResponseEntity<?> getFeedList(
             @AuthenticationPrincipal Integer readerId,
             @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) String hashtag,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "9") int pageSize
     ) {
-        List<DiaryFeedResponseDto> feedList = diaryService.getFeedList(readerId, userId, page, pageSize);
+        List<DiaryFeedResponseDto> feedList = diaryService.getFeedList(readerId, userId, hashtag, page, pageSize);
         return new ResponseEntity<>(feedList, HttpStatus.OK);
     }
 
