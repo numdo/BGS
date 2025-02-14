@@ -4,6 +4,7 @@ import TopBar from "../../components/bar/TopBar";
 import FeedItem from "../../components/feed/FeedItem";
 import axiosInstance from "../../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
+import useFeedTypeStore from "../../stores/useFeedTypeStore";
 
 const DIARY_API_URL = "/diaries/feeds";
 const EVALUATION_API_URL = "/evaluations/feeds";
@@ -13,7 +14,7 @@ const FeedPage = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true); // 추가 요청 가능 여부
-  const [feedType, setFeedType] = useState("diary"); // 'diary' | 'evaluation'
+  const { feedType, setFeedType } = useFeedTypeStore(); // 'diary' | 'evaluation'
   const [evaluationStatus, setEvaluationStatus] = useState("ongoing"); // '' | 'ongoing' | 'closed'
   const [evaluationTabVisible, setEvaluationTabVisible] = useState(false);
   const [feedsResetTrigger, setFeedsResetTrigger] = useState(0); // 피드 재요청을 위한 trigger
