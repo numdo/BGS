@@ -25,19 +25,19 @@ const MyGymPage = () => {
   const [isOpen, setIsOpen] = useState(true);
 
   // 아이템창 토글 상태
-  const [isItemOpen,setIsItemOpen] = useState(false);
+  const [isItemOpen, setIsItemOpen] = useState(false);
 
   // 팔레트 눌렀을때 아이템 모달 on off
   const handlePaletteClick = () => {
     setIsItemOpen((prev) => !prev);
-  }
-  
+  };
+
   // 편집 모드 여부
   const [isEditing, setIsEditing] = useState(false);
   const handleEditMode = () => {
     setIsEditing(true);
     setIsItemOpen(true);
-  }
+  };
   const handleFinishEdit = async () => {
     const { nickname, userId, ...obj } = myGym;
     const newPlaces = obj.places.map((item) => {
@@ -83,12 +83,10 @@ const MyGymPage = () => {
         backgroundPosition: "center",
         backgroundRepeat: "repeat-x",
         animation: "moveBg 60s linear infinite",
-        position: "relative", 
+        position: "relative",
       }}
     >
-      <TopBar />
-
-      <div className="flex justify-center items-center">
+      <div className="flex justify-center items-center mb-5">
         <h1 className="text-3xl font-extrabold text-center py-2 drop-shadow-lg">
           {user.nickname} 마이짐
         </h1>
@@ -98,14 +96,14 @@ const MyGymPage = () => {
         {isEditing ? (
           <button
             onClick={handleFinishEdit}
-            className="bg-green-500 px-4 py-2 rounded-full text-white"
+            className="bg-primary px-4 py-2 rounded-full text-white w-14 h-10"
           >
-            완료
+            ✔
           </button>
         ) : (
           <button
             onClick={handleEditMode}
-            className="bg-white text-white px-4 py-2 rounded-xl shadow-md"
+            className="bg-white text-white px-4 py-2 rounded-full shadow-md"
           >
             <img src={editicon} alt="편집" className="w-6 h-6" />
           </button>
@@ -116,7 +114,10 @@ const MyGymPage = () => {
         // 편집 모드
         <>
           <MyGymRoomEdit />
-          <SelectColor setRoomColor={setWallColor} onClick={handlePaletteClick}/>
+          <SelectColor
+            setRoomColor={setWallColor}
+            onClick={handlePaletteClick}
+          />
           {/* 편집버튼을 누르면 MyGymItem의 forceOpen이 true가 되어 슬라이드 업 */}
           <MyGymItem setItems={setItems} forceOpen={isItemOpen} />
         </>

@@ -1,14 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import home from "../../assets/icons/home.svg";
-import home_colored from "../../assets/icons/home_colored.svg";
-import person from "../../assets/icons/person.svg";
-import person_colored from "../../assets/icons/person_colored.svg";
-import fitness_center from "../../assets/icons/fitness_center.svg";
-import fitness_center_colored from "../../assets/icons/fitness_center_colored.svg";
-import apps from "../../assets/icons/apps.svg";
-import apps_colored from "../../assets/icons/apps_colored.svg";
-import hexagon from "../../assets/icons/hexagon.svg";
-import hexagon_colored from "../../assets/icons/hexagon_colored.svg";
 import { useLocation } from "react-router-dom";
 export default function BottomBar() {
   const navigate = useNavigate();
@@ -16,11 +6,11 @@ export default function BottomBar() {
   return (
     <>
       <div className="fixed bottom-0 left-0 w-full h-16 bg-gray-300 border-t border-gray-200 shadow-lg"></div>
-      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-lg">
+      <div className="fixed bottom-0 left-0 w-[100vw] bg-white border-t border-gray-200 shadow-lg">
         <div className="flex justify-evenly items-center py-2">
           <button
             onClick={() => navigate("/")}
-            className="flex flex-col items-center text-gray-800 active:bg-gray-100 w-16 h-12"
+            className="flex flex-col items-center text-gray-800 active:bg-gray-100 w-12 h-12"
           >
             {location.pathname === "/" ? (
               <svg
@@ -59,7 +49,7 @@ export default function BottomBar() {
           </button>
           <button
             onClick={() => navigate("/workout")}
-            className="flex flex-col items-center text-gray-800 w-16 h-12"
+            className="flex flex-col items-center text-gray-800 w-12 h-12"
           >
             {location.pathname.startsWith("/workout") ? (
               <svg
@@ -98,17 +88,17 @@ export default function BottomBar() {
           </button>
           <button
             onClick={() => navigate("/mygym")}
-            className="flex flex-col items-center text-gray-800 w-16 h-12"
+            className="flex flex-col items-center text-gray-800 w-12 h-12"
           >
             {location.pathname.startsWith("/mygym") ? (
               <svg
-                width="34"
-                height="34"
-                viewBox="0 0 34 34"
+                width="24"
+                height="24"
+                viewBox="3 3 27 27"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <g clip-path="url(#clip0_2403_5490)">
+                <g clipPath="url(#clip0_2403_5490)">
                   <path
                     d="M26.0033 11.8059L16.9967 6.60586L7.99334 11.8001L7.99667 22.1943L17.0033 27.3943L26.0067 22.2001L26.0033 11.8059Z"
                     fill="#5968eb"
@@ -127,13 +117,13 @@ export default function BottomBar() {
               </svg>
             ) : (
               <svg
-                width="34"
-                height="34"
-                viewBox="0 0 34 34"
+                width="24"
+                height="24"
+                viewBox="3 3 27 27"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <g clip-path="url(#clip0_2403_5490)">
+                <g clipPath="url(#clip0_2403_5490)">
                   <path
                     d="M26.0033 11.8059L16.9967 6.60586L7.99334 11.8001L7.99667 22.1943L17.0033 27.3943L26.0067 22.2001L26.0033 11.8059Z"
                     fill="#808080"
@@ -161,7 +151,7 @@ export default function BottomBar() {
           </button>
           <button
             onClick={() => navigate("/feeds")}
-            className="flex flex-col items-center text-gray-800 w-16 h-12"
+            className="flex flex-col items-center text-gray-800 w-12 h-12"
           >
             {location.pathname.startsWith("/feed") ? (
               <svg
@@ -200,7 +190,7 @@ export default function BottomBar() {
           </button>
           <button
             onClick={() => navigate("/myinfo")}
-            className="flex flex-col items-center text-gray-800 w-16 h-12"
+            className="flex flex-col items-center text-gray-800 w-12 h-12"
           >
             {location.pathname.startsWith("/myinfo") ? (
               <svg

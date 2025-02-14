@@ -101,7 +101,7 @@ export default function MyInfoPage() {
           ].map((tab) => (
             <button
               key={tab.key}
-              className={`py-2 px-4 ${
+              className={`py-2 ${
                 activeTab === tab.key
                   ? "border-b-2 border-primary text-gray-800"
                   : "text-gray-500"

@@ -7,7 +7,7 @@ import flip from "../../assets/icons/flip.png";
 const polygonRatios = [
   [0.5, 0.5], // 상 ( 50% 가로, 50% 세로)
   [1.0, 0.75], // 우
-  [0.5, 0.90], // 하
+  [0.5, 0.9], // 하
   [0.0, 0.75], // 좌
 ];
 
@@ -138,81 +138,81 @@ const MyGymRoomEdit = () => {
     <div className="relative flex flex-col items-center">
       <div
         ref={roomRef}
-        className="relative w-96 h-80"
+        className="relative w-[96vw] h-[50vw]"
         style={{ touchAction: "none" }}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
       >
         <div
-        className="relative w-96 h-96"
-        style={{
-          filter: "drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4))",
-        }}
-      >
-        {/* 윗부분 - 폴리곤 벽 색 */}
-        <div
+          className="relative w-[96vw] h-[50vw]"
           style={{
-            position: "absolute",
-            width: "100%",
-            height: "100%",
-            clipPath:
-              "polygon(50% 12%, 100% 30%, 100% 65%, 50% 45%, 0% 65%, 0% 30%)",
-            backgroundColor: myGym.wallColor,
-            zIndex: 1,
-            boxShadow: "inset 0 4px 8px rgba(0, 0, 0, 0.3)",
-            backgroundImage: `linear-gradient(${myGym.wallColor}, ${myGym.wallColor}),
+            filter: "drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4))",
+          }}
+        >
+          {/* 윗부분 - 폴리곤 벽 색 */}
+          <div
+            style={{
+              position: "absolute",
+              width: "100vw",
+              height: "100vw",
+              clipPath:
+                "polygon(50% 12%, 100% 30%, 100% 65%, 50% 45%, 0% 65%, 0% 30%)",
+              backgroundColor: myGym.wallColor,
+              zIndex: 1,
+              boxShadow: "inset 0 4px 8px rgba(0, 0, 0, 0.3)",
+              backgroundImage: `linear-gradient(${myGym.wallColor}, ${myGym.wallColor}),
                               radial-gradient(circle at center, rgba(0, 0, 0, 0.3) 0%, transparent 15%)`,
-            backgroundBlendMode: "multiply",
-          }}
-        />
-        {/* 아랫부분 */}
-        <div
-          style={{
-            position: "absolute",
-            width: "100%",
-            height: "100%",
-            clipPath: "polygon(50% 45%, 100% 65%, 50% 85%, 0% 65%)",
-            backgroundColor: "#999999",
-            zIndex: 0,
-            boxShadow: "inset 0 -4px 6px rgba(0, 0, 0, 0.3)",
-          }}
-        />
-        {/* 아이템들 (deleted=false인 것만) */}
-        {visibleItems.map((item) => {
-          // 백엔드의 rotated 필드를 확인하도록 수정
-          const isRotated = item.rotated || false;
-          return (
-            <div
-              key={item.itemId}
-              className="absolute"
-              style={{ top: item.y, left: item.x, zIndex: 2 }}
-              onPointerDown={(e) => handlePointerDown(e, item)}
-            >
-              <div className="relative w-16 h-16">
-                {/* 기구 이미지 (좌우 반전) */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    transform: isRotated ? "scaleX(-1)" : "scaleX(1)",
-                  }}
-                >
-                  <img
-                    src={item.image.url}
-                    alt={item.name}
-                    className="w-full h-full"
-                  />
-                </div>
+              backgroundBlendMode: "multiply",
+            }}
+          />
+          {/* 아랫부분 */}
+          <div
+            style={{
+              position: "absolute",
+              width: "100vw",
+              height: "100vw",
+              clipPath: "polygon(50% 45%, 100% 65%, 50% 85%, 0% 65%)",
+              backgroundColor: "#999999",
+              zIndex: 0,
+              boxShadow: "inset 0 -4px 6px rgba(0, 0, 0, 0.3)",
+            }}
+          />
+          {/* 아이템들 (deleted=false인 것만) */}
+          {visibleItems.map((item) => {
+            // 백엔드의 rotated 필드를 확인하도록 수정
+            const isRotated = item.rotated || false;
+            return (
+              <div
+                key={item.itemId}
+                className="absolute"
+                style={{ top: item.y, left: item.x, zIndex: 2 }}
+                onPointerDown={(e) => handlePointerDown(e, item)}
+              >
+                <div className="relative w-16 h-16">
+                  {/* 기구 이미지 (좌우 반전) */}
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      transform: isRotated ? "scaleX(-1)" : "scaleX(1)",
+                    }}
+                  >
+                    <img
+                      src={item.image.url}
+                      alt={item.name}
+                      className="w-full h-full"
+                    />
+                  </div>
 
-                {/* 삭제 아이콘 */}
-                <img
-                  src={removeItemPng}
-                  alt="Remove"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeItem(item.itemId);
-                  }}
-                  className={`
+                  {/* 삭제 아이콘 */}
+                  <img
+                    src={removeItemPng}
+                    alt="Remove"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeItem(item.itemId);
+                    }}
+                    className={`
                     absolute w-6 h-6 cursor-pointer
                     -top-2 -right-2
                     transition-all duration-300
@@ -222,17 +222,17 @@ const MyGymRoomEdit = () => {
                         : "opacity-0 scale-0"
                     }
                   `}
-                />
+                  />
 
-                {/* 좌우 반전 아이콘 */}
-                <img
-                  src={flip}
-                  alt="Flip"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFlip(item.itemId);
-                  }}
-                  className={`
+                  {/* 좌우 반전 아이콘 */}
+                  <img
+                    src={flip}
+                    alt="Flip"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFlip(item.itemId);
+                    }}
+                    className={`
                     absolute w-6 h-6 cursor-pointer
                     -top-2 left-0
                     transition-all duration-300
@@ -242,12 +242,12 @@ const MyGymRoomEdit = () => {
                         : "opacity-0 scale-0"
                     }
                   `}
-                  style={{ transform: "translateX(-10%)" }}
-                />
+                    style={{ transform: "translateX(-10%)" }}
+                  />
+                </div>
               </div>
-              </div>
-          );
-        })}
+            );
+          })}
         </div>
       </div>
     </div>
