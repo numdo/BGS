@@ -55,6 +55,8 @@ const EmailVerification = ({
     const value = e.target.value;
     // 이메일 형식 유효성 체크
     setIsEmailValid(emailRegex.test(value));
+    // 커스텀 메시지 초기화
+    e.target.setCustomValidity("");
   };
 
   return (
@@ -67,6 +69,10 @@ const EmailVerification = ({
           placeholder="이메일"
           value={email}
           onChange={handleEmailChange}
+          onInvalid={(e) =>
+            e.target.setCustomValidity("이메일을 입력해 주세요.")
+          }
+          onInput={(e) => e.target.setCustomValidity("")}
           className="flex-grow p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-primary text-base"
           required
         />
@@ -131,6 +137,10 @@ const EmailVerification = ({
             placeholder="인증번호"
             value={code}
             onChange={(e) => setCode(e.target.value)}
+            onInvalid={(e) =>
+              e.target.setCustomValidity("인증번호를 입력해 주세요.")
+            }
+            onInput={(e) => e.target.setCustomValidity("")}
             className="flex-1 p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-primary text-base"
             required
           />

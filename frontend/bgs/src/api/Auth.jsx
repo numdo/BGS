@@ -102,16 +102,23 @@ export async function socialSignup(socialData) {
 
 // 닉네임 중복 체크 (GET /auth/nickname-check?nickname={nickname})
 export async function checkNickname(nickname) {
+  // 닉네임 길이 검사
+  if (nickname.length > 12) {
+    return Promise.reject(new Error("닉네임은 12자 이하여야 합니다."));
+  }
+
   try {
     const response = await axiosInstance.get(`${BASE_URL}/nickname-check`, {
       params: { nickname },
     });
+
     return response.data;
   } catch (error) {
-    console.error(error);
+    console.error("닉네임 중복 체크 오류:", error.message);
     throw error;
   }
 }
+
 
 // 비밀번호 재설정 (POST /auth/reset-password)
 // 요청 body는 { email: "..." } 형식
