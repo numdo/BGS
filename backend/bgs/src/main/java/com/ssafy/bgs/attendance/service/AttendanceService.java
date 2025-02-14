@@ -42,8 +42,8 @@ public class AttendanceService {
 
             double distance = calculateDistance(nearestGym.getLatitude(), nearestGym.getLongitude(),
                     request.getLatitude(), request.getLongitude());
-            if (distance > 500) {
-                throw new IllegalArgumentException("헬스장과의 거리가 500m를 초과합니다. (계산된 거리: " + distance + "m)");
+            if (distance > 100) {
+                throw new IllegalArgumentException("헬스장과의 거리가 100m를 초과합니다. (계산된 거리: " + distance + "m)");
             }
 
             // 2. 사용자 조회 및 오늘 출석 여부 확인
@@ -58,7 +58,7 @@ public class AttendanceService {
             int newStreak = 1;
             if (user.getLastAttendance() != null) {
                 long gap = ChronoUnit.DAYS.between(user.getLastAttendance(), today);
-                if (gap <= 3) {
+                if (gap <= 2) {
                     newStreak = (user.getStrickAttendance() == null ? 0 : user.getStrickAttendance()) + (int) gap;
                 }
             }

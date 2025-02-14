@@ -1,41 +1,60 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import { useNavigate } from "react-router-dom";
-import { handleLogout } from "../../api/Auth";
 import mascot from "../../assets/images/mascot.png";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
-
 import { Chart } from "primereact/chart";
+
+// toastrAlert 함수들 import
+import {
+  showConfirmAlert,
+  showErrorAlert,
+  showSuccessAlert,
+} from "../../utils/toastrAlert";
+// 출석 API import (BASE_URL이 "/api/attendance"로 되어 있어야 합니다)
+import { checkAttendance } from "../../api/Attendance";
+// LoadingSpinner (예: 로딩 표시)
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 export default function MainPage() {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleAttendanceCheck = async () => {
-    try {
-      setIsLoading(true);
-
-      // 예: 아무 파라미터 없이 오늘 날짜를 서버에서 체크하는 경우
-      // 혹은 { date: "YYYY-MM-DD" } 형태로 필요한 데이터 전달
-      const result = await checkAttendance();
-
-      // 체크 성공 시 처리 (ex. 결과 메시지, 팝업, 콘솔 출력 등)
-      console.log("출석 체크 완료:", result);
-
-      // 원하는 동작 (토스트메시지, 이동 등)
-      alert("출석 체크가 완료되었습니다!");
-      // navigate("/어딘가"); // 필요 시 페이지 이동
-    } catch (error) {
-      console.error("출석 체크 실패:", error);
-      alert("출석 체크에 실패했습니다. 다시 시도해주세요.");
-    } finally {
-      setIsLoading(false);
+    // 사용자의 위치 정보를 가져오기 위해 Geolocation API 사용
+    if (!navigator.geolocation) {
+      await showErrorAlert("현재 위치를 가져올 수 없습니다.");
+      return;
     }
+
+    setIsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          // 출석 체크 API 호출 시 현재 위치 정보를 보내줍니다.
+          const result = await checkAttendance({ latitude, longitude });
+          console.log("출석 체크 완료:", result);
+          await showConfirmAlert("출석 체크가 완료되었습니다!");
+        } catch (error) {
+          console.error("출석 체크 실패:", error);
+          await showErrorAlert("출석 체크에 실패했습니다. 다시 시도해주세요.");
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      async (error) => {
+        console.error("위치 정보 에러:", error);
+        await showErrorAlert("현재 위치를 가져올 수 없습니다.");
+        setIsLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   };
 
-  // (2) Radar 차트에 사용할 데이터
   const radarData = {
     labels: ["근력", "속도", "지구력", "유연성", "파워", "협응성"],
     datasets: [
@@ -45,21 +64,13 @@ export default function MainPage() {
         fill: true,
         backgroundColor: "rgba(54, 162, 235, 0.2)",
         borderColor: "rgb(54, 162, 235)",
-        pointBackgroundColor: "rgb(54, 162, 235)",
-        pointBorderColor: "#fff",
-        pointHoverBackgroundColor: "#fff",
-        pointHoverBorderColor: "rgb(54, 162, 235)",
       },
     ],
   };
 
-  // (3) 옵션 예시
   const radarOptions = {
     scales: {
       r: {
-        angleLines: {
-          display: true,
-        },
         suggestedMin: 0,
         suggestedMax: 100,
       },
@@ -69,16 +80,14 @@ export default function MainPage() {
   return (
     <>
       <TopBar />
-      <div className="m-4 mb-24">
-        {/* 마스코트 이미지를 감싸는 컨테이너. relative로 설정 */}
+      <div className="m-4 mb-24 relative">
+        {/* 마스코트 이미지 영역 */}
         <div className="relative flex justify-center mt-12 mb-12">
-          {/* 그라디언트 배경 (둥글고 흐릿한 그림자) */}
           <div
-            className="absolute w-72 h-72 bg-gradient-to-r from-red-300 to-pink-300 rounded-full blur-3xl opacity-70 -z-10 
-                          top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            className="absolute w-72 h-72 bg-gradient-to-r from-red-300 to-pink-300
+                       rounded-full blur-3xl opacity-70 -z-10 
+                       top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
           />
-
-          {/* 실제 마스코트 이미지. Shadow 추가로 입체감 부여 가능 */}
           <img
             src={mascot}
             alt="마스코트 이미지"
@@ -89,14 +98,11 @@ export default function MainPage() {
         {/* 상단 그리드: 2개의 버튼 */}
         <div className="grid grid-cols-2 gap-4">
           <button
-            onClick={(e) => {
-              e.currentTarget.blur(); // 클릭 후 포커스 제거
-              handleAttendanceCheck(e);
+            onClick={async () => {
+              await handleAttendanceCheck();
             }}
-            onMouseUp={(e) => e.currentTarget.blur()} // 마우스 업 시에도 포커스 제거
             className="flex flex-col items-start p-4 bg-white border rounded-lg transition-all duration-200 focus:outline-none"
           >
-            {/* 제목과 아이콘을 한 행에 */}
             <div className="flex justify-between items-center w-full">
               <p className="text-xl font-semibold text-gray-800">출석 체크</p>
               <span className="text-2xl">📆</span>
@@ -114,7 +120,7 @@ export default function MainPage() {
               <p className="text-xl font-semibold text-gray-800">마이짐</p>
               <span className="text-2xl">💪</span>
             </div>
-            <p className="text-base text-base text-gray-600 text-left mt-1 break-keep">
+            <p className="text-base text-gray-600 mt-1 text-left break-keep">
               나만의 마이짐을 꾸며보세요!
             </p>
           </button>
@@ -144,7 +150,7 @@ export default function MainPage() {
               <span className="text-2xl">👀</span>
             </div>
             <p className="text-sm text-gray-600 mt-1 text-left break-keep">
-              불끈이들의 오운완을을 구경해보세요!
+              불끈이들의 오운완을 구경해보세요!
             </p>
           </button>
 
@@ -156,17 +162,26 @@ export default function MainPage() {
               <p className="text-xl font-semibold text-gray-800">평가</p>
               <span className="text-2xl">⭐</span>
             </div>
-            <p className="text-sm text-gray-600 mt-1 text-left break-keep">
+            <p className="text-sm text-gray-600 mt-1 break-keep">
               3대 운동을 자랑하고 평가해봐요!
             </p>
           </button>
         </div>
+
+        {/* 레이더 차트 */}
         <div className="mt-12 mb-12">
           <Chart type="radar" data={radarData} options={radarOptions} />
         </div>
       </div>
 
       <BottomBar />
+
+      {/* 로딩 스피너 오버레이 */}
+      {isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <LoadingSpinner />
+        </div>
+      )}
     </>
   );
 }

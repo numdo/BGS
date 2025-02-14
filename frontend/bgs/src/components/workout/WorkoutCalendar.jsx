@@ -1,22 +1,22 @@
+// src/components/workout/WorkoutCalendar.jsx
 import { useState } from "react";
 
-// 달력에 체크 표시할 날짜(예: ["2025-02-07", "2025-02-10"])
-// selectedDate: 현재 선택된 날짜
-// onDateSelect: 날짜 클릭 시 상위로 전달
-// diaryDates: "YYYY-MM-DD" 형식으로 일지 있는 날짜 배열
-const WorkoutCalendar = ({ onDateSelect, selectedDate, diaryDates = [] }) => {
-  const [currentDate, setCurrentDate] = useState(new Date()); // 현재 (년/월/일) 추적
+export default function WorkoutCalendar({
+  onDateSelect,
+  selectedDate,
+  diaryDates = [],
+  streakSegments = [],
+}) {
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   const handleDateClick = (day) => {
-    if (day) {
-      // day는 1~31
-      const newDate = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        day
-      );
-      onDateSelect(newDate);
-    }
+    if (!day) return;
+    const newDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      day
+    );
+    onDateSelect && onDateSelect(newDate);
   };
 
   const handleChangeMonth = (increment) => {
@@ -25,9 +25,11 @@ const WorkoutCalendar = ({ onDateSelect, selectedDate, diaryDates = [] }) => {
     setCurrentDate(newDate);
   };
 
-  const goToToday = () => {
-    setCurrentDate(new Date());
-    onDateSelect(new Date());
+  const formatDate = (year, month, day) => {
+    const y = year;
+    const m = String(month + 1).padStart(2, "0");
+    const d = String(day).padStart(2, "0");
+    return `${y}-${m}-${d}`;
   };
 
   const firstDayOfMonth = new Date(
@@ -40,32 +42,30 @@ const WorkoutCalendar = ({ onDateSelect, selectedDate, diaryDates = [] }) => {
     currentDate.getMonth() + 1,
     0
   );
-  const firstDayWeekday = firstDayOfMonth.getDay(); // 0=일,1=월,...
-  const daysInMonth = lastDayOfMonth.getDate(); // 이번 달 총 일수
-
-  // 달력에서 특정 day를 "YYYY-MM-DD"로 포맷
-  const formatDate = (year, month, day) => {
-    // month는 0~11
-    const y = year;
-    const m = String(month + 1).padStart(2, "0");
-    const d = String(day).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  };
+  const firstDayWeekday = firstDayOfMonth.getDay();
+  const daysInMonth = lastDayOfMonth.getDate();
 
   const generateCalendar = () => {
     const days = [];
-    // 첫 주에 비는 칸 추가
     for (let i = 0; i < firstDayWeekday; i++) {
       days.push(null);
     }
-    // 이번 달 1일부터 daysInMonth까지 채우기
     for (let i = 1; i <= daysInMonth; i++) {
       days.push(i);
     }
     return days;
   };
-
   const calendarDays = generateCalendar();
+
+  // 해당 날짜가 streakSegments 중 어느 구간에 속하는지 반환
+  const getSegmentForDate = (dateStr) => {
+    for (let seg of streakSegments) {
+      if (dateStr >= seg.start && dateStr <= seg.end) {
+        return seg;
+      }
+    }
+    return null;
+  };
 
   return (
     <div className="mb-3 px-3 pt-1 pb-3 bg-gray-50 rounded-lg">
@@ -77,51 +77,70 @@ const WorkoutCalendar = ({ onDateSelect, selectedDate, diaryDates = [] }) => {
         <button onClick={() => handleChangeMonth(1)}>&gt;</button>
       </div>
 
-      {/* 요일 헤더 */}
       <div className="grid grid-cols-7 text-center text-gray-500 font-semibold">
         {["일", "월", "화", "수", "목", "금", "토"].map((dayName) => (
           <div key={dayName}>{dayName}</div>
         ))}
       </div>
 
-      {/* 날짜 영역 */}
       <div className="grid grid-cols-7 gap-1 text-center">
         {calendarDays.map((day, index) => {
-          // 날짜가 null인 칸(이전월 공백)은 클릭 안 되도록 처리
           if (!day) {
             return <div key={index} className="p-2 bg-gray-50 rounded-md" />;
           }
-
-          // 현재 셀의 연/월/일
-          const y = currentDate.getFullYear();
-          const m = currentDate.getMonth();
-          const formattedStr = formatDate(y, m, day);
-
-          // 일지 존재 여부
+          const year = currentDate.getFullYear();
+          const month = currentDate.getMonth();
+          const formattedStr = formatDate(year, month, day);
           const hasDiary = diaryDates.includes(formattedStr);
+          const segment = getSegmentForDate(formattedStr);
 
-          // 날짜 클릭 핸들러
-          const onClick = () => handleDateClick(day);
+          // 기본 스타일
+          let cellStyle = {
+            backgroundColor: "#ffffff",
+            color: "#4B5563", // text-gray-600
+            border: "1px solid #E5E7EB", // border-gray-200
+          };
 
-          // selectedDate와 같은지 비교
+          if (segment) {
+            if (segment.attended.has(formattedStr)) {
+              // 실제 출석: 진한 테두리, 3px 두께
+              cellStyle = {
+                backgroundColor: "#ffffff",
+                color: "#4B5563",
+                border: "2px solid #5968eb",
+              };
+            } else {
+              // 구간 내에 있지만 출석하지 않음: 얇은 테두리
+              cellStyle = {
+                backgroundColor: "#ffffff",
+                color: "#4B5563",
+                border: "1px solid #a3bffa", // 연한 파랑 (blue-300 느낌)
+              };
+            }
+          }
+
+          // 선택된 날짜 스타일: 배경 및 테두리 모두 메인 색상 적용
           const isSelected =
             selectedDate &&
-            selectedDate.getFullYear() === y &&
-            selectedDate.getMonth() === m &&
+            selectedDate.getFullYear() === year &&
+            selectedDate.getMonth() === month &&
             selectedDate.getDate() === day;
+          if (isSelected) {
+            cellStyle = {
+              backgroundColor: "#5968eb",
+              color: "#000000",
+              border: "2px solid #5968eb",
+            };
+          }
 
           return (
             <div
               key={index}
-              className={`relative px-1 py-2 rounded-md border border-gray-200 cursor-pointer ${
-                isSelected ? "bg-primary text-white" : "bg-white text-gray-500"
-              }`}
-              onClick={onClick}
+              onClick={() => handleDateClick(day)}
+              className="relative px-1 py-2 rounded-md cursor-pointer transition-colors"
+              style={cellStyle}
             >
-              {/* 날짜 숫자 */}
-              <div className="z-10 ">{day}</div>
-
-              {/* 체크 이모지 표시 (반투명) */}
+              <div className="z-10">{day}</div>
               {hasDiary && (
                 <span
                   className="absolute text-xl"
@@ -130,7 +149,7 @@ const WorkoutCalendar = ({ onDateSelect, selectedDate, diaryDates = [] }) => {
                     top: "50%",
                     left: "50%",
                     transform: "translate(-50%, -50%)",
-                    pointerEvents: "none", // 체크이모지 클릭 이벤트 무시
+                    pointerEvents: "none",
                   }}
                 >
                   💪
@@ -142,6 +161,4 @@ const WorkoutCalendar = ({ onDateSelect, selectedDate, diaryDates = [] }) => {
       </div>
     </div>
   );
-};
-
-export default WorkoutCalendar;
+}
