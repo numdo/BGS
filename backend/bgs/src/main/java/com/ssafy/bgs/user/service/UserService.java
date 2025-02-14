@@ -190,6 +190,9 @@ public class UserService {
         user.setSocialId(null);
         user.setAccountType(null);
         user.setDeleted(true); // resigned = true 로 소프트삭제 처리
+
+        userRepository.save(user);
+
         redisService.deleteValue("user:" + userId);
 
     }
