@@ -106,7 +106,7 @@ const FeedPage = () => {
 
       const response = await axiosInstance.get(url);
       const newFeeds = response.data;
-
+      console.log("받은 피드", response.data);
       if (newFeeds.length === 0) {
         setHasMore(false);
       } else {
@@ -129,7 +129,7 @@ const FeedPage = () => {
 
       const response = await axiosInstance.get(url);
       const newEvaluations = response.data;
-
+      console.log("받은 평가", response.data);
       if (newEvaluations.length === 0) {
         setHasMoreEvaluation(false);
       } else {
@@ -222,7 +222,9 @@ const FeedPage = () => {
           ref={containerRef}
           style={{
             height: `${
-              activeIndex === 0 ? feeds.length * 40 : evaluations.length * 40
+              activeIndex === 0
+                ? feeds.length * 40 + 100
+                : evaluations.length * 40 + 100
             }px`,
           }}
           className="relative w-full flex-grow overflow-hidden"
