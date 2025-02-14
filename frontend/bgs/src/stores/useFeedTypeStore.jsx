@@ -5,6 +5,10 @@ const useFeedTypeStore = create((set) => ({
   setFeedType: (FeedType) => {
     set({ feedType: FeedType });
   },
+  evaluationStatus: "ongoing",
+  setEvaluationStatus: (EvaluationStatus) => {
+    set({ evaluationStatus: EvaluationStatus });
+  },
 }));
 
 export default useFeedTypeStore;
