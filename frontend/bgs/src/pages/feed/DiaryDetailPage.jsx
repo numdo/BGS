@@ -97,7 +97,7 @@ const DiaryDetailPage = () => {
       try {
         await axiosInstance.delete(`${API_URL}/${diaryId}`);
         alert("삭제되었습니다.");
-        navigate("/feed");
+        navigate("/feeds");
       } catch (error) {
         console.error("삭제 오류:", error);
       }
