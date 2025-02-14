@@ -59,7 +59,7 @@ const VisitorMemo = ({ userId }) => {
   return (
     <>
       <div
-        className="w-full bg-gray-100 p-3 rounded-3xl flex items-center justify-between cursor-pointer"
+        className="bg-gray-100 p-3 rounded-3xl flex items-center justify-between cursor-pointer"
         onClick={() => setIsOpen(true)}
       >
         <div className="flex items-center">
