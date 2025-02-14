@@ -1,5 +1,6 @@
 package com.ssafy.bgs.diary.entity;
 
+import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,7 +10,9 @@ import java.util.Objects;
 @Setter
 @Getter
 public class HashtagId implements Serializable {
+    @Column(name = "tag")
     private String tag;
+    @Column(name = "diary_id")
     private Integer diaryId;
 
     public HashtagId() {}
