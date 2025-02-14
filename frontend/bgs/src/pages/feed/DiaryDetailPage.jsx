@@ -31,7 +31,9 @@ const DiaryDetailPage = () => {
   const [isCommentsOpen, setIsCommentsOpen] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [comments, setComments] = useState([]);
-
+  useEffect(() => {
+    console.log(refreshKey);
+  }, refreshKey);
   useEffect(() => {
     const fetchComments = async () => {
       try {
@@ -50,7 +52,7 @@ const DiaryDetailPage = () => {
     };
 
     fetchComments();
-  }, [diaryId]);
+  }, [diaryId, refreshKey]);
   useEffect(() => {
     axiosInstance
       .get(`${API_URL}/${diaryId}`)
