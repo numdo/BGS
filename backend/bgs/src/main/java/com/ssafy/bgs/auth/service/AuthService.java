@@ -125,7 +125,7 @@ public class AuthService {
         user.setSocialId(String.valueOf(kakaoUserInfo.id()));
         user.setEmail(kakaoUserInfo.email());
         String nickname = (kakaoUserInfo.nickname() != null && !kakaoUserInfo.nickname().isBlank())
-                ? kakaoUserInfo.nickname() : "KakaoUser_" + kakaoUserInfo.id();
+                ? kakaoUserInfo.nickname() : "K_" + kakaoUserInfo.id();
         user.setNickname(nickname);
         user.setAccountType(AccountType.KAKAO);
         // 기타 기본값 설정 (필요 시 추가)
