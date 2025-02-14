@@ -17,10 +17,17 @@ export default function MyGymTab({ friendId }) {
 
   return (
     <>
-      <MyGymRoomView />
-        <div className="mt-4 flex-1 bg-white rounded-3xl">
-          <VisitorMemo userId={user.userId}/>
-        </div>
+    <div>
+
+    <div className="relative">
+      <div className="relative z-10">
+        <MyGymRoomView />
+      </div>
+    </div>
+      <div className="w-full py-6 z-20">
+        <VisitorMemo userId={user.userId}/>
+      </div>
+    </div>
     </>
   );
 }

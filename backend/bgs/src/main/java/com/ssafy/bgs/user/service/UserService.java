@@ -7,7 +7,6 @@ import com.ssafy.bgs.image.entity.Image;
 import com.ssafy.bgs.image.service.ImageService;
 import com.ssafy.bgs.redis.service.RedisService;
 import com.ssafy.bgs.user.dto.request.*;
-import com.ssafy.bgs.user.dto.response.AdminUserResponseDto;
 import com.ssafy.bgs.user.dto.response.InfoResponseDto;
 import com.ssafy.bgs.user.dto.response.UserResponseDto;
 import com.ssafy.bgs.user.entity.AccountType;
@@ -28,11 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -191,7 +187,7 @@ public class UserService {
         user.setAccountType(null);
         user.setDeleted(true); // resigned = true 로 소프트삭제 처리
         redisService.deleteValue("user:" + userId);
-
+        userRepository.delete(user);
     }
 
 

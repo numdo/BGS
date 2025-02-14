@@ -47,7 +47,7 @@ const MyGymRoomView = ({ userId }) => {
   };
 
   return (
-    <div className="relative flex flex-col items-center gap-0 p-0">
+    <div className="relative flex flex-col items-center gap-0 p-0 z-10">
       {/* 실제 방 컨테이너 */}
       <div className="relative w-96 h-80">  {/*w-64 h-64*/}
       <div
