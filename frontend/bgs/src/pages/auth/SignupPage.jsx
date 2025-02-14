@@ -16,10 +16,8 @@ const SignupPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // 이메일 입력 변경 시 인증 상태 리셋
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
-    // 이메일이 변경되면 기존 인증 상태를 초기화
     setIsEmailSent(false);
     setIsVerified(false);
     setVerificationCode("");
@@ -83,22 +81,17 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center bg-white px-10 py-16">
-      {/* 뒤로가기 버튼 */}
+    <div className="flex flex-col items-center justify-center bg-white px-10 py-16 relative">
       <button
         onClick={() => navigate(-1)}
         className="absolute top-5 left-5 text-black font-medium p-2 rounded hover:bg-gray-100 flex items-center space-x-2"
       >
         <ArrowLeft size={20} />
       </button>
-
-      {/* 로고 영역 */}
       <div className="flex flex-col items-center space-x-4 mb-10">
         <img src={logo_image} alt="Logo" className="h-32" />
         <img src={name_image} alt="Name" className="h-15" />
       </div>
-
-      {/* 인증 단계와 회원가입 폼을 조건부 렌더링 */}
       {!isVerified ? (
         <EmailVerification
           email={email}
