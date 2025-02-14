@@ -15,7 +15,6 @@ import { getMygym, updateMygym, getGuestBooks } from "../../api/Mygym";
 import { getUser } from "../../api/User";
 
 import mygymbackimg from "../../assets/images/mygymbackimg.png";
-import VisitorMemoModal from "../../components/mygym/VisitorMemoModal";
 
 const MyGymPage = () => {
   // 유저 정보 및 마이짐 상태
@@ -24,10 +23,21 @@ const MyGymPage = () => {
 
   // 메모모달
   const [isOpen, setIsOpen] = useState(true);
+
+  // 아이템창 토글 상태
+  const [isItemOpen,setIsItemOpen] = useState(false);
+
+  // 팔레트 눌렀을때 아이템 모달 on off
+  const handlePaletteClick = () => {
+    setIsItemOpen((prev) => !prev);
+  }
   
   // 편집 모드 여부
   const [isEditing, setIsEditing] = useState(false);
-  const handleEditMode = () => setIsEditing(true);
+  const handleEditMode = () => {
+    setIsEditing(true);
+    setIsItemOpen(true);
+  }
   const handleFinishEdit = async () => {
     const { nickname, userId, ...obj } = myGym;
     const newPlaces = obj.places.map((item) => {
@@ -37,11 +47,11 @@ const MyGymPage = () => {
     const newObj = { ...obj, places: newPlaces };
     await updateMygym(userId, newObj);
     setIsEditing(false);
+    setIsItemOpen(false);
   };
 
   // 방명록(댓글)
   const [visitorMemos, setVisitorMemos] = useState([]);
-  const [newComment, setNewComment] = useState("");
 
   // MyGymPage가 마운트될 때 유저 정보, 마이짐, 방명록 데이터를 불러옴
   useEffect(() => {
@@ -63,24 +73,6 @@ const MyGymPage = () => {
     enterMygymPage();
   }, [setUser, setMyGym]);
 
-  // 새 댓글 추가 핸들러 
-  const handleAddComment = async () => {
-    if (newComment.trim() === "") return;
-    try {
-      const newMemo = {
-        guestbookId: Date.now(), // 임시 ID
-        guestId: user.userId,
-        content: newComment,
-        createdAt: new Date().toISOString(),
-        deleted: false,
-      };
-      setVisitorMemos([newMemo, ...visitorMemos]);
-      setNewComment("");
-    } catch (error) {
-      console.error("댓글 추가 실패:", error);
-    }
-  };
-
   return (
     <div
       style={{
@@ -97,12 +89,12 @@ const MyGymPage = () => {
       <TopBar />
 
       <div className="flex justify-center items-center">
-        <h1 className="text-3xl font-extrabold text-center py-2 drop-shadow-lg bg-blue-300 w-80 rounded-xl">
+        <h1 className="text-3xl font-extrabold text-center py-2 drop-shadow-lg">
           {user.nickname} 마이짐
         </h1>
       </div>
 
-      <div className="absolute top-2 right-2">
+      <div className="absolute top-10 right-2">
         {isEditing ? (
           <button
             onClick={handleFinishEdit}
@@ -124,24 +116,14 @@ const MyGymPage = () => {
         // 편집 모드
         <>
           <MyGymRoomEdit />
-          <SelectColor setRoomColor={setWallColor} />
+          <SelectColor setRoomColor={setWallColor} onClick={handlePaletteClick}/>
           {/* 편집버튼을 누르면 MyGymItem의 forceOpen이 true가 되어 슬라이드 업 */}
-          <MyGymItem setItems={setItems} forceOpen={true} />
+          <MyGymItem setItems={setItems} forceOpen={isItemOpen} />
         </>
       ) : (
         // 보기 모드
         <>
           <MyGymRoomView userId={user.userId} />
-          {/* 댓글 영역: 항상 보이도록 */}
-          <div className="mt-4 flex-1 bg-white rounded-3xl" style={{ zIndex: 10 }}>
-            <VisitorMemoModal
-              isOpen={isOpen}
-              onClose={() => setIsOpen(false)}
-              visitorMemos={visitorMemos}
-              setVisitorMemos={setVisitorMemos}
-              userId={user.userId}
-            />
-          </div>
         </>
       )}
 

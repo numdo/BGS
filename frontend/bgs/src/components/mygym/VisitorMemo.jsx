@@ -8,7 +8,7 @@ import myinfo from "../../assets/icons/myinfo.png";
 const VisitorMemo = ({ userId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [visitorMemos, setVisitorMemos] = useState([]);
-  const [totalCount, setTotalCount] = useState(0); // 전체 방명록 개수
+  const [totalCount, setTotalCount] = useState(0); // 삭제되지 않은 방명록 개수
   const [lastMemo, setLastMemo] = useState(null); // 전체에서 가장 오래된(마지막) 댓글
   const [lastMemoProfileUrl, setLastMemoProfileUrl] = useState(null);
 
@@ -19,19 +19,28 @@ const VisitorMemo = ({ userId }) => {
         const data = await getGuestBooks(userId, 0, 10);
         const freshMemos = data.content.filter((memo) => !memo.deleted);
         setVisitorMemos(freshMemos);
-        setTotalCount(data.totalElements);
 
-        // 전체 댓글이 10개를 초과하면, 마지막 페이지의 댓글을 불러옴
+        // 전체 삭제되지 않은 댓글 개수를 계산
+        let nonDeletedCount = freshMemos.length;
         if (data.totalPages > 1) {
-          const lastPage = data.totalPages - 1; // 프론트엔드에서 0부터 시작하는 page를 전달하면 실제 요청은 (page+1)
+          // 첫 페이지 외 나머지 페이지들도 조회
+          for (let page = 1; page < data.totalPages; page++) {
+            const pageData = await getGuestBooks(userId, page, 10);
+            nonDeletedCount += pageData.content.filter((memo) => !memo.deleted).length;
+          }
+        }
+        setTotalCount(nonDeletedCount);
+
+        // 전체 댓글이 10개 이상이면, 마지막 페이지의 댓글 중 삭제되지 않은 마지막 댓글을 가져옴
+        if (data.totalPages > 1) {
+          const lastPage = data.totalPages - 1;
           const lastData = await getGuestBooks(userId, lastPage, 10);
-          if (lastData.content && lastData.content.length > 0) {
-            // 마지막 페이지의 마지막 댓글이 전체에서 가장 오래된 댓글
-            const overallLastMemo = lastData.content[lastData.content.length - 1];
-            setLastMemo(overallLastMemo);
+          const freshLastPage = lastData.content.filter((memo) => !memo.deleted);
+          if (freshLastPage.length > 0) {
+            setLastMemo(freshLastPage[freshLastPage.length - 1]);
           }
         } else {
-          // 전체 댓글이 10개 이하이면, 첫 페이지의 마지막 댓글이 전체 마지막 댓글
+          // 전체 댓글이 10개 이하인 경우
           if (freshMemos.length > 0) {
             setLastMemo(freshMemos[freshMemos.length - 1]);
           }
@@ -59,7 +68,7 @@ const VisitorMemo = ({ userId }) => {
   return (
     <>
       <div
-        className="w-full bg-gray-100 p-3 rounded-3xl flex items-center justify-between cursor-pointer"
+        className="bg-gray-100 p-3 rounded-3xl flex items-center justify-between cursor-pointer"
         onClick={() => setIsOpen(true)}
       >
         <div className="flex items-center">

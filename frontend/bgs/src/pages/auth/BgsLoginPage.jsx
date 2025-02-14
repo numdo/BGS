@@ -1,18 +1,26 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../../api/Auth";
-import { ArrowLeft } from "lucide-react";
+import {
+  Container,
+  Box,
+  TextField,
+  Typography,
+  IconButton,
+} from "@mui/material";
+import { ArrowBack } from "@mui/icons-material";
 import logoImage from "../../assets/images/logo_image.png";
 import nameImage from "../../assets/images/name.png";
 
 const BgsLoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+  const [customError, setCustomError] = useState(null);
+  const [serverError, setServerError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ 새로고침/재접속 시 자동 로그인
+  // 새로고침/재접속 시 자동 로그인
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
@@ -22,13 +30,25 @@ const BgsLoginPage = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    // 초기화
+    setCustomError(null);
+    setServerError(null);
+
+    // 입력값 검증
+    if (!email.trim()) {
+      setCustomError("이메일을 입력해주세요.");
+      return;
+    }
+    if (!password.trim()) {
+      setCustomError("비밀번호를 입력해주세요.");
+      return;
+    }
+
     setLoading(true);
-    setError(null);
 
     try {
       const response = await login({ email, password });
-      console.log("🔑 로그인 응답:", response);
-      // ✅ 임시 비밀번호 여부 확인 후 비밀번호 변경 페이지로 이동
+      // 임시 비밀번호인 경우
       if (response) {
         alert("임시 비밀번호로 로그인했습니다. 비밀번호를 변경해주세요.");
         navigate("/change-password");
@@ -37,7 +57,7 @@ const BgsLoginPage = () => {
       }
     } catch (err) {
       setPassword("");
-      setError(
+      setServerError(
         err.response?.data?.message ||
           "로그인에 실패했습니다. 다시 시도해주세요."
       );
@@ -47,70 +67,102 @@ const BgsLoginPage = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-white px-10 py-16">
+    <Container
+      maxWidth="sm"
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        position: "relative",
+        bgcolor: "white",
+        p: 2,
+      }}
+    >
       {/* 뒤로가기 버튼 */}
-      <button
+      <IconButton
         onClick={() => navigate(-1)}
-        className="absolute top-5 left-5 text-black font-medium p-2 rounded hover:bg-gray-100 flex items-center space-x-2"
+        sx={{ position: "absolute", top: 16, left: 16 }}
       >
-        <ArrowLeft size={20} />
-      </button>
+        <ArrowBack />
+      </IconButton>
 
-      {/* 페이지 상단: 로고 및 앱 이름 */}
-      <div className="flex flex-col items-center space-y-4 mb-10">
-        <img src={logoImage} alt="Logo" className="h-32" />
-        <img src={nameImage} alt="Name" className="h-15" />
-      </div>
+      {/* 로고 및 앱 이름 */}
+      <Box sx={{ textAlign: "center", mb: 4 }}>
+        <img src={logoImage} alt="Logo" style={{ height: 120 }} />
+        <img src={nameImage} alt="Name" style={{ height: 50, marginTop: 8 }} />
+      </Box>
 
-      {/* 로그인 입력 폼 */}
-      <form className="space-y-3 w-full max-w-md" onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="이메일"
+      {/* 로그인 폼 */}
+      <Box component="form" onSubmit={handleLogin} noValidate sx={{ width: "100%" }}>
+        <TextField
+          variant="outlined"
+          margin="normal"
+          required
+          fullWidth
+          label="이메일"
+          name="email"
+          autoComplete="email"
+          autoFocus
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-primary text-base"
-          required
+          error={!!customError && !email.trim()}
+          helperText={!!customError && !email.trim() ? customError : ""}
         />
-        <input
+        <TextField
+          variant="outlined"
+          margin="normal"
+          required
+          fullWidth
+          name="password"
+          label="비밀번호"
           type="password"
-          placeholder="비밀번호"
+          autoComplete="current-password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-primary text-base"
-          required
+          onChange={(e) => {
+            setPassword(e.target.value);
+            if (serverError) setServerError(null);
+          }}
+          // 서버 에러가 있으면 에러 표시하고, 없으면 빈값 또는 customError에 따른 표시
+          error={(!password.trim() && !!customError) || !!serverError}
+          helperText={(!password.trim() && customError) || serverError || ""}
         />
 
-        {/* 오류 메시지 */}
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-        {/* 비밀번호 찾기 및 회원가입 */}
-        <div className="w-full flex items-center justify-between text-sm">
-          <Link to="/forgot-password" className="text-primary hover:underline">
-            비밀번호를 잊으셨나요?
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            mt: 1,
+            mb: 2,
+          }}
+        >
+          <Link to="/forgot-password" style={{ textDecoration: "none" }}>
+            <Typography variant="body2" color="primary">
+              비밀번호를 잊으셨나요?
+            </Typography>
           </Link>
-          <Link to="/signup" className="font-bold text-black hover:underline">
-            회원가입
+          <Link to="/signup" style={{ textDecoration: "none" }}>
+            <Typography variant="body2" color="textPrimary">
+              회원가입
+            </Typography>
           </Link>
-        </div>
-      </form>
+        </Box>
 
-      {/* 로그인 버튼 */}
-      <div className="mt-16 w-full max-w-md">
+        {/* 로그인 버튼: Tailwind CSS 스타일 그대로 사용 */}
         <button
           type="submit"
-          onClick={handleLogin}
           className={`w-full p-3 rounded-lg text-base font-semibold transition ${
             loading
               ? "bg-gray-400 text-white cursor-not-allowed"
-              : "bg-primary text-white hover:bg-blue-600"
+              : "bg-primary text-white hover:bg-primary-light"
           }`}
           disabled={loading}
         >
           {loading ? "로그인 중..." : "로그인"}
         </button>
-      </div>
-    </div>
+      </Box>
+    </Container>
   );
 };
 

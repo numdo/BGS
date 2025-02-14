@@ -1,4 +1,3 @@
-// components/common/BeatLoader.jsx
 import React from "react";
 
 const BeatLoader = ({ color = "#2563eb", size = 15, margin = 2 }) => {

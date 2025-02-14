@@ -1,3 +1,4 @@
+// src/pages/WorkoutCreatePage.jsx
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
@@ -9,7 +10,7 @@ import deletelogo from "../../assets/icons/delete.svg";
 import moreicon from "../../assets/icons/more.svg";
 import mic_colored from "../../assets/icons/mic_colored.svg";
 import SttWorkoutGuide from "../../components/workout/SttWorkoutGuide";
-import LoadingSpinner from "../../components/common/LoadingSpinner"; // import 스피너 컴포넌트
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import {
   showConfirmAlert,
   showErrorAlert,
@@ -38,7 +39,7 @@ export default function WorkoutCreatePage() {
         day: "2-digit",
         timeZone: "Asia/Seoul",
       })
-      .replace(/. /g, "-")
+      .replace(/\. /g, "-")
       .replace(".", ""),
     content: "",
     allowedScope: "A",
@@ -75,11 +76,18 @@ export default function WorkoutCreatePage() {
 
   // 해시태그 입력
   const [newHashtag, setNewHashtag] = useState("");
+  const maxInputLength = 255; // DB varchar(255)
 
-  // Helper: 운동이 유산소/스포츠(시간 기반)인지 체크
-  const isCardioWorkout = (workoutId) => {
+  // Helper: 운동 타입 결정 함수  
+  // "time"  → part가 유산소 또는 스포츠  
+  // "repetitionOnly" → tool이 밴드 또는 맨몸 (단, 시간운동이 아닌 경우)  
+  // "weightRepetition" → 기본
+  const getWorkoutType = (workoutId) => {
     const workout = allWorkoutList.find((w) => w.workoutId === workoutId);
-    return workout && (workout.part === "유산소" || workout.part === "스포츠");
+    if (!workout) return "weightRepetition";
+    if (workout.part === "유산소" || workout.part === "스포츠") return "time";
+    if (workout.tool === "밴드" || workout.tool === "맨몸") return "repetitionOnly";
+    return "weightRepetition";
   };
 
   // Helper: workoutId -> 운동 이름
@@ -187,12 +195,18 @@ export default function WorkoutCreatePage() {
     setDiary((prevDiary) => {
       const updatedDiaryWorkouts = [...prevDiary.diaryWorkouts];
       selectedWorkouts.forEach((wid) => {
-        const cardio = isCardioWorkout(wid);
+        const type = getWorkoutType(wid);
+        let defaultSet;
+        if (type === "time") {
+          defaultSet = { workoutTime: 10 };
+        } else if (type === "repetitionOnly") {
+          defaultSet = { repetition: 10 };
+        } else {
+          defaultSet = { weight: 10, repetition: 10 };
+        }
         updatedDiaryWorkouts.push({
           workoutId: wid,
-          sets: cardio
-            ? [{ workoutTime: 10 }]
-            : [{ weight: 10, repetition: 10 }],
+          sets: [defaultSet],
         });
       });
       return { ...prevDiary, diaryWorkouts: updatedDiaryWorkouts };
@@ -208,29 +222,22 @@ export default function WorkoutCreatePage() {
       const workoutIds = record.workoutIds
         ? record.workoutIds
         : record.workoutId
-        ? [record.workoutId]
-        : [];
+          ? [record.workoutId]
+          : [];
       workoutIds.forEach((wid) => {
         if (!newDiaryWorkouts.some((dw) => dw.workoutId === wid)) {
-          const cardio = isCardioWorkout(wid);
-          const setsForThisWorkout = record.sets
-            ? record.sets
-                .filter((s) => s.workoutId === wid)
-                .map((s) =>
-                  cardio
-                    ? { workoutTime: s.workoutTime || 10 }
-                    : { weight: s.weight || 10, repetition: s.repetition || 10 }
-                )
-            : [];
-          const finalSets =
-            setsForThisWorkout.length > 0
-              ? setsForThisWorkout
-              : cardio
-              ? [{ workoutTime: 10 }]
-              : [{ weight: 10, repetition: 10 }];
+          const type = getWorkoutType(wid);
+          let defaultSet;
+          if (type === "time") {
+            defaultSet = { workoutTime: 10 };
+          } else if (type === "repetitionOnly") {
+            defaultSet = { repetition: 10 };
+          } else {
+            defaultSet = { weight: 10, repetition: 10 };
+          }
           newDiaryWorkouts.push({
             workoutId: wid,
-            sets: finalSets,
+            sets: [defaultSet],
           });
         }
       });
@@ -241,19 +248,16 @@ export default function WorkoutCreatePage() {
   };
 
   // 음성 녹음 관련 핸들러
-  // 외부 녹음 버튼은 단순히 모달을 띄웁니다.
   const handleRecordButton = () => {
     setShowSttGuide(true);
   };
 
-  // 모달 내에서 녹음 시작/종료를 토글하는 함수
   const toggleRecording = () => {
     if (!isRecording) {
       startRecording();
     } else {
       if (mediaRecorder) {
         mediaRecorder.stop();
-        // 녹음 종료 시 모달 닫기
         setShowSttGuide(false);
       }
     }
@@ -288,7 +292,6 @@ export default function WorkoutCreatePage() {
           setShowSttGuide(false);
           return;
         }
-        // 녹음 종료 후 로딩 스피너 시작
         setIsLoading(true);
         try {
           const formData = new FormData();
@@ -324,7 +327,6 @@ export default function WorkoutCreatePage() {
           showErrorAlert("오류 발생! 운동을 인식할 수 없습니다.");
           console.error("음성 처리 실패:", err);
         }
-        // 응답 받았거나 에러가 발생한 후 스피너 종료
         setIsLoading(false);
         setIsRecording(false);
         setShowSttGuide(false);
@@ -359,15 +361,20 @@ export default function WorkoutCreatePage() {
 
   const handleAddSet = (wIndex) => {
     const workoutId = diary.diaryWorkouts[wIndex].workoutId;
-    const cardio = isCardioWorkout(workoutId);
+    const type = getWorkoutType(workoutId);
+    let newSet;
+    if (type === "time") {
+      newSet = { workoutTime: 10 };
+    } else if (type === "repetitionOnly") {
+      newSet = { repetition: 10 };
+    } else {
+      newSet = { weight: 10, repetition: 10 };
+    }
     setDiary((prevDiary) => {
       const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
       newDiaryWorkouts[wIndex] = {
         ...newDiaryWorkouts[wIndex],
-        sets: [
-          ...newDiaryWorkouts[wIndex].sets,
-          cardio ? { workoutTime: 10 } : { weight: 10, repetition: 10 },
-        ],
+        sets: [...newDiaryWorkouts[wIndex].sets, newSet],
       };
       return { ...prevDiary, diaryWorkouts: newDiaryWorkouts };
     });
@@ -400,7 +407,7 @@ export default function WorkoutCreatePage() {
   // 이미지 업로드 핸들러
   const handleImageChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-    const maxAllowedSize = 1 * 1024 * 1024;
+    const maxAllowedSize = 20 * 1024 * 1024;
     for (let file of selectedFiles) {
       if (file.size > maxAllowedSize) {
         showErrorAlert(`파일이 너무 큽니다: ${file.name}`);
@@ -537,9 +544,7 @@ export default function WorkoutCreatePage() {
                 <button
                   onClick={() => setSelectedPartFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${
-                    selectedPartFilter === ""
-                      ? "bg-primary-light text-white"
-                      : ""
+                    selectedPartFilter === "" ? "bg-primary-light text-white" : ""
                   }`}
                 >
                   전체
@@ -549,9 +554,7 @@ export default function WorkoutCreatePage() {
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedPartFilter === part
-                        ? "bg-primary-light text-white"
-                        : ""
+                      selectedPartFilter === part ? "bg-primary-light text-white" : ""
                     }`}
                   >
                     {part}
@@ -564,9 +567,7 @@ export default function WorkoutCreatePage() {
                 <button
                   onClick={() => setSelectedToolFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${
-                    selectedToolFilter === ""
-                      ? "bg-primary-light text-white"
-                      : ""
+                    selectedToolFilter === "" ? "bg-primary-light text-white" : ""
                   }`}
                 >
                   전체
@@ -576,9 +577,7 @@ export default function WorkoutCreatePage() {
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedToolFilter === tool
-                        ? "bg-primary-light text-white"
-                        : ""
+                      selectedToolFilter === tool ? "bg-primary-light text-white" : ""
                     }`}
                   >
                     {tool}
@@ -658,6 +657,7 @@ export default function WorkoutCreatePage() {
             </div>
           </div>
         )}
+
         {/* 이전 기록 모달 */}
         {isPreviousModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -687,6 +687,7 @@ export default function WorkoutCreatePage() {
             </div>
           </div>
         )}
+
         {/* 이미 추가된 운동 목록 */}
         <div className="mt-4">
           {diary.diaryWorkouts.length === 0 ? (
@@ -694,68 +695,54 @@ export default function WorkoutCreatePage() {
           ) : (
             <>
               {diary.diaryWorkouts.map((workout, wIndex) => {
-                const cardio = isCardioWorkout(workout.workoutId);
+                // 현재 운동의 타입 결정 (time, repetitionOnly, weightRepetition)
+                const type = getWorkoutType(workout.workoutId);
                 return (
-                  <div key={`dw-${wIndex}`} className="border p-2 rounded mb-2">
-                    <div className="flex justify-between items-center">
-                      <h2>{getWorkoutName(workout.workoutId)}</h2>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleAddSet(wIndex)}
-                          className="w-8 px-2 py-1 bg-success text-gray-400 rounded"
-                        >
-                          +
-                        </button>
-                        <button
-                          onClick={() => handleDeleteWorkout(wIndex)}
-                          className="px-1 py-1 bg-danger text-white rounded"
-                        >
-                          <img src={deletelogo} alt="" />
-                        </button>
-                      </div>
-                    </div>
-                    {workout.sets.map((set, setIndex) => (
-                      <div
-                        key={`set-${wIndex}-${setIndex}`}
-                        className="flex items-center space-x-4 mt-2"
+                  <div key={`dw-${wIndex}`} className="border p-4 rounded-md mb-4 bg-white shadow">
+                    {/* 운동명 및 삭제 버튼 */}
+                    <div className="flex justify-between items-center pb-2 border-b">
+                      <h2 className="text-base font-semibold text-gray-800">
+                        {getWorkoutName(workout.workoutId)}
+                      </h2>
+                      <button
+                        onClick={() => handleDeleteWorkout(wIndex)}
+                        className="text-gray-500 hover:text-red-500 text-lg"
                       >
-                        {cardio ? (
-                          <div>
-                            <label className="mr-1">시간:</label>
-                            <input
-                              type="number"
-                              value={set.workoutTime || ""}
-                              onChange={(e) =>
-                                handleWorkoutSetChange(
-                                  wIndex,
-                                  setIndex,
-                                  "workoutTime",
-                                  e.target.value
-                                )
-                              }
-                              className="w-20 p-1 border rounded"
-                            />
-                          </div>
-                        ) : (
-                          <>
-                            <div>
-                              <label className="mr-1">무게:</label>
+                        ✖
+                      </button>
+                    </div>
+
+                    {/* 세트 목록 */}
+                    <div className="mt-3 space-y-2">
+                      {workout.sets.map((set, setIndex) => (
+                        <div
+                          key={`set-${wIndex}-${setIndex}`}
+                          className="flex items-center justify-between px-4 py-2 rounded-md bg-gray-100"
+                        >
+                          <span className="text-gray-700 font-medium text-sm">
+                            {setIndex + 1}세트
+                          </span>
+
+                          {/* 입력 필드 결정 */}
+                          {type === "time" ? (
+                            <div className="flex items-center space-x-2">
                               <input
                                 type="number"
-                                value={set.weight || ""}
+                                value={set.workoutTime || ""}
                                 onChange={(e) =>
                                   handleWorkoutSetChange(
                                     wIndex,
                                     setIndex,
-                                    "weight",
+                                    "workoutTime",
                                     e.target.value
                                   )
                                 }
-                                className="w-20 p-1 border rounded"
+                                className="w-16 p-1 text-center border rounded text-gray-900"
                               />
+                              <span className="text-gray-600 text-sm">분</span>
                             </div>
-                            <div>
-                              <label className="mr-1">횟수:</label>
+                          ) : type === "repetitionOnly" ? (
+                            <div className="flex items-center space-x-2">
                               <input
                                 type="number"
                                 value={set.repetition || ""}
@@ -767,27 +754,74 @@ export default function WorkoutCreatePage() {
                                     e.target.value
                                   )
                                 }
-                                className="w-20 p-1 border rounded"
+                                className="w-16 p-1 text-center border rounded text-gray-900"
                               />
+                              <span className="text-gray-600 text-sm">회</span>
                             </div>
-                          </>
-                        )}
-                        <button
-                          onClick={() =>
-                            handleDeleteSet(wIndex, setIndex)
-                          }
-                          className="px-1 py-1 bg-danger text-white rounded"
-                        >
-                          <img src={deletelogo} alt="" />
-                        </button>
-                      </div>
-                    ))}
+                          ) : (
+                            <div className="flex items-center space-x-4">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="number"
+                                  value={set.weight || ""}
+                                  onChange={(e) =>
+                                    handleWorkoutSetChange(
+                                      wIndex,
+                                      setIndex,
+                                      "weight",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-16 p-1 text-center border rounded text-gray-900"
+                                />
+                                <span className="text-gray-600 text-sm">kg</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="number"
+                                  value={set.repetition || ""}
+                                  onChange={(e) =>
+                                    handleWorkoutSetChange(
+                                      wIndex,
+                                      setIndex,
+                                      "repetition",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-16 p-1 text-center border rounded text-gray-900"
+                                />
+                                <span className="text-gray-600 text-sm">회</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 세트 삭제 버튼 */}
+                          <button
+                            onClick={() => handleDeleteSet(wIndex, setIndex)}
+                            className="text-gray-500 hover:text-red-500 text-lg"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* 세트 추가 버튼 */}
+                    <div className="mt-3 flex justify-center">
+                      <button
+                        onClick={() => handleAddSet(wIndex)}
+                        className="w-full px-4 py-2 bg-[#5968eb] hover:bg-[#4a57c7] rounded-md text-white font-semibold text-sm"
+                      >
+                        세트 추가
+                      </button>
+                    </div>
                   </div>
                 );
               })}
             </>
           )}
         </div>
+
         {/* 이미지 업로드 섹션 */}
         <div className="mt-4">
           <input
@@ -827,29 +861,43 @@ export default function WorkoutCreatePage() {
             </div>
           </div>
         </div>
-        {/* 운동일지 내용 */}
-        <textarea
-          className="w-full h-24 mt-4 p-2 border rounded"
-          value={diary.content}
-          onChange={(e) => setDiary({ ...diary, content: e.target.value })}
-          placeholder="메모를 입력해보세요"
-        />
-        {/* 해시태그 추가 */}
+
+        {/* 운동일지 내용 (글자수 제한 및 크기 조절 못하도록 설정) */}
         <div className="mt-4">
+          <textarea
+            className="w-full h-24 mt-4 p-2 border rounded resize-none"
+            value={diary.content}
+            onChange={(e) => setDiary({ ...diary, content: e.target.value })}
+            placeholder="메모를 입력해보세요"
+            maxLength={255}
+          />
+          <div className="text-right text-xs text-gray-400">
+            {diary.content.length}/255
+          </div>
+        </div>
+
+        {/* 해시태그 추가 - flex row로 버튼 밀림 방지, 글자수 제한 10자 */}
+        <div className="mt-4 flex items-center">
           <input
             type="text"
-            className="p-2 border rounded"
+            className="p-2 border rounded resize-none w-[15ch]"
             value={newHashtag}
             onChange={(e) => setNewHashtag(e.target.value)}
             placeholder="해시태그 입력"
+            maxLength={10}
           />
+          <span className="ml-2 text-sm text-gray-400">
+            {newHashtag.length}/10
+          </span>
           <button
             onClick={handleAddHashtag}
-            className="p-2 bg-primary-light text-white rounded ml-2"
+            className="ml-2 p-2 bg-primary-light text-white rounded whitespace-nowrap"
           >
             추가
           </button>
         </div>
+
+        {/* 해시태그 출력 */}
         <div className="mt-2">
           {diary.hashtags.map((tag) => (
             <span
@@ -860,8 +908,9 @@ export default function WorkoutCreatePage() {
             </span>
           ))}
         </div>
+
         {/* 공개 범위 설정 */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-2">
           <div className="flex items-center">
             <input
               type="radio"
@@ -879,6 +928,7 @@ export default function WorkoutCreatePage() {
             <span className="ml-2 text-sm">비공개</span>
           </div>
         </div>
+
         {/* 저장 버튼 */}
         <button
           onClick={handleDiarySubmit}

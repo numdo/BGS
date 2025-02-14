@@ -1,6 +1,7 @@
 package com.ssafy.bgs.stat.controller;
 
 import com.ssafy.bgs.stat.dto.request.WeightRequestDto;
+import com.ssafy.bgs.stat.dto.response.PartVolumeResponseDto;
 import com.ssafy.bgs.stat.dto.response.WorkoutBalanceResponseDto;
 import com.ssafy.bgs.stat.entity.WeightHistory;
 import com.ssafy.bgs.stat.service.StatService;
@@ -10,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/stats")
@@ -46,5 +48,11 @@ public class StatController {
     ) {
         WorkoutBalanceResponseDto workoutBalanceResponseDto = statService.getWorkoutBalance(userId, scope);
         return new ResponseEntity<>(workoutBalanceResponseDto, HttpStatus.OK);
+    }
+
+    @GetMapping("/part-volume")
+    public ResponseEntity<?> getPartVolume(@AuthenticationPrincipal Integer userId) {
+        Map<String, PartVolumeResponseDto> weeklyPartVolume = statService.getPartVolume(userId);
+        return new ResponseEntity<>(weeklyPartVolume, HttpStatus.OK);
     }
 }

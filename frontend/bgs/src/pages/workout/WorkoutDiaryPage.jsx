@@ -25,7 +25,6 @@ export default function WorkoutDiaryPage() {
 
   // 1) 전체 운동 목록 불러오기 (예: /workouts)
   useEffect(() => {
-    // 실제 API 경로에 맞게 수정하세요
     axiosInstance
       .get("diaries/workout", { withCredentials: true })
       .then((res) => {
@@ -50,11 +49,7 @@ export default function WorkoutDiaryPage() {
     const found = allWorkouts.find(
       (w) => Number(w.workoutId) === Number(workoutId)
     );
-    if (found) {
-      return found.workoutName; // 예: '벤치프레스'
-    } else {
-      return `운동 ID: ${workoutId}`; 
-    }
+    return found ? found.workoutName : `운동 ID: ${workoutId}`;
   };
 
   if (!diary)
@@ -63,14 +58,17 @@ export default function WorkoutDiaryPage() {
   return (
     <>
       <TopBar />
-      <div className="max-w-2xl mx-auto p-4 space-y-6">
-
+      <div className="max-w-2xl mx-auto p-4 pb-24 space-y-6">
         {/* 작성자 정보 */}
         <div className="flex items-center gap-4">
           <img
-            src={diary.profileImageUrl}
+            src={diary.profileImageUrl || "https://via.placeholder.com/48"}
             alt="프로필 이미지"
             className="w-12 h-12 rounded-full border-2 border-gray-300"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://via.placeholder.com/48";
+            }}
           />
           <div>
             <p className="font-semibold text-lg">{diary.writer}</p>
@@ -121,20 +119,25 @@ export default function WorkoutDiaryPage() {
         <div className="space-y-4">
           {(diary.diaryWorkouts || []).map((workout) => {
             // 만약 diaryWorkouts에 workoutName이 있다면 바로 사용
-            const workoutName = workout.workoutName || getWorkoutName(workout.workoutId);
-
+            const workoutName =
+              workout.workoutName || getWorkoutName(workout.workoutId);
             return (
-              <div key={workout.diaryWorkoutId} className="p-4 bg-gray-100 rounded-lg shadow">
-                <h3 className="text-lg font-semibold text-gray-800">{workoutName}</h3>
+              <div
+                key={workout.diaryWorkoutId}
+                className="p-4 bg-gray-100 rounded-lg shadow"
+              >
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {workoutName}
+                </h3>
                 <div className="mt-2 space-y-2">
                   {workout.sets?.map((set, index) => (
                     <div key={index} className="flex justify-between text-sm">
-                      <span className="font-medium">
-                        세트 {index + 1}:
-                      </span>
+                      <span className="font-medium">세트 {index + 1}:</span>
                       {set.workoutTime ? (
                         // 운동 시간이 있으면 시간만 출력
-                        <span className="text-gray-500">{set.workoutTime}초</span>
+                        <span className="text-gray-1000">
+                          {set.workoutTime}초
+                        </span>
                       ) : (
                         // 운동 시간이 없으면 무게와 횟수만 출력
                         <span>
