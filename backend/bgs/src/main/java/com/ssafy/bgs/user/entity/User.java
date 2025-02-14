@@ -35,7 +35,7 @@ public class User {
     @Column(name = "name", length = 10)
     private String name;
 
-    @Column(name = "nickname", length = 50)
+    @Column(name = "nickname")
     private String nickname;
 
     @Column(name = "birth_date")

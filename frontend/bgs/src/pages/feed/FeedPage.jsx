@@ -4,6 +4,7 @@ import TopBar from "../../components/bar/TopBar";
 import FeedItem from "../../components/feed/FeedItem";
 import axiosInstance from "../../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
+import useFeedTypeStore from "../../stores/useFeedTypeStore";
 
 const DIARY_API_URL = "/diaries/feeds";
 const EVALUATION_API_URL = "/evaluations/feeds";
@@ -13,8 +14,8 @@ const FeedPage = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true); // 추가 요청 가능 여부
-  const [feedType, setFeedType] = useState("diary"); // 'diary' | 'evaluation'
-  const [evaluationStatus, setEvaluationStatus] = useState("ongoing"); // '' | 'ongoing' | 'closed'
+  const { feedType, setFeedType, evaluationStatus, setEvaluationStatus } =
+    useFeedTypeStore(); // 'diary' | 'evaluation'
   const [evaluationTabVisible, setEvaluationTabVisible] = useState(false);
   const [feedsResetTrigger, setFeedsResetTrigger] = useState(0); // 피드 재요청을 위한 trigger
   const loaderRef = useRef(null);
@@ -101,54 +102,51 @@ const FeedPage = () => {
       <TopBar />
       <div className="max-w-4xl mx-auto p-4">
         {/* 피드 타입 탭 */}
-        <div className="flex mb-4 space-x-2">
-          <button
-            onClick={() => handleFeedTypeChange("diary")}
-            className={`px-4 py-2 border rounded-md transition ${
-              feedType === "diary"
-                ? "bg-primary text-white"
-                : "bg-white text-gray-700"
-            }`}
-          >
-            일지
-          </button>
-          <button
-            onClick={() => handleFeedTypeChange("evaluation")}
-            className={`px-4 py-2 border rounded-md transition ${
-              feedType === "evaluation"
-                ? "bg-primary text-white"
-                : "bg-white text-gray-700"
-            }`}
-          >
-            평가
-          </button>
-        </div>
-        {/* 평가 상태 탭 (평가 탭이 선택되었을 때만 표시) */}
-        {feedType === "evaluation" && (
-          <div className="flex mb-4 space-x-2">
+        <div className="flex gap-2 justify-between">
+          <div className="flex mb-4">
             <button
-              onClick={() => handleEvaluationStatusChange("ongoing")}
-              className={`px-4 py-2 border rounded-md transition ${
-                evaluationStatus === "ongoing"
-                  ? "bg-primary text-white"
-                  : "bg-white text-gray-700"
+              onClick={() => handleFeedTypeChange("diary")}
+              className={`px-4 py-2 bg-white text-gray-700 transition ${
+                feedType === "diary" ? " border-b-2 border-primary" : ""
               }`}
             >
-              진행 중 평가
+              일지
             </button>
             <button
-              onClick={() => handleEvaluationStatusChange("closed")}
-              className={`px-4 py-2 border rounded-md transition ${
-                evaluationStatus === "closed"
-                  ? "bg-primary text-white"
-                  : "bg-white text-gray-700"
+              onClick={() => handleFeedTypeChange("evaluation")}
+              className={`px-4 py-2 bg-white text-gray-700 transition ${
+                feedType === "evaluation" ? " border-b-2 border-primary" : ""
               }`}
             >
-              종료된 평가
+              평가
             </button>
           </div>
-        )}
-
+          {/* 평가 상태 탭 (평가 탭이 선택되었을 때만 표시) */}
+          {feedType === "evaluation" && (
+            <div className="flex mb-4">
+              <button
+                onClick={() => handleEvaluationStatusChange("ongoing")}
+                className={`px-2 py-2 transition ${
+                  evaluationStatus === "ongoing"
+                    ? " border-b-2 border-primary"
+                    : ""
+                }`}
+              >
+                진행 중 평가
+              </button>
+              <button
+                onClick={() => handleEvaluationStatusChange("closed")}
+                className={`px-2 py-2 transition ${
+                  evaluationStatus === "closed"
+                    ? " border-b-2 border-primary"
+                    : ""
+                }`}
+              >
+                종료된 평가
+              </button>
+            </div>
+          )}
+        </div>
         {/* 피드 리스트 */}
         <div className="grid grid-cols-3 gap-1 md:gap-2">
           {feeds.map((feed) =>

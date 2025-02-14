@@ -61,14 +61,19 @@ public class DiaryService {
     /**
      * Feed select
      **/
-    public List<DiaryFeedResponseDto> getFeedList(Integer readerId, Integer userId, int page, int pageSize) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
+    public List<DiaryFeedResponseDto> getFeedList(Integer readerId, Integer userId, String hashtag, int page, int pageSize) {
         List<DiaryFeedResponseDto> feedList;
-        if (userId == null) {
-            feedList = diaryRepository.findByAllowedScopeAndDeletedFalse("A", pageable);
-        } else if (readerId.equals(userId)) {
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+
+        // 조회 범위 설정
+        if (userId == null) { // 전체 조회
+            if (hashtag == null || hashtag.isEmpty())
+                feedList = diaryRepository.findByAllowedScopeAndDeletedFalse("A", pageable);
+            else
+                feedList = diaryRepository.findByAllowedScopeAndDeletedFalse("A", hashtag, pageable);
+        } else if (readerId.equals(userId)) { // 내 피드 조회
             feedList = diaryRepository.findByUserIdAndDeletedFalse(userId, pageable);
-        } else {
+        } else { // 남 피드 조회
             feedList = diaryRepository.findByUserIdAndAllowedScopeAndDeletedFalse(userId, "A", pageable);
         }
 

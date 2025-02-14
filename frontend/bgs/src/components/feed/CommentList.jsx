@@ -3,7 +3,7 @@ import { ko } from "date-fns/locale";
 import person from "../../assets/icons/person.svg";
 import more_horiz from "../../assets/icons/more_horiz.svg";
 
-const CommentList = ({ comments }) => {
+const CommentList = ({ key, comments }) => {
   return (
     <div>
       <ul className="mt-2">
