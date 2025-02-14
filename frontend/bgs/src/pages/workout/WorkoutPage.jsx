@@ -1,84 +1,81 @@
-import { useEffect, useState } from "react";
+// src/pages/WorkoutPage.jsx
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
 import WorkoutCalendar from "../../components/workout/WorkoutCalendar";
-
 import MoreIcon from "../../assets/icons/more.svg";
-
 import useDiaryStore from "../../stores/useDiaryStore";
 import useUserStore from "../../stores/useUserStore";
-
 import { deleteDiary, getDiaries } from "../../api/Diary";
-import { getUser } from "../../api/User"; // ✅ user 정보를 가져오는 API
-import { useRef } from "react";
+import { getUser } from "../../api/User";
+import { getCurrentMonthAttendance } from "../../api/Attendance"; 
+import { buildStreakSegments } from "../../utils/streakUtil";
+import DeleteConfirmAlert from "../../components/common/DeleteConfirmAlert";
+
 export default function WorkoutPage() {
   const { user, setUser } = useUserStore();
   const { diaries, setDiaries } = useDiaryStore();
-
   const navigate = useNavigate();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [filteredDiaries, setFilteredDiaries] = useState([]);
   const [diaryDates, setDiaryDates] = useState([]);
+  const [streakSegments, setStreakSegments] = useState([]);
+
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const dropdownRefs = useRef({});
+
+  // 삭제 확인 모달용 state
+  const [confirmDeleteDiaryId, setConfirmDeleteDiaryId] = useState(null);
+
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
   };
-  useEffect(() => {
-    async function fetchUserAndDiaries() {
-      try {
-        // 만약 user가 아직 없거나 user.userId가 없다면, 직접 getUser() 호출
-        if (!user || !user.userId) {
-          const userData = await getUser();
-          setUser(userData);
-          // userData.userId 기반으로 diaries fetch
-          const diariesData = await getDiaries(userData.userId);
-          setDiaries(diariesData);
-          setDiaryDates(
-            Array.from(new Set(diariesData.map((d) => d.workoutDate)))
-          );
-        } else {
-          // 이미 user store에 user.userId가 있는 경우
-          const diariesData = await getDiaries(user.userId);
-          setDiaries(diariesData);
-          setDiaryDates(
-            Array.from(new Set(diariesData.map((d) => d.workoutDate)))
-          );
-        }
-      } catch (err) {
-        console.error("일지/유저 정보 불러오기 실패:", err);
-      }
-    }
 
-    fetchUserAndDiaries();
-  }, [user, setUser, setDiaries]);
   useEffect(() => {
-    // 외부 클릭 감지 핸들러
+    // 외부 클릭 시 드롭다운 닫기
     const handleClickOutside = (event) => {
-      console.log(event.target);
-      // 현재 열린 드롭다운이 있고, 클릭된 요소가 해당 드롭다운 내부가 아닐 경우
       if (openDropdownId && dropdownRefs.current[openDropdownId]) {
         if (!dropdownRefs.current[openDropdownId].contains(event.target)) {
           setOpenDropdownId(null);
         }
       }
     };
-
-    // 이벤트 리스너 등록
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("touchstart", handleClickOutside);
-
-    // 컴포넌트 언마운트 시 이벤트 리스너 제거
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("touchstart", handleClickOutside);
     };
   }, [openDropdownId]);
+
+  // 1) user, diaries, 출석 정보 fetch
   useEffect(() => {
-    // "YYYY-MM-DD" 형식으로 변환
+    async function fetchData() {
+      try {
+        let userData = user;
+        if (!userData || !userData.userId) {
+          userData = await getUser();
+          setUser(userData);
+        }
+        const diariesData = await getDiaries(userData.userId);
+        setDiaries(diariesData);
+        setDiaryDates(Array.from(new Set(diariesData.map((d) => d.workoutDate))));
+
+        const attendanceList = await getCurrentMonthAttendance(userData.userId);
+        const attendanceDates = attendanceList.map((item) => item.attendanceDate);
+        const segments = buildStreakSegments(attendanceDates);
+        setStreakSegments(segments);
+      } catch (err) {
+        console.error("데이터 불러오기 실패:", err);
+      }
+    }
+    fetchData();
+  }, [user, setUser, setDiaries]);
+
+  // 2) 날짜 선택 시 일지 필터
+  useEffect(() => {
     const formattedDate = selectedDate
       .toLocaleDateString("ko-KR", {
         year: "numeric",
@@ -87,22 +84,24 @@ export default function WorkoutPage() {
       })
       .replace(/\. /g, "-")
       .replace(".", "");
-
-    setFilteredDiaries(
-      diaries.filter((diary) => diary.workoutDate === formattedDate)
-    );
+    setFilteredDiaries(diaries.filter((diary) => diary.workoutDate === formattedDate));
   }, [diaries, selectedDate]);
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
   };
 
-  const handleDeleteDiary = async (diaryId) => {
-    try {
-      await deleteDiary(diaryId);
-      setDiaries(diaries.filter((d) => d.diaryId !== diaryId));
-    } catch (error) {
-      console.error("삭제 중 오류:", error);
+  // 삭제 확인 모달에서 확인 버튼 클릭 시 처리
+  const confirmDelete = async () => {
+    if (confirmDeleteDiaryId) {
+      try {
+        await deleteDiary(confirmDeleteDiaryId);
+        setDiaries(diaries.filter((d) => d.diaryId !== confirmDeleteDiaryId));
+      } catch (error) {
+        console.error("삭제 중 오류:", error);
+      } finally {
+        setConfirmDeleteDiaryId(null);
+      }
     }
   };
 
@@ -114,56 +113,59 @@ export default function WorkoutPage() {
           onDateSelect={handleDateSelect}
           selectedDate={selectedDate}
           diaryDates={diaryDates}
+          streakSegments={streakSegments}
         />
-        <div className="space-y-4">
+
+        {/* 일지 목록 영역 */}
+        <div className="space-y-5 mt-4">
           {filteredDiaries.length > 0 ? (
             filteredDiaries.map((diary) => (
               <div
                 key={diary.diaryId}
-                className="p-4 bg-white rounded-lg border border-gray-200 max-w-md"
+                onClick={() => navigate(`/workoutdiary/${diary.diaryId}`)}
+                className="p-5 bg-white rounded-xl shadow-md border border-gray w-full max-w-lg mx-auto hover:shadow-xl transition duration-300 cursor-pointer"
               >
-                <div className="flex justify-between">
+                {/* 상단 제목 */}
+                <p className="text-sm text-gray-500 mb-1">운동일지</p>
+                {/* 내용 */}
+                <p className="text-gray-800 text-base font-medium">{diary.content}</p>
+                {/* 더보기 버튼 (카드 전체 클릭 이벤트 전파 방지) */}
+                <div className="flex justify-end mt-2">
                   <div
-                    onClick={() => navigate(`/workoutdiary/${diary.diaryId}`)}
+                    className="relative"
+                    ref={(el) => (dropdownRefs.current[diary.diaryId] = el)}
                   >
-                    <p className="text-gray-600">{diary.content}</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <div
-                      className="relative"
-                      ref={(el) => (dropdownRefs.current[diary.diaryId] = el)}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleDropdown(diary.diaryId);
+                      }}
+                      className="p-3 bg-gray-50 rounded-full hover:bg-gray-100"
                     >
-                      <button
-                        className="bg-gray-100 rounded-md w-6 h-6"
-                        onClick={() => {
-                          toggleDropdown(diary.diaryId);
-                        }}
-                      >
-                        <img src={MoreIcon} alt="" />
-                      </button>
-                      {openDropdownId === diary.diaryId && (
-                        <div className="absolute right-0 w-12 bg-white rounded-md border z-10">
-                          <div className="p-2">
-                            <button
-                              onClick={() =>
-                                navigate(`/workoutupdate/${diary.diaryId}`)
-                              }
-                              className="block text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-                            >
-                              수정
-                            </button>
-                            <button
-                              onClick={() => {
-                                handleDeleteDiary(diary.diaryId);
-                              }}
-                              className="text-left text-red-600 hover:bg-red-50"
-                            >
-                              삭제
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                      <img src={MoreIcon} alt="더보기" className="w-8 h-8" />
+                    </button>
+                    {openDropdownId === diary.diaryId && (
+                      <div className="absolute right-0 mt-2 w-40 bg-white rounded-md border shadow-md z-10 text-center">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/workoutupdate/${diary.diaryId}`);
+                          }}
+                          className="block w-full px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                        >
+                          수정
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDeleteDiaryId(diary.diaryId);
+                          }}
+                          className="block w-full px-4 py-2 text-red-600 hover:bg-red-50"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -174,17 +176,27 @@ export default function WorkoutPage() {
             </p>
           )}
         </div>
+
         <div className="w-full h-32"></div>
         <button
           onClick={() =>
             navigate("/workoutcreate", { state: { selectedDate } })
           }
-          className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-primary-light text-white font-bold py-3 px-6 rounded-full transition-all duration-300"
+          className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-[#5968eb] text-white font-bold py-3 px-6 rounded-full transition-all duration-300"
         >
           운동 기록하기
         </button>
       </div>
       <BottomBar />
+
+      {/* 삭제 확인 모달 */}
+      {confirmDeleteDiaryId && (
+        <DeleteConfirmAlert
+          message="정말로 삭제하시겠습니까?"
+          onConfirm={confirmDelete}
+          onCancel={() => setConfirmDeleteDiaryId(null)}
+        />
+      )}
     </>
   );
 }
