@@ -1,6 +1,7 @@
 // src/pages/WorkoutPage.jsx
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
 import WorkoutCalendar from "../../components/workout/WorkoutCalendar";
@@ -12,6 +13,12 @@ import { getUser } from "../../api/User";
 import { getCurrentMonthAttendance } from "../../api/Attendance"; 
 import { buildStreakSegments } from "../../utils/streakUtil";
 import DeleteConfirmAlert from "../../components/common/DeleteConfirmAlert";
+
+// 페이지 전체의 배경색을 설정하는 컨테이너
+const PageWrapper = styled.div`
+  background-color:rgb(255, 255, 255); /* 원하는 배경색으로 변경 */
+  min-height: 100vh;
+`;
 
 export default function WorkoutPage() {
   const { user, setUser } = useUserStore();
@@ -106,7 +113,7 @@ export default function WorkoutPage() {
   };
 
   return (
-    <>
+    <PageWrapper>
       <TopBar />
       <div className="m-5">
         <WorkoutCalendar
@@ -197,6 +204,6 @@ export default function WorkoutPage() {
           onCancel={() => setConfirmDeleteDiaryId(null)}
         />
       )}
-    </>
+    </PageWrapper>
   );
 }

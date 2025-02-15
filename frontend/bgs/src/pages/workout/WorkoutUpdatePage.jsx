@@ -461,6 +461,9 @@ export default function WorkoutUpdatePage() {
     setFiles((prev) => [...prev, ...selectedFiles]);
     const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
     setPreviewUrls((prev) => [...prev, ...newPreviews]);
+
+    // 파일 입력값 초기화 -> 같은 파일도 다시 선택 가능하게 함
+    e.target.value = "";
   };
 
   const handleRemoveImage = (index) => {
