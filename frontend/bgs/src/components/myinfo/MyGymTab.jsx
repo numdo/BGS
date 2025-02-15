@@ -1,13 +1,14 @@
-// MyGymTab.jsx
 import MyGymRoomView from "../../components/mygym/MyGymRoomView";
 import { useEffect } from "react";
 import { getMygym } from "../../api/Mygym";
 import useMyGymStore from "../../stores/useMyGymStore";
 import VisitorMemo from "../mygym/VisitorMemo";
 import useUserStore from "../../stores/useUserStore";
+
 export default function MyGymTab({ friendId }) {
   const { myGym, setMyGym } = useMyGymStore();
-  const {user} = useUserStore();
+  const { user } = useUserStore();
+
   useEffect(() => {
     if (!friendId) return;
     getMygym(friendId).then((fetched) => {
@@ -16,18 +17,20 @@ export default function MyGymTab({ friendId }) {
   }, [friendId]);
 
   return (
-    <>
-    <div>
+    <div className="flex flex-col items-center w-full">
+      {/* 🔹 MyGymRoomView 크기 조정 (scale 적용) */}
+      <div className="w-full flex justify-center">
+        <div className="transform scale-90">
+          {" "}
+          {/* 90% 크기로 축소 */}
+          <MyGymRoomView />
+        </div>
+      </div>
 
-    <div className="relative">
-      <div className="relative z-10">
-        <MyGymRoomView />
+      {/* 🔹 VisitorMemo 크기 조정 */}
+      <div className="w-full max-w-[80%] py-6 mx-auto">
+        <VisitorMemo userId={user.userId} />
       </div>
     </div>
-      <div className="w-full py-6 z-20">
-        <VisitorMemo userId={user.userId}/>
-      </div>
-    </div>
-    </>
   );
 }
