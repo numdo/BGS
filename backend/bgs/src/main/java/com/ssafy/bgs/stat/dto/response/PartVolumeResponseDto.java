@@ -8,6 +8,8 @@ import lombok.Setter;
 public class PartVolumeResponseDto {
     private Integer chest;
     private Integer lat;
+    private Integer triceps;
     private Integer shoulder;
+    private Integer biceps;
     private Integer leg;
 }

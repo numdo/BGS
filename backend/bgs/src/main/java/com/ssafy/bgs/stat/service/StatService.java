@@ -134,7 +134,9 @@ public class StatService {
         // 기본값 0으로 초기화
         responseDto.setChest(0);
         responseDto.setLat(0);
+        responseDto.setTriceps(0);
         responseDto.setShoulder(0);
+        responseDto.setBiceps(0);
         responseDto.setLeg(0);
 
         for (Object[] row : results) {
@@ -145,7 +147,9 @@ public class StatService {
             switch (part) {
                 case "가슴" -> responseDto.setChest(totalVolume);
                 case "등" -> responseDto.setLat(totalVolume);
+                case "삼두" -> responseDto.setTriceps(totalVolume);
                 case "어깨" -> responseDto.setShoulder(totalVolume);
+                case "이두" -> responseDto.setBiceps(totalVolume);
                 case "하체" -> responseDto.setLeg(totalVolume);
             }
         }
