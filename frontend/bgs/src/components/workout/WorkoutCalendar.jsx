@@ -1,164 +1,230 @@
-// src/components/workout/WorkoutCalendar.jsx
-import { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
+import Calendar from "react-calendar";
+import styled from "styled-components";
+import moment from "moment";
+import "react-calendar/dist/Calendar.css";
 
-export default function WorkoutCalendar({
+const StyledCalendarWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  position: relative;
+
+  .react-calendar {
+    width: 100%;
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 4px 2px 10px rgba(0, 0, 0, 0.13);
+    padding: 3% 5%;
+    background-color: white;
+  }
+
+  .react-calendar__month-view abbr {
+    color: ${(props) => props.theme.gray_1 || "#555"};
+  }
+
+  .react-calendar__navigation {
+    justify-content: center;
+  }
+
+  .react-calendar__navigation button {
+    font-weight: 800;
+    font-size: 1rem;
+  }
+
+  .react-calendar__navigation button:focus,
+  .react-calendar__navigation button:disabled {
+    background-color: white;
+    color: ${(props) => props.theme.darkBlack || "#000"};
+  }
+
+  .react-calendar__navigation__label {
+    flex-grow: 0 !important;
+  }
+
+  .react-calendar__month-view__weekdays abbr {
+    text-decoration: none;
+    font-weight: 800;
+  }
+
+  .react-calendar__month-view__weekdays__weekday--weekend abbr[title="일요일"] {
+    color: ${(props) => props.theme.red_1 || "red"};
+  }
+
+  /* 모든 타일의 기본 스타일 재설정 */
+  .react-calendar__tile {
+    padding: 5px 0px 18px;
+    position: relative;
+    background: none !important;
+    color: ${(props) => props.theme.gray_1 || "#555"};
+  }
+
+  /* 오늘 날짜 스타일 */
+  .react-calendar__tile--now {
+    background: none !important;
+    abbr {
+      color: ${(props) => props.theme.primary_2 || "#00acc1"};
+    }
+  }
+
+  /* active 관련 모든 스타일 제거 */
+  .react-calendar__tile--active,
+  .react-calendar__tile--active:enabled:hover,
+  .react-calendar__tile--active:enabled:focus,
+  .react-calendar__tile--hasActive,
+  .react-calendar__tile--hasActive:enabled:hover,
+  .react-calendar__tile--hasActive:enabled:focus {
+    background: none !important;
+    color: inherit;
+  }
+
+  /* hover 스타일 */
+  .react-calendar__tile:enabled:hover {
+    background-color: #7985ef !important;
+    border-radius: 0.3rem;
+  }
+
+  /* 선택된 날짜 스타일 */
+  .custom-selected-date {
+    background-color: #7985ef !important;
+    border-radius: 0.3rem;
+    
+    abbr {
+      color: white !important;
+    }
+  }
+`;
+
+const MarkerContainer = styled.div`
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  pointer-events: none;
+`;
+
+const Marker = React.memo(({ isAttended, isDiary }) => (
+  <MarkerContainer>
+    {isAttended && (
+      <span style={{ fontSize: "0.8rem", display: "inline-block" }}>
+        ✅
+      </span>
+    )}
+    {isDiary && (
+      <span style={{ fontSize: "0.8rem", display: "inline-block" }}>
+        💪
+      </span>
+    )}
+  </MarkerContainer>
+));
+
+const LegendContainer = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  /* box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);  제거 또는 주석 처리 */
+  font-size: 0.9rem;
+  color: ${(props) => props.theme.gray_1 || "#555"};
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+
+const WorkoutCalendar = ({
   onDateSelect,
   selectedDate,
   diaryDates = [],
   streakSegments = [],
-}) {
-  const [currentDate, setCurrentDate] = useState(new Date());
+}) => {
+  // value와 activeDate를 분리하여 관리
+  const [value, setValue] = useState(selectedDate || new Date());
+  const [activeDate, setActiveDate] = useState(selectedDate || new Date());
 
-  const handleDateClick = (day) => {
-    if (!day) return;
-    const newDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      day
-    );
-    onDateSelect && onDateSelect(newDate);
-  };
+  // selectedDate prop이 변경될 때 상태 업데이트
+  useEffect(() => {
+    if (selectedDate) {
+      setValue(selectedDate);
+      setActiveDate(selectedDate);
+    }
+  }, [selectedDate]);
 
-  const handleChangeMonth = (increment) => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(currentDate.getMonth() + increment);
-    setCurrentDate(newDate);
-  };
-
-  const formatDate = (year, month, day) => {
-    const y = year;
-    const m = String(month + 1).padStart(2, "0");
-    const d = String(day).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  };
-
-  const firstDayOfMonth = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth(),
-    1
+  const handleDateChange = useCallback(
+    (newDate) => {
+      setValue(newDate);
+      setActiveDate(newDate);
+      onDateSelect?.(newDate);
+    },
+    [onDateSelect]
   );
-  const lastDayOfMonth = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth() + 1,
-    0
+
+  const getAttendance = useCallback(
+    (formatted) => {
+      const segment = streakSegments.find(
+        (seg) => formatted >= seg.start && formatted <= seg.end
+      );
+      return {
+        isAttended: segment ? segment.attended.has(formatted) : false,
+        isDiary: diaryDates.includes(formatted),
+      };
+    },
+    [streakSegments, diaryDates]
   );
-  const firstDayWeekday = firstDayOfMonth.getDay();
-  const daysInMonth = lastDayOfMonth.getDate();
 
-  const generateCalendar = () => {
-    const days = [];
-    for (let i = 0; i < firstDayWeekday; i++) {
-      days.push(null);
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
-    }
-    return days;
-  };
-  const calendarDays = generateCalendar();
+  const tileContent = useCallback(
+    ({ date: tileDate, view }) => {
+      if (view !== "month") return null;
+      const formatted = moment(tileDate).format("YYYY-MM-DD");
+      const { isAttended, isDiary } = getAttendance(formatted);
+      if (!isAttended && !isDiary) return null;
+      return <Marker isAttended={isAttended} isDiary={isDiary} />;
+    },
+    [getAttendance]
+  );
 
-  // 해당 날짜가 streakSegments 중 어느 구간에 속하는지 반환
-  const getSegmentForDate = (dateStr) => {
-    for (let seg of streakSegments) {
-      if (dateStr >= seg.start && dateStr <= seg.end) {
-        return seg;
-      }
-    }
-    return null;
-  };
+  const tileClassName = useCallback(
+    ({ date: tileDate }) => {
+      return moment(tileDate).isSame(value, "day") ? "custom-selected-date" : "";
+    },
+    [value]
+  );
 
   return (
-    <div className="mb-3 px-3 pt-1 pb-3 bg-gray-50 rounded-lg">
-      <div className="flex justify-between items-center mb-1">
-        <button onClick={() => handleChangeMonth(-1)}>&lt;</button>
-        <h2 className="text-lg font-bold text-gray-500">
-          {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
-        </h2>
-        <button onClick={() => handleChangeMonth(1)}>&gt;</button>
-      </div>
-
-      <div className="grid grid-cols-7 text-center text-gray-500 font-semibold">
-        {["일", "월", "화", "수", "목", "금", "토"].map((dayName) => (
-          <div key={dayName}>{dayName}</div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-7 gap-1 text-center">
-        {calendarDays.map((day, index) => {
-          if (!day) {
-            return <div key={index} className="p-2 bg-gray-50 rounded-md" />;
-          }
-          const year = currentDate.getFullYear();
-          const month = currentDate.getMonth();
-          const formattedStr = formatDate(year, month, day);
-          const hasDiary = diaryDates.includes(formattedStr);
-          const segment = getSegmentForDate(formattedStr);
-
-          // 기본 스타일
-          let cellStyle = {
-            backgroundColor: "#ffffff",
-            color: "#4B5563", // text-gray-600
-            border: "1px solid #E5E7EB", // border-gray-200
-          };
-
-          if (segment) {
-            if (segment.attended.has(formattedStr)) {
-              // 실제 출석: 진한 테두리, 3px 두께
-              cellStyle = {
-                backgroundColor: "#ffffff",
-                color: "#4B5563",
-                border: "2px solid #5968eb",
-              };
-            } else {
-              // 구간 내에 있지만 출석하지 않음: 얇은 테두리
-              cellStyle = {
-                backgroundColor: "#ffffff",
-                color: "#4B5563",
-                border: "1px solid #a3bffa", // 연한 파랑 (blue-300 느낌)
-              };
-            }
-          }
-
-          // 선택된 날짜 스타일: 배경 및 테두리 모두 메인 색상 적용
-          const isSelected =
-            selectedDate &&
-            selectedDate.getFullYear() === year &&
-            selectedDate.getMonth() === month &&
-            selectedDate.getDate() === day;
-          if (isSelected) {
-            cellStyle = {
-              backgroundColor: "#5968eb",
-              color: "#000000",
-              border: "2px solid #5968eb",
-            };
-          }
-
-          return (
-            <div
-              key={index}
-              onClick={() => handleDateClick(day)}
-              className="relative px-1 py-2 rounded-md cursor-pointer transition-colors"
-              style={cellStyle}
-            >
-              <div className="z-10">{day}</div>
-              {hasDiary && (
-                <span
-                  className="absolute text-xl"
-                  style={{
-                    opacity: 0.5,
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    pointerEvents: "none",
-                  }}
-                >
-                  💪
-                </span>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <StyledCalendarWrapper>
+      <Calendar
+        value={value}
+        activeStartDate={activeDate}
+        onChange={handleDateChange}
+        formatDay={(locale, date) => moment(date).format("D")}
+        calendarType="gregory"
+        showNeighboringMonth={false}
+        next2Label={null}
+        prev2Label={null}
+        minDetail="year"
+        tileContent={tileContent}
+        tileClassName={tileClassName}
+        onActiveStartDateChange={({ activeStartDate }) => setActiveDate(activeStartDate)}
+      />
+      {/* 달력 우측 상단에 레전드 추가 */}
+      <LegendContainer>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <span>✅</span>
+          <span>출석</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <span>💪</span>
+          <span>일지</span>
+        </div>
+      </LegendContainer>
+    </StyledCalendarWrapper>
   );
-}
+};
+
+export default React.memo(WorkoutCalendar);
