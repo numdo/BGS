@@ -138,14 +138,14 @@ const MyGymRoomEdit = () => {
     <div className="relative flex flex-col items-center">
       <div
         ref={roomRef}
-        className="relative w-[96vw] h-[50vw]"
+        className="relative w-96 h-80"
         style={{ touchAction: "none" }}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
       >
         <div
-          className="relative w-[96vw] h-[50vw]"
+          className="relative w-96 h-80"
           style={{
             filter: "drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4))",
           }}
@@ -154,8 +154,8 @@ const MyGymRoomEdit = () => {
           <div
             style={{
               position: "absolute",
-              width: "100vw",
-              height: "100vw",
+              width: "100%",
+              height: "100%",
               clipPath:
                 "polygon(50% 12%, 100% 30%, 100% 65%, 50% 45%, 0% 65%, 0% 30%)",
               backgroundColor: myGym.wallColor,
@@ -170,8 +170,8 @@ const MyGymRoomEdit = () => {
           <div
             style={{
               position: "absolute",
-              width: "100vw",
-              height: "100vw",
+              width: "100%",
+              height: "100%",
               clipPath: "polygon(50% 45%, 100% 65%, 50% 85%, 0% 65%)",
               backgroundColor: "#999999",
               zIndex: 0,

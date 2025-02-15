@@ -2,6 +2,7 @@
 import React from "react";
 import myinfo from "../../assets/icons/myinfo.png";
 import useUserStore from "../../stores/useUserStore";
+import send from "../../assets/icons/send.png";
 
 const CommentInput = React.memo(
   ({ newComment, setNewComment, onAddComment }) => {
@@ -15,7 +16,7 @@ const CommentInput = React.memo(
     };
 
     return (
-      <div className="flex items-center space-x-3 p-3 border-b w-full">
+      <div className="flex items-center space-x-3 p-3 border-b w-full z-50">
         <img
           src={user.profileImageUrl || myinfo}
           alt="프로필"
@@ -28,10 +29,9 @@ const CommentInput = React.memo(
           onKeyDown={handleKeyDown}
           placeholder="방명록 추가..."
           className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          style={{zIndex:5}}
         />
-        <button onClick={onAddComment} className="text-blue-500 font-bold">
-          등록
-        </button>
+        <img src={send} alt="전송" onClick={onAddComment} />
       </div>
     );
   }

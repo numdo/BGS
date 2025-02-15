@@ -6,6 +6,7 @@ import MyGymRoomEdit from "../../components/mygym/MyGymRoomEdit";
 import MyGymRoomView from "../../components/mygym/MyGymRoomView";
 import MyGymItem from "../../components/mygym/MyGymItem";
 import SelectColor from "../../components/mygym/SelectColor";
+import MyGymViewVisitorMemo from "../../components/mygym/MyGymViewVisitorMemo";
 import "../../style.css";
 import editicon from "../../assets/icons/editicon.png";
 import shopicon from "../../assets/icons/shopicon.png";
@@ -131,10 +132,6 @@ const MyGymPage = () => {
             setRoomColor={setWallColor}
             onClick={handlePaletteClick}
           />
-          <SelectColor
-            setRoomColor={setWallColor}
-            onClick={handlePaletteClick}
-          />
           {/* 편집버튼을 누르면 MyGymItem의 forceOpen이 true가 되어 슬라이드 업 */}
           <MyGymItem setItems={setItems} forceOpen={isItemOpen} />
         </>
@@ -142,6 +139,13 @@ const MyGymPage = () => {
         // 보기 모드
         <>
           <MyGymRoomView userId={user.userId} />
+          <div className="mt-10">
+          <MyGymViewVisitorMemo 
+          userId={user.userId}
+          visitorMemos={visitorMemos}
+          setVisitorMemos={setVisitorMemos}
+          />
+          </div>
         </>
       )}
 
