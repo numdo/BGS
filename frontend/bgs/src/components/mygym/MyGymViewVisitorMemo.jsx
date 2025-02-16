@@ -96,9 +96,9 @@ const MyGymViewVisitorMemo = ({userId,setVisitorMemos,visitorMemos}) => {
 
     return (
         <>
-          <div className="bg-white py-3 px-16 rounded-3xl min-h-[calc(50vh-120px)]" style={{zIndex:3}}>
-          <CommentInput newComment={newComment} setNewComment={setNewComment} onAddComment={handleAddComment} />
-          <div className="space-y-4 mt-4">
+          <div className="bg-white py-2 px-2 mx-4 mb-16 shadow-md rounded-3xl min-h-[calc(50vh-120px)]" style={{zIndex:3}}>
+          <CommentInput newComment={newComment} setNewComment={setNewComment} onAddComment={handleAddComment}/>
+          <div className="mt-4 max-h-[200px] overflow-y-auto">
           {visitorMemos.slice().reverse().map((memo) => (
             <CommentList
               key={memo.guestbookId}
