@@ -1,32 +1,42 @@
+// src/components/mygym/MyGymRoomBgColor.jsx
+import React from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
-import mygymbackimg from "../../assets/images/mygymbackimg.png";
-import backimg1 from "../../assets/images/backimg1.png";
-import backimg2 from "../../assets/images/backimg2.png";
+import bgimg from "../../assets/images/backimg.png";
+import bgimg1 from "../../assets/images/backimg1.jpg";
+import bgimg2 from "../../assets/images/backimg2.jpg";
+import bgimg3 from "../../assets/images/backimg3.jpg";
+import bgimg4 from "../../assets/images/backimg4.jpg";
+import bgimg5 from "../../assets/images/backimg5.jpg";
 
+const backgroundImages = {
+  bgimg: bgimg,
+  bgimg1: bgimg1,
+  bgimg2: bgimg2,
+  bgimg3: bgimg3,
+  bgimg4: bgimg4,
+  bgimg5: bgimg5,
+};
 
-const colors = [
-  "#FFFFFF",
-  "#484547",
-  "#FFEB00",
-  "#79B465",
-  "#005AFF",
-  "#9E3AC3",
-];
+const MyGymRoomBgColor = ({ children, className = "", style = {}, ...props }) => {
+  const { myGym } = useMyGymStore();
 
-const BackGroundColorButton = ({ setBgColor }) => {
-  const { myGym, setMyGym } = useMyGymStore();
+  const bgKey = myGym.backgroundColor;
+  const bgImage = backgroundImages[bgKey] || bgimg;
+
   return (
-    <div className="flex gap-2">
-      {colors.map((color) => (
-        <button
-          key={color}
-          onClick={() => setMyGym({ ...myGym, backgroundColor: color })}
-          className="w-8 h-8 rounded-full border-2 border-white shadow-md"
-          style={{ backgroundColor: color }}
-        />
-      ))}
+    <div
+      className={className}
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        ...style,
+      }}
+      {...props}
+    >
+      {children}
     </div>
   );
 };
 
-export default BackGroundColorButton;
+export default MyGymRoomBgColor;
