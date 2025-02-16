@@ -4,11 +4,10 @@ import { useNavigate } from "react-router-dom";
 import CommentInput from "./CommentInput";
 import CommentList from "./CommentList";
 import { createGuestBooks, deleteGuestBook, getGuestBooks, updateGuestBook } from "../../api/Mygym";
-import zIndex from "@mui/material/styles/zIndex";
 
-
-const MyGymViewVisitorMemo = ({userId,setVisitorMemos,visitorMemos}) => {
+const MyGymViewVisitorMemo = ({ userId, setVisitorMemos, visitorMemos }) => {
   const [newComment, setNewComment] = useState("");
+  const [notification, setNotification] = useState(""); // 알림 상태
   const navigate = useNavigate();
 
   // 댓글 수정 상태 관리
@@ -42,20 +41,20 @@ const MyGymViewVisitorMemo = ({userId,setVisitorMemos,visitorMemos}) => {
     try {
       const payload = { content: newComment };
       await createGuestBooks(userId, payload);
-      // 댓글 추가 후 첫 페이지를 다시 로드하여 최신 댓글 확인
-      loadComments(0);
+      loadComments(0); // 댓글 추가 후 첫 페이지를 다시 로드하여 최신 댓글 확인
       setNewComment("");
     } catch (error) {
       console.error("댓글 추가 실패:", error);
     }
   }, [newComment, userId, loadComments]);
 
-  // 댓글 삭제 핸들러
+  // 댓글 삭제 핸들러 (삭제 시 알림 표시)
   const handleDeleteMemo = useCallback(async (guestbookId) => {
     try {
       await deleteGuestBook(userId, guestbookId);
-      // 삭제 후 첫 페이지 다시 로드
+      setNotification("댓글이 삭제되었습니다.");
       loadComments(0);
+      setTimeout(() => setNotification(""), 3000);
     } catch (error) {
       console.error("댓글 삭제 실패:", error);
     }
@@ -78,7 +77,6 @@ const MyGymViewVisitorMemo = ({userId,setVisitorMemos,visitorMemos}) => {
     try {
       const payload = { content: editingContent };
       await updateGuestBook(userId, guestbookId, payload);
-      // 수정 후 첫 페이지 다시 로드
       loadComments(0);
       setEditingCommentId(null);
       setEditingContent("");
@@ -94,12 +92,32 @@ const MyGymViewVisitorMemo = ({userId,setVisitorMemos,visitorMemos}) => {
     }
   };
 
-    return (
-        <>
-          <div className="bg-white py-2 px-2 mx-4 mb-16 shadow-md rounded-3xl min-h-[calc(50vh-120px)]" style={{zIndex:3}}>
-          <CommentInput newComment={newComment} setNewComment={setNewComment} onAddComment={handleAddComment}/>
-          <div className="mt-4 max-h-[200px] overflow-y-auto">
-          {visitorMemos.slice().reverse().map((memo) => (
+  return (
+    <div
+      className="bg-white py-2 px-2 mx-4 mb-16 shadow-md rounded-3xl min-h-[calc(50vh-120px)]"
+      style={{ zIndex: 3 }}
+    >
+      <CommentInput 
+        newComment={newComment} 
+        setNewComment={setNewComment} 
+        onAddComment={handleAddComment} 
+      />
+
+      {/* 알림 문구 */}
+      {notification && (
+        <div className="text-center text-green-600 py-2">
+          {notification}
+        </div>
+      )}
+
+      <div className="mt-4 max-h-[200px] overflow-y-auto">
+        {visitorMemos?.length === 0 ? (
+          <div className="text-center text-gray-500 mt-4">
+            아직 작성된 방명록이 없습니다.<br />
+            방명록을 작성하여 친구에게 인사해보세요!
+          </div>
+        ) : (
+          visitorMemos.slice().reverse().map((memo) => (
             <CommentList
               key={memo.guestbookId}
               memo={memo}
@@ -111,11 +129,11 @@ const MyGymViewVisitorMemo = ({userId,setVisitorMemos,visitorMemos}) => {
               onSaveEditing={handleSaveEditing}
               onDeleteMemo={handleDeleteMemo}
             />
-          ))}
-        </div>
-          </div>
-        </>
-    )
-}
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default MyGymViewVisitorMemo;
