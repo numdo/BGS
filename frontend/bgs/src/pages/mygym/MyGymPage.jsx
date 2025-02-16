@@ -139,7 +139,7 @@ const MyGymPage = () => {
         // 보기 모드
         <>
           <MyGymRoomView userId={user.userId} />
-          <div className="mt-10">
+          <div className="mt-10 mb-20">
           <MyGymViewVisitorMemo 
           userId={user.userId}
           visitorMemos={visitorMemos}
