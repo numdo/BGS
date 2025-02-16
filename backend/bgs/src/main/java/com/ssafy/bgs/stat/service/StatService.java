@@ -77,7 +77,7 @@ public class StatService {
         Map<String, Long> workoutCountMap = new HashMap<>();
         for (Object[] row : workoutCounts) {
             String part = (String) row[0];  // part 컬럼 값
-            Long count = ((Number) row[1]).longValue();  // COUNT(dw) 값
+            Long count = ((Number) row[1]).longValue();  // COUNT 값
             workoutCountMap.put(part, count);
         }
 
@@ -87,10 +87,13 @@ public class StatService {
             partCounts.put(part.getValue(), workoutCountMap.getOrDefault(part.getValue(), 0L));
         }
 
-        // 최대값 찾기 (0이 아닌 값들 중)
+        // 최대값 찾기 (모든 값이 0이면 maxCount가 0이 되므로 1로 설정)
         long maxCount = partCounts.values().stream()
                 .max(Long::compare)
-                .orElse(1L); // 모든 값이 0이면 1로 설정하여 0으로 나누는 문제 방지
+                .orElse(0L);
+        if (maxCount == 0) {
+            maxCount = 1;
+        }
 
         // 비율 계산 및 응답 설정
         workoutBalanceResponseDto.setChest((int) (100 * partCounts.get("가슴") / maxCount));
@@ -104,6 +107,7 @@ public class StatService {
 
         return workoutBalanceResponseDto;
     }
+
 
 
     public Map<String, PartVolumeResponseDto> getPartVolume(Integer userId) {
