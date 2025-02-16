@@ -29,7 +29,7 @@ export default function MyGymTab({ friendId }) {
 
       {/* 🔹 VisitorMemo 크기 조정 */}
       <div className="w-full max-w-[80%] py-6 mx-auto">
-        <VisitorMemo userId={user.userId} />
+        <VisitorMemo userId={friendId} />
       </div>
     </div>
   );

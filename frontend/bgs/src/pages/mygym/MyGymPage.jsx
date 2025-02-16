@@ -16,7 +16,7 @@ import useMyGymStore from "../../stores/useMyGymStore";
 import { getMygym, updateMygym, getGuestBooks } from "../../api/Mygym";
 import { getUser } from "../../api/User";
 
-import mygymbackimg from "../../assets/images/mygymbackimg.png";
+import backimg from "../../assets/images/backimg.png";
 import ItemShopPage from "./ItemShopPage";
 
 const MyGymPage = () => {
@@ -84,7 +84,7 @@ const MyGymPage = () => {
       style={{
         backgroundColor: myGym.backgroundColor,
         minHeight: "100vh",
-        backgroundImage: `url(${mygymbackimg})`,
+        backgroundImage: `url(${backimg})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "repeat-x",

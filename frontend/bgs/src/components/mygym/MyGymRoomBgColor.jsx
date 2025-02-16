@@ -1,4 +1,8 @@
 import useMyGymStore from "../../stores/useMyGymStore";
+import mygymbackimg from "../../assets/images/mygymbackimg.png";
+import backimg1 from "../../assets/images/backimg1.png";
+import backimg2 from "../../assets/images/backimg2.png";
+
 
 const colors = [
   "#FFFFFF",
