@@ -6,7 +6,10 @@ import mascot from "../../assets/images/mascot.png";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
-import { Chart } from "primereact/chart";
+import WeightRecordCard from "../../components/stat/WeightRecordCard";
+import WeightHistoryChart from "../../components/stat/WeightHistoryChart";
+import WorkoutBalanceRadarChart from "../../components/stat/WorkoutBalanceRadarChart";
+import PartVolumeBarChart from "../../components/stat/PartVolumeBarChart";
 
 // toastrAlert 함수들 import
 import {
@@ -167,10 +170,18 @@ export default function MainPage() {
             </p>
           </button>
         </div>
-
+        <div className="mt-8">
+          <WeightRecordCard />
+        </div>
         {/* 레이더 차트 */}
         <div className="mt-12 mb-12">
-          <Chart type="radar" data={radarData} options={radarOptions} />
+          <WeightHistoryChart />
+        </div>
+        <div className="mt-12 mb-12">
+          <WorkoutBalanceRadarChart  />
+        </div>
+        <div className="mt-12 mb-12">
+          <PartVolumeBarChart   />
         </div>
       </div>
 

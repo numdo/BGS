@@ -1,0 +1,52 @@
+import axiosInstance from "../utils/axiosInstance";
+
+const BASE_URL = "/stats";
+
+// ✅ 몸무게 히스토리 조회
+export async function getWeightHistories() {
+  try {
+    const response = await axiosInstance.get(`${BASE_URL}/weight-histories`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+// ✅ 몸무게 히스토리 추가
+export async function addWeightHistory(weightRequestDto) {
+  try {
+    const response = await axiosInstance.post(
+      `${BASE_URL}/weight-histories`,
+      weightRequestDto
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+// ✅ 운동 밸런스 조회 (scope: all, week, month, year)
+export async function getWorkoutBalance(scope = "all") {
+  try {
+    const response = await axiosInstance.get(`${BASE_URL}/workout-balance`, {
+      params: { scope },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+// ✅ 부위별 볼륨 조회
+export async function getPartVolume() {
+  try {
+    const response = await axiosInstance.get(`${BASE_URL}/part-volume`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
