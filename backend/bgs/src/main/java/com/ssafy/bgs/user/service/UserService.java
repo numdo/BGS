@@ -329,6 +329,7 @@ public class UserService {
                 .strickAttendance(user.getStrickAttendance())
                 .lastAttendance(user.getLastAttendance())
                 .coin(user.getCoin())
+                .accountType(user.getAccountType())
                 .profileImageUrl(null) // 여기서는 기본 null로 두고, 호출부에서 최신 이미지를 세팅
                 .build();
     }

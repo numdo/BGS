@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import logo from "../../assets/images/logo+name.png";
+import LogoSection from "../../components/common/LogoSection";
 import kakaoLogo from "../../assets/images/kakao-logo.png";
 
 const LoginPage = () => {
@@ -13,10 +13,7 @@ const LoginPage = () => {
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-white px-4">
       {/* 로고 섹션 */}
-      <div className="text-center mb-8">
-        <img src={logo} alt="App Logo" className="w-72 h-80 mx-auto mb-4" />
-      </div>
-
+      <LogoSection />
       {/* 버튼 섹션 */}
       <div className="w-full max-w-md flex flex-col space-y-4 justify-center">
         {/* 불끈 계정으로 로그인 */}

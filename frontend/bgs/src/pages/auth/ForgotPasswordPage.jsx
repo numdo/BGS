@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { resetPassword } from "../../api/Auth"; // ✅ API 함수 불러오기
-import { ArrowLeft } from "lucide-react";
-import logoImage from "../../assets/images/logo_image.png";
-import nameImage from "../../assets/images/name.png";
+import { ChevronLeftIcon } from "@heroicons/react/24/solid";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -43,19 +41,13 @@ const ForgotPasswordPage = () => {
       {/* 뒤로가기 버튼 */}
       <button
         onClick={() => navigate(-1)}
-        className="absolute top-5 left-5 text-black font-medium p-2 rounded hover:bg-gray-100 flex items-center space-x-2"
+        className="absolute top-5 left-3 text-black font-medium p-2 rounded hover:bg-gray-100 flex items-center space-x-2"
       >
-        <ArrowLeft size={20} />
+        <ChevronLeftIcon className="w-6 h-6" />
       </button>
 
-      {/* ✅ 페이지 상단: 로고 & 앱 이름 (가로 배치) */}
-      <div className="flex flex-col items-center space-y-4 mb-10 mt-8">
-        <img src={logoImage} alt="Logo" className="h-32" />
-        <img src={nameImage} alt="Name" className="h-15" />
-      </div>
-
       {/* ✅ 제목 */}
-      <h2 className="text-3xl font-bold text-gray-800 mb-6">비밀번호 재설정</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">비밀번호 재설정</h2>
 
       {/* ✅ 안내 문구 */}
       <p className="text-gray-500 text-sm mb-12 text-center">
@@ -83,8 +75,8 @@ const ForgotPasswordPage = () => {
           onClick={handleSubmit}
           className={`w-full p-4 rounded-lg text-lg font-semibold transition ${
             email && !loading
-              ? "bg-blue-500 text-white hover:bg-blue-600"
-              : "bg-white text-blue-500 border border-blue-500 cursor-not-allowed"
+              ? "bg-primary text-white hover:bg-primary-light"
+              : "bg-white text-primary-light border border-primary-light cursor-not-allowed"
           }`}
           disabled={!email || loading}
         >

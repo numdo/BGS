@@ -8,9 +8,8 @@ import {
   Typography,
   IconButton,
 } from "@mui/material";
-import { ArrowBack } from "@mui/icons-material";
-import logoImage from "../../assets/images/logo_image.png";
-import nameImage from "../../assets/images/name.png";
+import { ChevronLeftIcon } from "@heroicons/react/24/solid";
+import LogoSection from "../../components/common/LogoSection";
 
 const BgsLoginPage = () => {
   const [email, setEmail] = useState("");
@@ -81,21 +80,20 @@ const BgsLoginPage = () => {
       }}
     >
       {/* 뒤로가기 버튼 */}
-      <IconButton
+      <button
         onClick={() => navigate(-1)}
-        sx={{ position: "absolute", top: 16, left: 16 }}
+        className="absolute top-5 left-3 text-black font-medium p-2 rounded hover:bg-gray-100 flex items-center space-x-2"
       >
-        <ArrowBack />
-      </IconButton>
-
-      {/* 로고 및 앱 이름 */}
-      <Box sx={{ textAlign: "center", mb: 4 }}>
-        <img src={logoImage} alt="Logo" style={{ height: 120 }} />
-        <img src={nameImage} alt="Name" style={{ height: 50, marginTop: 8 }} />
-      </Box>
-
+        <ChevronLeftIcon className="w-6 h-6" />
+      </button>
+        <LogoSection />
       {/* 로그인 폼 */}
-      <Box component="form" onSubmit={handleLogin} noValidate sx={{ width: "100%" }}>
+      <Box
+        component="form"
+        onSubmit={handleLogin}
+        noValidate
+        sx={{ width: "100%" }}
+      >
         <TextField
           variant="outlined"
           margin="normal"

@@ -9,21 +9,20 @@ import {
 } from "../recoil/profileState";
 import { getUser } from "../api/User";
 
-const useProfileGuard = () => {
+const useProfileGuard = (enabled = true) => {
   const navigate = useNavigate();
   const [profile, setProfile] = useRecoilState(profileState);
   const [loading, setLoading] = useRecoilState(profileLoadingState);
-  const [profileIncomplete, setProfileIncomplete] =
-    useRecoilState(profileIncompleteState);
+  const [profileIncomplete, setProfileIncomplete] = useRecoilState(profileIncompleteState);
 
   useEffect(() => {
+    if (!enabled) return; // 프로필 체크가 비활성화된 경우 실행하지 않음.
     const checkProfile = async () => {
       console.log("[useProfileGuard] checkProfile 호출");
       setLoading(true);
       try {
         const user = await getUser();
         console.log("[useProfileGuard] 백엔드에서 받은 user:", user);
-
         setProfile(user);
         // 필수 정보가 모두 있으면 profileIncomplete = false, 그렇지 않으면 true
         if (
@@ -48,10 +47,10 @@ const useProfileGuard = () => {
       }
     };
     checkProfile();
-  }, [navigate, setProfile, setProfileIncomplete, setLoading]);
+  }, [enabled, navigate, setProfile, setProfileIncomplete, setLoading]);
 
-  // 로딩 완료 후, 프로필이 미완성이라면 /social-signup으로 보냄
   useEffect(() => {
+    if (!enabled) return; // 프로필 체크가 비활성화된 경우 실행하지 않음.
     if (!loading) {
       console.log(
         "[useProfileGuard] 로딩 완료. profileIncomplete:",
@@ -62,7 +61,7 @@ const useProfileGuard = () => {
         navigate("/social-signup");
       }
     }
-  }, [loading, profileIncomplete, navigate]);
+  }, [enabled, loading, profileIncomplete, navigate]);
 
   return { loading, profileIncomplete, profile };
 };

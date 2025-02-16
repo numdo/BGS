@@ -16,6 +16,7 @@ const useUserStore = create((set) => ({
     lastAttendance: "",
     coin: 0,
     profileImageUrl: "",
+    accountType: "",
   },
   user: {
     userId: 0,
