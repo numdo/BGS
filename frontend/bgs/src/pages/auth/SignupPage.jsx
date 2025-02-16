@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import EmailVerification from "../../components/auth/EmailVerification";
 import SignupForm from "../../components/auth/SignupForm";
 import { sendEmailVerify, receiveEmailVerify, signup } from "../../api/Auth";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeftIcon } from "@heroicons/react/24/solid";
 import logo_image from "../../assets/images/logo_image.png";
 import name_image from "../../assets/images/name.png";
+import LogoSection from "../../components/common/LogoSection";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -84,13 +85,12 @@ const SignupPage = () => {
     <div className="flex flex-col items-center justify-center bg-white px-10 py-16 relative">
       <button
         onClick={() => navigate(-1)}
-        className="absolute top-5 left-5 text-black font-medium p-2 rounded hover:bg-gray-100 flex items-center space-x-2"
+        className="absolute top-5 left-3 text-black font-medium p-2 rounded hover:bg-gray-100 flex items-center space-x-2"
       >
-        <ArrowLeft size={20} />
+        <ChevronLeftIcon className="w-6 h-6" />
       </button>
-      <div className="flex flex-col items-center space-x-4 mb-10">
-        <img src={logo_image} alt="Logo" className="h-32" />
-        <img src={name_image} alt="Name" className="h-15" />
+      <div className="flex flex-col items-center space-x-4 mt-10">
+        <LogoSection />
       </div>
       {!isVerified ? (
         <EmailVerification

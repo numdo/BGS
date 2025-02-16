@@ -1,5 +1,6 @@
 package com.ssafy.bgs.user.dto.response;
 
+import com.ssafy.bgs.user.entity.AccountType;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -27,4 +28,5 @@ public class UserResponseDto {
     private LocalDate lastAttendance;
     private Integer coin;
     private String profileImageUrl;
+    private AccountType accountType;
 }
