@@ -4,135 +4,150 @@ import { useNavigate } from "react-router-dom";
 import { socialSignup } from "../../api/Auth";
 import { checkNickname } from "../../api/User";
 import { getUser } from "../../api/User"; // 가입 후 프로필 재확인
-import { ArrowLeft } from "lucide-react";
-import logo_image from "../../assets/images/logo_image.png";
-import name_image from "../../assets/images/name.png";
-
-// 헬퍼: 생년월일 범위 검사 (1900-01-01 ~ 오늘 이하)
-function validateBirthDate(value) {
-  if (!value) return "생년월일을 선택해주세요.";
-  const [yyyy, mm, dd] = value.split("-").map(Number);
-  if (!yyyy || !mm || !dd) return "생년월일 형식이 잘못되었습니다.";
-  if (yyyy < 1900) return "생년월일은 1900년 이후여야 합니다.";
-
-  const birth = new Date(yyyy, mm - 1, dd);
-  const today = new Date();
-  if (birth > today) {
-    return "생년월일이 오늘보다 미래일 수 없습니다.";
-  }
-  return ""; // 에러 없음
-}
+import {
+  TextField,
+  InputAdornment,
+  Typography,
+  Box,
+  Button,
+} from "@mui/material";
+import LogoSection from "../common/LogoSection";
+import { ChevronLeftIcon } from "@heroicons/react/24/solid";
 
 const SocialSignupForm = ({ userProfile }) => {
   const navigate = useNavigate();
 
-  // 초기 폼 상태
+  // formData: 소셜 가입 시 추가정보 (비밀번호 제외)
   const [formData, setFormData] = useState({
     nickname: "",
     name: "",
-    birthDate: "",
     sex: "",
     height: "",
     weight: "",
   });
+  // 생년월일은 별도 상태 (기본값: 2000년 1월 1일)
+  const [birthYear, setBirthYear] = useState(2000);
+  const [birthMonth, setBirthMonth] = useState(1);
+  const [birthDay, setBirthDay] = useState(1);
 
-  // 각 필드별 에러
+  // 각 필드별 에러 메시지
   const [errors, setErrors] = useState({
     nickname: "",
     name: "",
-    birthDate: "",
     sex: "",
     height: "",
     weight: "",
   });
-
-  // 닉네임 상태: "available" | "unavailable" | "checking" | null
+  // 각 필드가 blur 되었는지 추적
+  const [touched, setTouched] = useState({
+    nickname: false,
+    name: false,
+    sex: false,
+    height: false,
+    weight: false,
+  });
+  // 닉네임 중복 체크 상태: "available" | "unavailable" | "checking" | null
   const [nicknameStatus, setNicknameStatus] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // userProfile 바뀔 때마다 폼 초기값 세팅
+  // userProfile이 있을 경우, 초기값 세팅
   useEffect(() => {
     if (userProfile) {
       setFormData({
         nickname: userProfile.nickname || "",
         name: userProfile.name || "",
-        birthDate: userProfile.birthDate || "",
         sex: userProfile.sex || "",
         height: userProfile.height || "",
         weight: userProfile.weight || "",
       });
+      if (userProfile.birthDate) {
+        const [y, m, d] = userProfile.birthDate.split("-").map(Number);
+        setBirthYear(y);
+        setBirthMonth(m);
+        setBirthDay(d);
+      }
     }
   }, [userProfile]);
 
-  // 필드 유효성 검사 (변경된 요구 사항 반영)
+  // 개별 필드 유효성 검사 함수
   const validateField = (name, value) => {
-    let errorMsg = "";
-
+    let msg = "";
     if (name === "nickname") {
       if (!value.trim()) {
-        errorMsg = "닉네임은 필수입니다.";
+        msg = "닉네임을 입력해주세요.";
       } else if (value.trim().length < 3) {
-        errorMsg = "닉네임은 최소 3글자 이상이어야 합니다.";
+        msg = "닉네임은 최소 3글자 이상이어야 합니다.";
+      } else if (value.trim().length > 12) {
+        msg = "닉네임은 최대 12자까지 입력 가능합니다.";
+      }
+      if (nicknameStatus === "unavailable") {
+        msg = "이미 사용 중인 닉네임입니다.";
       }
     } else if (name === "name") {
-      if (!value.trim()) {
-        errorMsg = "이름은 필수입니다.";
-      }
-    } else if (name === "birthDate") {
-      // 별도 함수로 검사
-      errorMsg = validateBirthDate(value);
+      if (!value.trim()) msg = "이름을 입력해주세요.";
     } else if (name === "sex") {
-      if (!value) {
-        errorMsg = "성별을 선택해주세요.";
-      }
+      if (!value) msg = "성별을 선택해주세요.";
     } else if (name === "height") {
-      // 50 이상 1000 이하
-      if (value) {
+      if (!value) {
+        msg = "키를 입력해주세요.";
+      } else {
         const h = Number(value);
-        if (h < 50 || h > 1000) {
-          errorMsg = "키는 50 이상 1000 이하여야 합니다.";
-        }
+        if (h < 50 || h > 1000) msg = "키는 50 이상 1000 이하여야 합니다.";
       }
     } else if (name === "weight") {
-      // 1 이상 1000 이하
       if (!value) {
-        errorMsg = "몸무게는 필수입니다.";
+        msg = "몸무게를 입력해주세요.";
       } else {
         const w = Number(value);
-        if (w < 1 || w > 1000) {
-          errorMsg = "몸무게는 1 이상 1000 이하여야 합니다.";
-        }
+        if (w < 1 || w > 1000) msg = "몸무게는 1 이상 1000 이하여야 합니다.";
       }
     }
-
-    setErrors((prev) => ({ ...prev, [name]: errorMsg }));
+    return msg;
   };
 
-  // input 변경 시
+  // 전체 필드 유효성 검사
+  const validateAll = () => {
+    const newErrors = {};
+    Object.keys(formData).forEach((key) => {
+      newErrors[key] = validateField(key, formData[key]);
+    });
+    setErrors(newErrors);
+    return newErrors;
+  };
+
+  // blur 시 해당 필드의 에러 업데이트
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
+  };
+
+  // change 시 formData 업데이트 및 실시간 유효성 검사
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // 닉네임이 바뀌면 중복체크 결과 초기화
+    // 닉네임 변경 시 중복 체크 초기화
     if (name === "nickname") {
       setNicknameStatus(null);
     }
     setFormData((prev) => ({ ...prev, [name]: value }));
-    validateField(name, value);
+    if (touched[name]) {
+      setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
+    }
   };
 
   // 닉네임 중복 체크
   const handleNicknameCheck = async () => {
     const nickname = formData.nickname.trim();
     if (!nickname) {
-      setErrors((prev) => ({ ...prev, nickname: "닉네임을 입력해주세요." }));
+      alert("닉네임을 입력해 주세요.");
       return;
     }
     setNicknameStatus("checking");
     try {
       const result = await checkNickname(nickname);
-      console.log("[SocialSignupForm] checkNickname result:", result);
-      if (result.available) {
+      if (result?.available === true) {
         setNicknameStatus("available");
         setErrors((prev) => ({ ...prev, nickname: "" }));
         alert("사용 가능한 닉네임입니다.");
@@ -144,52 +159,35 @@ const SocialSignupForm = ({ userProfile }) => {
         }));
         alert("이미 사용 중인 닉네임입니다.");
       }
-    } catch (e) {
-      console.error("[SocialSignupForm] 닉네임 중복 체크 실패:", e);
-      setNicknameStatus("error");
+    } catch (err) {
+      setNicknameStatus("unavailable");
       setErrors((prev) => ({
         ...prev,
-        nickname: "닉네임 중복 체크에 실패했습니다.",
+        nickname: err.message || "닉네임 중복 체크 중 오류가 발생했습니다.",
       }));
+      alert(err.message || "닉네임 중복 체크 중 오류가 발생했습니다.");
     }
-  };
-
-  // 폼 전체 유효성 검사
-  const isFormValid = () => {
-    const { nickname, name, birthDate, sex, weight } = formData;
-
-    // 필수 항목 확인
-    if (!(nickname && name && birthDate && sex && weight)) return false;
-
-    // 닉네임 중복 체크는 "available" 상태여야 함
-    if (nicknameStatus !== "available") return false;
-
-    // 에러 메시지가 하나라도 있으면 false
-    return Object.values(errors).every((msg) => msg === "");
   };
 
   // 폼 제출
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("[SocialSignupForm] 제출된 formData:", formData);
-
-    if (!isFormValid()) {
+    const newErrors = validateAll();
+    const hasError = Object.values(newErrors).some((msg) => msg !== "");
+    if (hasError || nicknameStatus !== "available") {
       setError("필수 항목을 모두 올바르게 입력해주세요.");
-      console.log("[SocialSignupForm] 폼 검증 실패. errors:", errors);
       return;
     }
+    // 생년월일 합치기 (YYYY-MM-DD)
+    const monthStr = String(birthMonth).padStart(2, "0");
+    const dayStr = String(birthDay).padStart(2, "0");
+    const birthDate = `${birthYear}-${monthStr}-${dayStr}`;
 
+    const signupData = { ...formData, birthDate };
     try {
       setLoading(true);
-      // 1) 서버에 추가 회원가입(추가정보) 요청
-      await socialSignup(formData);
-      console.log("[SocialSignupForm] socialSignup 성공");
-
-      // 2) 가입 직후, 실제 DB에 반영되었는지 다시 getUser()로 확인
+      await socialSignup(signupData);
       const updatedUser = await getUser();
-      console.log("[SocialSignupForm] 가입 후 다시 가져온 user:", updatedUser);
-
-      // 3) 업데이트된 user에 필수 정보가 제대로 들어갔는지 확인(디버깅)
       if (
         updatedUser.nickname &&
         updatedUser.name &&
@@ -200,171 +198,229 @@ const SocialSignupForm = ({ userProfile }) => {
         alert("추가 회원가입이 완료되었습니다.");
         navigate("/");
       } else {
-        // 혹시라도 다시 불완전할 경우, 에러로그
         alert(
           "회원정보가 제대로 저장되지 않았습니다. 다시 시도해 주세요.\n" +
             JSON.stringify(updatedUser)
         );
       }
     } catch (err) {
-      console.error("[SocialSignupForm] 소셜 회원가입 중 오류:", err);
-      setError(err.response?.data || "회원가입 처리 중 오류가 발생했습니다.");
+      console.error("[SocialSignupForm] 회원가입 오류:", err);
+      setError(
+        err.response?.data?.message || "회원가입 처리 중 오류가 발생했습니다."
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  // 연도, 월, 일 옵션 생성
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  for (let y = 1900; y <= currentYear; y++) {
+    years.push(y);
+  }
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const daysInMonth = new Date(birthYear, birthMonth, 0).getDate();
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
   return (
-    <div className="bg-white rounded-lg p-8 w-full max-w-md relative">
+    <Box className="bg-white rounded-lg p-8 w-full max-w-md relative">
       {/* 뒤로가기 버튼 */}
       <button
         onClick={() => navigate(-1)}
-        className="absolute top-4 left-4 text-gray-600 hover:text-gray-800"
+        className="absolute top-5 left-3 text-black font-medium p-2 rounded hover:bg-gray-100 flex items-center space-x-2"
       >
-        <ArrowLeft size={24} />
+        <ChevronLeftIcon className="w-6 h-6" />
       </button>
 
       {/* 로고 영역 */}
-      <div className="flex flex-col items-center mb-8">
-        <img src={logo_image} alt="Logo" className="h-20 mb-4" />
-        <img src={name_image} alt="Name" className="h-10" />
+      <div className="flex items-center justify-center mb-8">
+        <LogoSection />
       </div>
 
-      {/* 폼 */}
       <form className="space-y-4" onSubmit={handleSubmit}>
         {/* 닉네임 + 중복 체크 */}
-        <div className="flex flex-col">
-          <div className="flex">
-            <input
-              type="text"
-              name="nickname"
-              placeholder="닉네임"
-              value={formData.nickname}
-              onChange={handleChange}
-              className="flex-grow appearance-none rounded-l-md px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              required
-            />
-            <button
-              type="button"
-              onClick={handleNicknameCheck}
-              className="px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-blue-600 text-white hover:bg-blue-700 focus:outline-none"
-            >
-              확인
-            </button>
-          </div>
-          {errors.nickname && (
-            <p className="text-red-500 text-sm mt-1">{errors.nickname}</p>
-          )}
-          {nicknameStatus === "available" && (
-            <p className="text-green-600 text-sm mt-1">
-              사용 가능한 닉네임입니다.
-            </p>
-          )}
-        </div>
+        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
+          <TextField
+            type="text"
+            name="nickname"
+            label="닉네임"
+            placeholder="닉네임"
+            value={formData.nickname}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            fullWidth
+            variant="outlined"
+            error={Boolean(errors.nickname)}
+            helperText={
+              errors.nickname ||
+              (nicknameStatus === "available"
+                ? "사용 가능한 닉네임입니다."
+                : "")
+            }
+            sx={{ "& .MuiFormHelperText-root": { minHeight: "12px" } }}
+          />
+          <button
+            type="button"
+            onClick={handleNicknameCheck}
+            disabled={loading || !formData.nickname.trim()}
+            className={`min-w-[80px] h-[56px] p-3 rounded-lg text-base font-semibold transition whitespace-nowrap ${
+              loading || !formData.nickname.trim()
+                ? "bg-gray-400 text-white cursor-not-allowed"
+                : "bg-primary-light text-white hover:bg-primary"
+            }`}
+          >
+            중복 체크
+          </button>
+        </Box>
 
         {/* 이름 */}
-        <div>
-          <input
-            type="text"
-            name="name"
-            placeholder="이름"
-            value={formData.name}
-            onChange={handleChange}
-            className="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300 placeholder-gray-500
-                       text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            required
-          />
-          {errors.name && (
-            <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-          )}
-        </div>
+        <TextField
+          type="text"
+          name="name"
+          label="이름"
+          placeholder="이름"
+          value={formData.name}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          fullWidth
+          variant="outlined"
+          error={Boolean(errors.name)}
+          helperText={errors.name}
+        />
 
-        {/* 생년월일 */}
-        <div>
-          <input
-            type="date"
-            name="birthDate"
-            value={formData.birthDate}
-            onChange={handleChange}
-            className="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300 text-gray-900
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            required
-          />
-          {errors.birthDate && (
-            <p className="text-red-500 text-sm mt-1">{errors.birthDate}</p>
-          )}
-        </div>
+        {/* 생년월일 (연, 월, 일) */}
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <TextField
+            select
+            label="연"
+            value={birthYear}
+            onChange={(e) => setBirthYear(parseInt(e.target.value))}
+            variant="outlined"
+            fullWidth
+            SelectProps={{ native: true }}
+          >
+            <option value="">연</option>
+            {years.map((y) => (
+              <option key={y} value={y}>
+                {y}년
+              </option>
+            ))}
+          </TextField>
+          <TextField
+            select
+            label="월"
+            value={birthMonth}
+            onChange={(e) => setBirthMonth(parseInt(e.target.value))}
+            variant="outlined"
+            fullWidth
+            SelectProps={{ native: true }}
+          >
+            <option value="">월</option>
+            {months.map((m) => (
+              <option key={m} value={m}>
+                {m}월
+              </option>
+            ))}
+          </TextField>
+          <TextField
+            select
+            label="일"
+            value={birthDay}
+            onChange={(e) => setBirthDay(parseInt(e.target.value))}
+            variant="outlined"
+            fullWidth
+            SelectProps={{ native: true }}
+          >
+            <option value="">일</option>
+            {days.map((d) => (
+              <option key={d} value={d}>
+                {d}일
+              </option>
+            ))}
+          </TextField>
+        </Box>
 
         {/* 성별 */}
-        <div>
-          <select
-            name="sex"
-            value={formData.sex}
-            onChange={handleChange}
-            className="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            required
-          >
-            <option value="">성별 선택</option>
-            <option value="M">남성</option>
-            <option value="F">여성</option>
-          </select>
-          {errors.sex && (
-            <p className="text-red-500 text-sm mt-1">{errors.sex}</p>
-          )}
-        </div>
+        <TextField
+          select
+          name="sex"
+          label="성별"
+          value={formData.sex}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          fullWidth
+          variant="outlined"
+          SelectProps={{ native: true }}
+          error={Boolean(errors.sex)}
+          helperText={errors.sex}
+        >
+          <option value=""></option>
+          <option value="M">남성</option>
+          <option value="F">여성</option>
+        </TextField>
 
         {/* 키 */}
-        <div>
-          <input
-            type="number"
-            name="height"
-            placeholder="키"
-            value={formData.height}
-            onChange={handleChange}
-            className="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300 placeholder-gray-500
-                       text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          />
-          {errors.height && (
-            <p className="text-red-500 text-sm mt-1">{errors.height}</p>
-          )}
-        </div>
+        <TextField
+          type="number"
+          name="height"
+          label="키"
+          placeholder="키"
+          value={formData.height}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          fullWidth
+          variant="outlined"
+          InputProps={{
+            endAdornment: <InputAdornment position="end">cm</InputAdornment>,
+            inputProps: { step: 0.1 },
+          }}
+          error={Boolean(errors.height)}
+          helperText={errors.height}
+        />
 
         {/* 몸무게 */}
-        <div>
-          <input
-            type="number"
-            name="weight"
-            placeholder="몸무게"
-            value={formData.weight}
-            onChange={handleChange}
-            className="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300 placeholder-gray-500
-                       text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            required
-          />
-          {errors.weight && (
-            <p className="text-red-500 text-sm mt-1">{errors.weight}</p>
-          )}
-        </div>
+        <TextField
+          type="number"
+          name="weight"
+          label="몸무게"
+          placeholder="몸무게"
+          value={formData.weight}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          fullWidth
+          variant="outlined"
+          InputProps={{
+            endAdornment: <InputAdornment position="end">kg</InputAdornment>,
+            inputProps: { step: 0.1 },
+          }}
+          error={Boolean(errors.weight)}
+          helperText={errors.weight}
+        />
 
-        {/* 상단 오류 외 공통 에러 메시지 */}
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        {/* 서버 사이드 에러 메시지 */}
+        {error && (
+          <Typography variant="body2" color="error" align="center">
+            {typeof error === "string"
+              ? error
+              : error?.message || JSON.stringify(error)}
+          </Typography>
+        )}
 
         {/* 제출 버튼 */}
         <button
           type="submit"
-          disabled={loading || !isFormValid()}
-          className={`w-full py-2 rounded-md text-base font-semibold transition ${
+          disabled={loading}
+          className={`w-full p-3 rounded-lg text-base font-semibold transition ${
             loading
               ? "bg-gray-400 text-white cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700"
+              : "bg-primary text-white hover:bg-primary-light"
           }`}
         >
-          {loading ? "처리 중..." : "회원가입 완료"}
+          회원가입
         </button>
       </form>
-    </div>
+    </Box>
   );
 };
 

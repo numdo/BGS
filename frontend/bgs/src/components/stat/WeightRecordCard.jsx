@@ -36,15 +36,15 @@ export default function WeightRecordCard() {
       <h3 className="text-xl font-bold mb-3">
         몸무게를 기록해서 변화를 살펴봐요!
       </h3>
-      <div className="flex items-center flex-nowrap w-full">
+      <div className="flex items-center w-full">
         <input
           type="number"
           step="0.1"
           value={weight}
           onChange={(e) => setWeight(e.target.value)}
-          onKeyDown={handleKeyDown} // 추가된 이벤트 리스너
-          placeholder="예: 70.5"
-          className="w-full max-w-xs border border-gray-300 rounded-l px-3 py-2 focus:outline-none"
+          onKeyDown={handleKeyDown}
+          placeholder="몸무게를 입력하세요"
+          className="flex-grow border border-gray-300 rounded-l px-3 py-2 focus:outline-none"
         />
         <span className="px-2 text-gray-700">kg</span>
         <button

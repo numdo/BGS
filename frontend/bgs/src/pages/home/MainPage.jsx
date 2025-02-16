@@ -104,7 +104,7 @@ export default function MainPage() {
             onClick={async () => {
               await handleAttendanceCheck();
             }}
-            className="flex flex-col items-start p-4 bg-white border rounded-lg transition-all duration-200 focus:outline-none"
+            className="flex flex-col items-start p-4 bg-white border rounded-lg transition-all duration-200 focus:outline-none shadow-md hover:bg-gray-100"
           >
             <div className="flex justify-between items-center w-full">
               <p className="text-xl font-semibold text-gray-800">출석 체크</p>
@@ -117,7 +117,7 @@ export default function MainPage() {
 
           <button
             onClick={() => navigate("/mygym")}
-            className="flex flex-col items-start p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+            className="flex flex-col items-start p-4 bg-white border rounded-lg transition-all duration-200 focus:outline-none shadow-md hover:bg-gray-100"
           >
             <div className="flex justify-between items-center w-full">
               <p className="text-xl font-semibold text-gray-800">마이짐</p>
@@ -133,7 +133,7 @@ export default function MainPage() {
         <div className="grid grid-cols-3 gap-4 mt-5">
           <button
             onClick={() => navigate("/workout")}
-            className="flex flex-col items-start p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+            className="flex flex-col items-start p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-md"
           >
             <div className="flex justify-between items-center w-full">
               <p className="text-xl font-semibold text-gray-800">일지</p>
@@ -146,7 +146,7 @@ export default function MainPage() {
 
           <button
             onClick={() => navigate("/feeds")}
-            className="flex flex-col items-start p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+            className="flex flex-col items-start p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-md"
           >
             <div className="flex justify-between items-center w-full">
               <p className="text-xl font-semibold text-gray-800">피드</p>
@@ -159,7 +159,7 @@ export default function MainPage() {
 
           <button
             onClick={() => navigate("/evaluationcreate")}
-            className="flex flex-col items-start p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200"
+            className="flex flex-col items-start p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-md"
           >
             <div className="flex justify-between items-center w-full">
               <p className="text-xl font-semibold text-gray-800">평가</p>

@@ -1,8 +1,9 @@
 // src/components/PartVolumeBarChart.jsx
 import React, { useEffect } from "react";
 import { Bar } from "react-chartjs-2";
-import { Card, CardContent, Typography } from "@mui/material";
+import { Card, CardContent, Box } from "@mui/material";
 import useStatsStore from "../../stores/useStatsStore";
+import useUserStore from "../../stores/useUserStore";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -32,9 +33,9 @@ import tailwindConfig from "../../../tailwind.config.js";
 const fullConfig = resolveConfig(tailwindConfig);
 
 // Tailwind에서 정의한 색상 추출
-const primaryDefault = fullConfig.theme.colors.primary.DEFAULT; // "#5968eb"
-const primaryLight = fullConfig.theme.colors.primary.light; // "#7985ef"
-const danger = fullConfig.theme.colors.danger; // "#77240B"
+const primaryDefault = fullConfig.theme.colors.primary.DEFAULT; // 예: "#5968eb"
+const primaryLight = fullConfig.theme.colors.primary.light; // 예: "#7985ef"
+const danger = fullConfig.theme.colors.danger; // 예: "#77240B"
 
 // 헥스 코드를 rgba 문자열로 변환하는 헬퍼 함수
 function hexToRgba(hex, alpha) {
@@ -50,12 +51,13 @@ function hexToRgba(hex, alpha) {
   저번주: primary.light, 중간 강조 (alpha 0.7)
   2주전: danger, 가장 낮은 강조 (alpha 0.5)
 */
-const 이번주Color = hexToRgba(primaryDefault, 0.9);
-const 저번주Color = hexToRgba(primaryLight, 0.7);
-const 두주전Color = hexToRgba(danger, 0.5);
+const thisWeekColor = hexToRgba(primaryDefault, 0.9);
+const lastWeekColor = hexToRgba(primaryLight, 0.7);
+const twoWeekColor = hexToRgba(danger, 0.5);
 
 export default function PartVolumeBarChart() {
   const { partVolume, fetchPartVolume } = useStatsStore();
+  const { me } = useUserStore();
 
   useEffect(() => {
     fetchPartVolume();
@@ -81,6 +83,16 @@ export default function PartVolumeBarChart() {
     leg: 0,
   };
 
+  // 모든 주의 모든 값이 0이면 데이터가 부족한 것으로 간주
+  const insufficientData = [thisWeek, lastWeek, twoWeeksAgo].every((week) => {
+    return (
+      week.chest === 0 &&
+      week.lat === 0 &&
+      week.shoulder === 0 &&
+      week.leg === 0
+    );
+  });
+
   const labels = ["가슴", "등", "어깨", "하체"];
   const chartData = {
     labels,
@@ -88,12 +100,12 @@ export default function PartVolumeBarChart() {
       {
         label: "이번주",
         data: [thisWeek.chest, thisWeek.lat, thisWeek.shoulder, thisWeek.leg],
-        backgroundColor: 이번주Color,
+        backgroundColor: thisWeekColor,
       },
       {
         label: "저번주",
         data: [lastWeek.chest, lastWeek.lat, lastWeek.shoulder, lastWeek.leg],
-        backgroundColor: 저번주Color,
+        backgroundColor: lastWeekColor,
       },
       {
         label: "2주전",
@@ -103,7 +115,7 @@ export default function PartVolumeBarChart() {
           twoWeeksAgo.shoulder,
           twoWeeksAgo.leg,
         ],
-        backgroundColor: 두주전Color,
+        backgroundColor: twoWeekColor,
       },
     ],
   };
@@ -121,12 +133,49 @@ export default function PartVolumeBarChart() {
   };
 
   return (
-    <Card sx={{ mt: 4 }}>
+    <Card
+      sx={{
+        bgcolor: "white",
+        border: "1px solid rgba(0,0,0,0.1)",
+        borderRadius: "0.5rem", // rounded-lg (약 8px)
+        boxShadow:
+          "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)", // shadow-md
+        transition: "box-shadow 0.3s ease-in-out", // transition-shadow duration-300
+        "&:hover": {
+          boxShadow:
+            "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)", // hover:shadow-lg
+        },
+      }}
+    >
       <CardContent>
         <h3 className="text-xl font-bold mb-3 mt-4 text-center">
-          부위별 운동량
+          {me.nickname ? `${me.nickname}의` : "나의"} <br /> 부위별 운동량
         </h3>
-        <Bar data={chartData} options={options} />
+        <Box sx={{ position: "relative" }}>
+          <Bar data={chartData} options={options} />
+          {insufficientData && (
+            <Box
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                bgcolor: "rgba(0, 0, 0, 0.3)",
+                backdropFilter: "blur(5px)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 5,
+              }}
+            >
+              <h3 className="text-white p-2 text-center text-lg">
+                <p>운동을 시작해서</p>
+                <p>나의 부위별 운동량을 측정해보세요!</p>{" "}
+              </h3>
+            </Box>
+          )}
+        </Box>
       </CardContent>
     </Card>
   );

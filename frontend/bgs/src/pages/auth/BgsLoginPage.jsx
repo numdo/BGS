@@ -7,8 +7,10 @@ import {
   TextField,
   Typography,
   IconButton,
+  InputAdornment,
 } from "@mui/material";
 import { ChevronLeftIcon } from "@heroicons/react/24/solid";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import LogoSection from "../../components/common/LogoSection";
 
 const BgsLoginPage = () => {
@@ -17,6 +19,9 @@ const BgsLoginPage = () => {
   const [customError, setCustomError] = useState(null);
   const [serverError, setServerError] = useState(null);
   const [loading, setLoading] = useState(false);
+  // 상태 추가: 비밀번호 표시 여부
+  const [showPassword, setShowPassword] = useState(false);
+
   const navigate = useNavigate();
 
   // 새로고침/재접속 시 자동 로그인
@@ -54,6 +59,8 @@ const BgsLoginPage = () => {
       } else {
         navigate("/");
       }
+      // 로그인 성공 시 페이지 새로고침 (navigate 후 재로딩)
+      window.location.reload();
     } catch (err) {
       setPassword("");
       setServerError(
@@ -86,7 +93,9 @@ const BgsLoginPage = () => {
       >
         <ChevronLeftIcon className="w-6 h-6" />
       </button>
-        <LogoSection />
+
+      <LogoSection />
+
       {/* 로그인 폼 */}
       <Box
         component="form"
@@ -115,16 +124,29 @@ const BgsLoginPage = () => {
           fullWidth
           name="password"
           label="비밀번호"
-          type="password"
+          // showPassword 상태에 따라 입력 타입 변경
+          type={showPassword ? "text" : "password"}
           autoComplete="current-password"
           value={password}
           onChange={(e) => {
             setPassword(e.target.value);
             if (serverError) setServerError(null);
           }}
-          // 서버 에러가 있으면 에러 표시하고, 없으면 빈값 또는 customError에 따른 표시
           error={(!password.trim() && !!customError) || !!serverError}
           helperText={(!password.trim() && customError) || serverError || ""}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  edge="end"
+                  aria-label="toggle password visibility"
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
         />
 
         <Box

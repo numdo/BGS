@@ -1,8 +1,9 @@
 // src/components/stat/WorkoutBalanceRadarChart.jsx
 import React, { useEffect } from "react";
 import { Radar } from "react-chartjs-2";
-import { Card, CardContent, Typography, useTheme } from "@mui/material";
+import { Card, CardContent, useTheme, Box } from "@mui/material";
 import useStatsStore from "../../stores/useStatsStore";
+import useUserStore from "../../stores/useUserStore";
 import {
   Chart as ChartJS,
   RadialLinearScale,
@@ -22,6 +23,7 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+
 // tailwind 설정을 가져오기 위한 resolveConfig
 import resolveConfig from "tailwindcss/resolveConfig";
 // tailwind 설정 파일 import (경로는 실제 위치에 맞게 조정)
@@ -32,7 +34,7 @@ const fullConfig = resolveConfig(tailwindConfig);
 export default function WorkoutBalanceRadarChart() {
   const theme = useTheme();
   const { workoutBalance, fetchWorkoutBalance } = useStatsStore();
-
+  const { me } = useUserStore();
   useEffect(() => {
     // 데이터가 없더라도 fetch를 시도
     fetchWorkoutBalance();
@@ -50,8 +52,11 @@ export default function WorkoutBalanceRadarChart() {
       ]
     : [0, 0, 0, 0, 0, 0];
 
-  const primaryDefault = fullConfig.theme.colors.primary.DEFAULT; // "#5968eb"
-  const primaryLight = fullConfig.theme.colors.primary.light; // "#7985ef"
+  // 만약 모든 값이 0이면, 운동을 시작하지 않은 것으로 판단
+  const insufficientData = dataValues.every((value) => value === 0);
+
+  const primaryDefault = fullConfig.theme.colors.primary.DEFAULT; // 예: "#5968eb"
+  const primaryLight = fullConfig.theme.colors.primary.light; // 예: "#7985ef"
 
   const labels = ["가슴", "등", "삼두", "하체", "이두", "어깨"];
   const chartData = {
@@ -99,12 +104,50 @@ export default function WorkoutBalanceRadarChart() {
   };
 
   return (
-    <Card sx={{ mt: 4 }}>
+    <Card
+      sx={{
+        bgcolor: "white",
+        border: "1px solid rgba(0,0,0,0.1)",
+        borderRadius: "0.5rem", // rounded-lg (약 8px)
+        boxShadow:
+          "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)", // shadow-md
+        transition: "box-shadow 0.3s ease-in-out", // transition-shadow duration-300
+        "&:hover": {
+          boxShadow:
+            "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)", // hover:shadow-lg
+        },
+      }}
+    >
+      {" "}
       <CardContent>
         <h3 className="text-xl font-bold mb-3 mt-4 text-center">
-          나의 운동 밸런스
+        {me.nickname ? `${me.nickname}의` : "나의"} <br /> 운동 밸런스 지표
         </h3>
-        <Radar data={chartData} options={options} />
+        <Box sx={{ position: "relative" }}>
+          <Radar data={chartData} options={options} />
+          {insufficientData && (
+            <Box
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                bgcolor: "rgba(0, 0, 0, 0.3)", // 약간 어둡게
+                backdropFilter: "blur(5px)", // blur 처리
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 5,
+              }}
+            >
+              <h3 className="text-white p-2 text-center text-xl">
+                <p>운동을 시작해서</p>
+                <p>나의 운동 밸런스를 측정해보세요!</p>
+              </h3>
+            </Box>
+          )}
+        </Box>
       </CardContent>
     </Card>
   );
