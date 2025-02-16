@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
+import emitter from "../../utils/emitter"; // 전역 emitter 임포트
 
-const ItemShopPage = ({ onItemPurchased }) => {
+const ItemShopPage = () => {
   const [items, setItems] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,7 +15,8 @@ const ItemShopPage = ({ onItemPurchased }) => {
           axiosInstance.get("/users/me"),
         ]);
 
-        setItems(itemsRes.data.filter((item) => !item.owned)); // 보유하지 않은 아이템만
+        // 보유하지 않은 아이템만 필터링
+        setItems(itemsRes.data.filter((item) => !item.owned));
         setUserInfo(userRes.data);
       } catch (error) {
         console.error("데이터 불러오기 실패:", error);
@@ -35,13 +37,14 @@ const ItemShopPage = ({ onItemPurchased }) => {
     try {
       await axiosInstance.post(`/items/${itemId}/buy`);
       alert("구매 성공!");
+      // 구매한 아이템은 상점 목록에서 제거
       setItems((prevItems) =>
         prevItems.filter((item) => item.itemId !== itemId)
       );
+      // 사용자 코인 업데이트
       setUserInfo((prev) => ({ ...prev, coin: prev.coin - price }));
-      if (onItemPurchased) {
-        onItemPurchased(); // ✅ 구매 후 아이템 목록 갱신
-      }
+      // 구매 후 전역 이벤트 발생
+      emitter.emit("itemPurchased");
     } catch (error) {
       alert("구매 실패: " + (error.response?.data?.message || error.message));
     }

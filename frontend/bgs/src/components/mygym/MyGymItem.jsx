@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
 import axiosInstance from "../../utils/axiosInstance";
-import BeatLoader from "../../components/common/LoadingSpinner"; // ✅ 로딩 표시 추가
-import useUserStore from "../../stores/useUserStore"; // ✅ 현재 로그인한 사용자 정보 가져오기
+import BeatLoader from "../../components/common/LoadingSpinner";
+import useUserStore from "../../stores/useUserStore";
+import emitter from "../../utils/emitter";
 
-const MyGymItem = ({ forceOpen = false, triggerUpdate }) => {
+const MyGymItem = ({ forceOpen = false }) => {
   const { myGym, setMyGym } = useMyGymStore();
-  const { user } = useUserStore(); // ✅ 현재 로그인한 사용자 정보 가져오기
+  const { user } = useUserStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [ownedItems, setOwnedItems] = useState([]); // ✅ 보유한 아이템만 저장
-  const [loading, setLoading] = useState(true); // ✅ 로딩 상태 추가
+  const [ownedItems, setOwnedItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (forceOpen) {
@@ -17,38 +18,42 @@ const MyGymItem = ({ forceOpen = false, triggerUpdate }) => {
     }
   }, [forceOpen]);
 
-  // ✅ 보유한 아이템을 가져오는 함수
+  // 보유한 아이템을 가져오는 함수
   const fetchOwnedItems = async () => {
-    setLoading(true); // ✅ 새 요청이 있을 때 로딩 시작
+    setLoading(true);
     try {
       console.log("🔄 아이템 목록 업데이트 요청 (유저 ID:", user.userId, ")");
-
       const response = await axiosInstance.get("/items");
-      const userItems = response.data.filter((item) => item.owned === true); // ✅ `owned: true` 필터링
+      const userItems = response.data.filter((item) => item.owned === true);
       console.log("✅ 보유 아이템 불러오기 완료:", userItems);
-
       setOwnedItems(userItems);
     } catch (error) {
       console.error("❌ 보유 아이템 불러오기 실패:", error);
-      setOwnedItems([]); // 실패 시 빈 배열 설정
+      setOwnedItems([]);
     } finally {
-      setLoading(false); // ✅ 로딩 종료
+      setLoading(false);
     }
   };
 
-  // ✅ 계정이 변경될 때마다 아이템 목록을 다시 불러오기
+  // 유저 정보가 변경될 때 아이템 목록 불러오기
   useEffect(() => {
     if (user?.userId) {
       fetchOwnedItems();
     }
-  }, [user?.userId]); // ✅ 유저 계정이 변경될 때마다 실행
+  }, [user?.userId]);
 
-  // ✅ 아이템이 변경될 때 즉시 다시 불러오기
+  // emitter를 통해 "itemPurchased" 이벤트를 구독하여 아이템 목록을 갱신
   useEffect(() => {
-    if (triggerUpdate) {
+    const handleItemPurchased = () => {
       fetchOwnedItems();
-    }
-  }, [triggerUpdate]);
+    };
+
+    emitter.on("itemPurchased", handleItemPurchased);
+
+    return () => {
+      emitter.off("itemPurchased", handleItemPurchased);
+    };
+  }, []);
 
   const addItem = (item) => {
     console.log(`${item.itemName} 추가`);
@@ -96,7 +101,7 @@ const MyGymItem = ({ forceOpen = false, triggerUpdate }) => {
       <div className="p-4 overflow-x-auto flex space-x-4 scroll-snap-x-mandatory">
         {loading ? (
           <div className="w-full flex justify-center">
-            <BeatLoader /> {/* ✅ 로딩 중일 때 표시 */}
+            <BeatLoader />
           </div>
         ) : ownedItems.length > 0 ? (
           ownedItems
