@@ -6,6 +6,8 @@ import useUserStore from "../../stores/useUserStore";
 import myinfo from "../../assets/icons/myinfo.png";
 import more from "../../assets/icons/more.svg";
 import { timeSince } from "../../utils/timeSince";
+import commentedit from "../../assets/icons/commentedit.png";
+import deleteicon from "../../assets/icons/delete.svg";
 
 const CommentList = React.memo(
   ({
@@ -101,18 +103,26 @@ const CommentList = React.memo(
                             onStartEditing(memo);
                             setShowActions(false);
                           }}
-                          className="text-blue-500 text-sm"
+                          className="w-6 h-6"
                         >
-                          수정
+                          <img
+                            src={commentedit}
+                            alt="수정"
+                            className="w-full h-full"
+                          />
                         </button>
                         <button
                           onClick={() => {
                             onDeleteMemo(memo.guestbookId);
                             setShowActions(false);
                           }}
-                          className="text-red-500 text-sm"
+                          className="w-6 h-6"
                         >
-                          삭제
+                          <img
+                            src={deleteicon}
+                            alt="삭제"
+                            className="w-full h-full"
+                          />
                         </button>
                         <button
                           onClick={() => setShowActions(false)}
