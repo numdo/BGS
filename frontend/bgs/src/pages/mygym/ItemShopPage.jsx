@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 
-const ItemShopPage = () => {
+const ItemShopPage = ({ onItemPurchased }) => {
   const [items, setItems] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,7 +14,7 @@ const ItemShopPage = () => {
           axiosInstance.get("/users/me"),
         ]);
 
-        setItems(itemsRes.data.filter(item => !item.owned)); // 보유하지 않은 아이템만
+        setItems(itemsRes.data.filter((item) => !item.owned)); // 보유하지 않은 아이템만
         setUserInfo(userRes.data);
       } catch (error) {
         console.error("데이터 불러오기 실패:", error);
@@ -35,8 +35,13 @@ const ItemShopPage = () => {
     try {
       await axiosInstance.post(`/items/${itemId}/buy`);
       alert("구매 성공!");
-      setItems(prevItems => prevItems.filter(item => item.itemId !== itemId));
-      setUserInfo(prev => ({ ...prev, coin: prev.coin - price }));
+      setItems((prevItems) =>
+        prevItems.filter((item) => item.itemId !== itemId)
+      );
+      setUserInfo((prev) => ({ ...prev, coin: prev.coin - price }));
+      if (onItemPurchased) {
+        onItemPurchased(); // ✅ 구매 후 아이템 목록 갱신
+      }
     } catch (error) {
       alert("구매 실패: " + (error.response?.data?.message || error.message));
     }
@@ -51,9 +56,16 @@ const ItemShopPage = () => {
       <div className="grid gap-4">
         {items.length > 0 ? (
           items.map((item) => (
-            <div key={item.itemId} className="border p-4 rounded-lg flex items-center justify-between">
+            <div
+              key={item.itemId}
+              className="border p-4 rounded-lg flex items-center justify-between"
+            >
               <div>
-                <img src={item.imageUrl} alt={item.itemName} className="w-16 h-16 object-cover rounded" />
+                <img
+                  src={item.imageUrl}
+                  alt={item.itemName}
+                  className="w-16 h-16 object-cover rounded"
+                />
                 <p className="font-semibold">{item.itemName}</p>
                 <p>{item.price} 코인</p>
               </div>
