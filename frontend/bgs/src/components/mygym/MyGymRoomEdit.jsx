@@ -145,7 +145,7 @@ const MyGymRoomEdit = () => {
         onPointerLeave={handlePointerUp}
       >
         <div
-          className="relative w-96 h-80"
+          className="relative w-96 h-96"
           style={{
             filter: "drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4))",
           }}
