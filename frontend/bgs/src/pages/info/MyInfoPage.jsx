@@ -183,7 +183,10 @@ export default function MyInfoPage() {
         </div>
       </div>
 
-      <BottomBar />
+      {/* ✅ 하단바 공간 확보 */}
+      <div className="pb-16">
+        <BottomBar />
+      </div>
     </>
   );
 }
