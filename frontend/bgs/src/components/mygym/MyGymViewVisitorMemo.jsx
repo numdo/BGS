@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import CommentInput from "./CommentInput";
 import CommentList from "./CommentList";
 import { createGuestBooks, deleteGuestBook, getGuestBooks, updateGuestBook } from "../../api/Mygym";
+import memo from "../../assets/images/memo.png";
 
 const MyGymViewVisitorMemo = ({ userId, setVisitorMemos, visitorMemos }) => {
   const [newComment, setNewComment] = useState("");
@@ -95,7 +96,9 @@ const MyGymViewVisitorMemo = ({ userId, setVisitorMemos, visitorMemos }) => {
   return (
     <div
       className="bg-white py-2 px-2 mx-4 mb-16 shadow-md rounded-3xl min-h-[calc(50vh-120px)]"
-      style={{ zIndex: 3 }}
+      style={{ 
+        zIndex: 3,
+       }}
     >
       <CommentInput 
         newComment={newComment} 
