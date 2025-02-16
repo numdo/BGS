@@ -9,7 +9,6 @@ import memo from "../../assets/images/memo.png";
 const MyGymViewVisitorMemo = ({ userId, setVisitorMemos, visitorMemos }) => {
   const [newComment, setNewComment] = useState("");
   const [notification, setNotification] = useState(""); // 알림 상태
-  const navigate = useNavigate();
 
   // 댓글 수정 상태 관리
   const [editingCommentId, setEditingCommentId] = useState(null);
@@ -96,7 +95,10 @@ const MyGymViewVisitorMemo = ({ userId, setVisitorMemos, visitorMemos }) => {
   return (
     <div
       className="bg-white py-2 px-2 mx-4 mb-16 shadow-md rounded-3xl min-h-[calc(50vh-120px)]"
-      style={{ 
+      style={{
+        // backgroundImage: `url(${memo})`,
+        // backgroundRepeat:"no-repeat",
+        // backgroundSize:'cover',
         zIndex: 3,
        }}
     >

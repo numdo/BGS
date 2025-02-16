@@ -126,12 +126,6 @@ const MyGymPage = () => {
             <img src={editicon} alt="편집" className="w-6 h-6" />
           </button>
         )}
-        <button
-          onClick={() => setIsShopOpen(true)}
-          className="bg-white px-4 py-2 z-30 flex items-center justify-center rounded-xl shadow-md"
-        >
-          <img src={shopicon} alt="상점" className="w-6 h-6" />
-        </button>
       </div>
 
       {isEditing ? (
@@ -152,6 +146,12 @@ const MyGymPage = () => {
               backgroundPosition: "center",
             }}
           />
+        </button>
+        <button
+          onClick={() => setIsShopOpen(true)}
+          className="bg-white px-4 py-2 z-30 flex items-center justify-center rounded-xl shadow-md"
+        >
+          <img src={shopicon} alt="상점" className="w-6 h-6" />
         </button>
       </div>
           <SelectColor setRoomColor={setWallColor} onClick={handlePaletteClick} />
