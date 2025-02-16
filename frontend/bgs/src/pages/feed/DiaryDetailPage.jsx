@@ -29,8 +29,12 @@ const DiaryDetailPage = () => {
   const [likedCount, setLikedCount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(true);
+  const [isWorkoutsOpen, setIsWorkoutsOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [comments, setComments] = useState([]);
+  useEffect(() => {
+    console.log(feed);
+  }, [feed]);
   useEffect(() => {
     console.log(refreshKey);
   }, refreshKey);
@@ -227,7 +231,13 @@ const DiaryDetailPage = () => {
                 />
               </div>
               <div>
-                <img src={fitness_center} alt="" />
+                <img
+                  onClick={() => {
+                    setIsWorkoutsOpen(!isWorkoutsOpen);
+                  }}
+                  src={fitness_center}
+                  alt=""
+                />
               </div>
             </div>
           </div>
@@ -242,6 +252,49 @@ const DiaryDetailPage = () => {
                 }}
               />
               <CommentList key={refreshKey} comments={comments} />
+            </div>
+          )}
+          {isWorkoutsOpen && (
+            <div className="mt-6">
+              {/* 운동 세트 정보 */}
+              <div className="space-y-4">
+                {(feed.diaryWorkouts || []).map((workout) => {
+                  // 만약 diaryWorkouts에 workoutName이 있다면 바로 사용
+                  const workoutName = workout.workoutName;
+                  return (
+                    <div
+                      key={workout.diaryWorkoutId}
+                      className="p-4 bg-gray-100 rounded-lg shadow"
+                    >
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        {workoutName}
+                      </h3>
+                      <div className="mt-2 space-y-2">
+                        {workout.sets?.map((set, index) => (
+                          <div
+                            key={index}
+                            className="flex justify-between text-sm"
+                          >
+                            <span className="font-medium">
+                              세트 {index + 1}:
+                            </span>
+                            {set.workoutTime ? (
+                              <span className="text-gray-900">
+                                {set.workoutTime}초
+                              </span>
+                            ) : (
+                              <span>
+                                {set.weight ? `${set.weight}kg × ` : ""}{" "}
+                                {set.repetition ? `${set.repetition}회` : ""}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

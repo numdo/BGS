@@ -78,15 +78,16 @@ export default function WorkoutCreatePage() {
   const [newHashtag, setNewHashtag] = useState("");
   const maxInputLength = 255; // DB varchar(255)
 
-  // Helper: 운동 타입 결정 함수  
-  // "time"  → part가 유산소 또는 스포츠  
-  // "repetitionOnly" → tool이 밴드 또는 맨몸 (단, 시간운동이 아닌 경우)  
+  // Helper: 운동 타입 결정 함수
+  // "time"  → part가 유산소 또는 스포츠
+  // "repetitionOnly" → tool이 밴드 또는 맨몸 (단, 시간운동이 아닌 경우)
   // "weightRepetition" → 기본
   const getWorkoutType = (workoutId) => {
     const workout = allWorkoutList.find((w) => w.workoutId === workoutId);
     if (!workout) return "weightRepetition";
     if (workout.part === "유산소" || workout.part === "스포츠") return "time";
-    if (workout.tool === "밴드" || workout.tool === "맨몸") return "repetitionOnly";
+    if (workout.tool === "밴드" || workout.tool === "맨몸")
+      return "repetitionOnly";
     return "weightRepetition";
   };
 
@@ -222,8 +223,8 @@ export default function WorkoutCreatePage() {
       const workoutIds = record.workoutIds
         ? record.workoutIds
         : record.workoutId
-          ? [record.workoutId]
-          : [];
+        ? [record.workoutId]
+        : [];
       workoutIds.forEach((wid) => {
         if (!newDiaryWorkouts.some((dw) => dw.workoutId === wid)) {
           const type = getWorkoutType(wid);
@@ -316,7 +317,9 @@ export default function WorkoutCreatePage() {
             setDiary((prevDiary) => {
               const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
               response.data.diaryWorkouts.forEach((dw) => {
-                if (!newDiaryWorkouts.some((x) => x.workoutId === dw.workoutId)) {
+                if (
+                  !newDiaryWorkouts.some((x) => x.workoutId === dw.workoutId)
+                ) {
                   newDiaryWorkouts.push(dw);
                 }
               });
@@ -421,7 +424,7 @@ export default function WorkoutCreatePage() {
     setFiles((prev) => [...prev, ...selectedFiles]);
     const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
     setPreviewUrls((prev) => [...prev, ...newPreviews]);
-  
+
     // 파일 입력값 초기화 -> 같은 파일도 다시 선택 가능하게 함
     e.target.value = "";
   };
@@ -465,6 +468,13 @@ export default function WorkoutCreatePage() {
   };
 
   // 해시태그 추가 핸들러
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // 폼 제출 기본 동작 방지 (필요한 경우)
+      handleAddHashtag();
+    }
+  };
+
   const handleAddHashtag = () => {
     if (newHashtag.trim() && !diary.hashtags.includes(newHashtag)) {
       setDiary((prev) => ({
@@ -547,7 +557,9 @@ export default function WorkoutCreatePage() {
                 <button
                   onClick={() => setSelectedPartFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${
-                    selectedPartFilter === "" ? "bg-primary-light text-white" : ""
+                    selectedPartFilter === ""
+                      ? "bg-primary-light text-white"
+                      : ""
                   }`}
                 >
                   전체
@@ -557,7 +569,9 @@ export default function WorkoutCreatePage() {
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedPartFilter === part ? "bg-primary-light text-white" : ""
+                      selectedPartFilter === part
+                        ? "bg-primary-light text-white"
+                        : ""
                     }`}
                   >
                     {part}
@@ -570,7 +584,9 @@ export default function WorkoutCreatePage() {
                 <button
                   onClick={() => setSelectedToolFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${
-                    selectedToolFilter === "" ? "bg-primary-light text-white" : ""
+                    selectedToolFilter === ""
+                      ? "bg-primary-light text-white"
+                      : ""
                   }`}
                 >
                   전체
@@ -580,7 +596,9 @@ export default function WorkoutCreatePage() {
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
                     className={`mr-2 px-2 py-1 border rounded ${
-                      selectedToolFilter === tool ? "bg-primary-light text-white" : ""
+                      selectedToolFilter === tool
+                        ? "bg-primary-light text-white"
+                        : ""
                     }`}
                   >
                     {tool}
@@ -701,7 +719,10 @@ export default function WorkoutCreatePage() {
                 // 현재 운동의 타입 결정 (time, repetitionOnly, weightRepetition)
                 const type = getWorkoutType(workout.workoutId);
                 return (
-                  <div key={`dw-${wIndex}`} className="border p-4 rounded-md mb-4 bg-white shadow">
+                  <div
+                    key={`dw-${wIndex}`}
+                    className="border p-4 rounded-md mb-4 bg-white shadow"
+                  >
                     {/* 운동명 및 삭제 버튼 */}
                     <div className="flex justify-between items-center pb-2 border-b">
                       <h2 className="text-base font-semibold text-gray-800">
@@ -777,7 +798,9 @@ export default function WorkoutCreatePage() {
                                   }
                                   className="w-16 p-1 text-center border rounded text-gray-900"
                                 />
-                                <span className="text-gray-600 text-sm">kg</span>
+                                <span className="text-gray-600 text-sm">
+                                  kg
+                                </span>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <input
@@ -793,7 +816,9 @@ export default function WorkoutCreatePage() {
                                   }
                                   className="w-16 p-1 text-center border rounded text-gray-900"
                                 />
-                                <span className="text-gray-600 text-sm">회</span>
+                                <span className="text-gray-600 text-sm">
+                                  회
+                                </span>
                               </div>
                             </div>
                           )}
@@ -886,6 +911,7 @@ export default function WorkoutCreatePage() {
             className="p-2 border rounded resize-none w-[15ch]"
             value={newHashtag}
             onChange={(e) => setNewHashtag(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="해시태그 입력"
             maxLength={10}
           />

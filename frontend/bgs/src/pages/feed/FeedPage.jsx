@@ -241,15 +241,18 @@ const FeedPage = () => {
             {/* 일지 피드 */}
             <div className="w-full flex-shrink-0 p-4" ref={feedRef}>
               <div className="grid grid-cols-3 gap-2">
-                {feeds.map((feed, index) => (
-                  <FeedItem
-                    key={index}
-                    feed={feed}
-                    onClick={() =>
-                      handleImageClick(feed.diaryId || feed.evaluationId)
-                    }
-                  />
-                ))}
+                {feeds.map(
+                  (feed, index) =>
+                    feed.imageUrl && (
+                      <FeedItem
+                        key={index}
+                        feed={feed}
+                        onClick={() =>
+                          handleImageClick(feed.diaryId || feed.evaluationId)
+                        }
+                      />
+                    )
+                )}
               </div>
               {hasMore && (
                 <div
