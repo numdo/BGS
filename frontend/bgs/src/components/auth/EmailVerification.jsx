@@ -61,7 +61,7 @@ const EmailVerification = ({
 
   return (
     <div className="space-y-4 w-full max-w-md">
-      {/* 이메일 입력 및 중복 체크 버튼 */}
+      {/* 이메일 입력창과 중복체크 버튼을 항상 한 줄(row)로 배치 */}
       <div className="flex space-x-2">
         <input
           name="email"
@@ -73,7 +73,7 @@ const EmailVerification = ({
             e.target.setCustomValidity("이메일을 입력해 주세요.")
           }
           onInput={(e) => e.target.setCustomValidity("")}
-          className="flex-grow p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-primary text-base"
+          className="flex-1 w-full p-3 border rounded-lg border-black drop-shadow-lg focus:ring focus:ring-primary text-base"
           required
         />
         <button

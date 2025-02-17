@@ -223,8 +223,8 @@ export default function WorkoutCreatePage() {
       const workoutIds = record.workoutIds
         ? record.workoutIds
         : record.workoutId
-        ? [record.workoutId]
-        : [];
+          ? [record.workoutId]
+          : [];
       workoutIds.forEach((wid) => {
         if (!newDiaryWorkouts.some((dw) => dw.workoutId === wid)) {
           const type = getWorkoutType(wid);
@@ -556,11 +556,10 @@ export default function WorkoutCreatePage() {
                 <span className="mr-2 font-semibold">부위: </span>
                 <button
                   onClick={() => setSelectedPartFilter("")}
-                  className={`mr-2 px-2 py-1 border rounded ${
-                    selectedPartFilter === ""
+                  className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === ""
                       ? "bg-primary-light text-white"
                       : ""
-                  }`}
+                    }`}
                 >
                   전체
                 </button>
@@ -568,11 +567,10 @@ export default function WorkoutCreatePage() {
                   <button
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
-                    className={`mr-2 px-2 py-1 border rounded ${
-                      selectedPartFilter === part
+                    className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === part
                         ? "bg-primary-light text-white"
                         : ""
-                    }`}
+                      }`}
                   >
                     {part}
                   </button>
@@ -583,11 +581,10 @@ export default function WorkoutCreatePage() {
                 <span className="mr-2 font-semibold">기구: </span>
                 <button
                   onClick={() => setSelectedToolFilter("")}
-                  className={`mr-2 px-2 py-1 border rounded ${
-                    selectedToolFilter === ""
+                  className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === ""
                       ? "bg-primary-light text-white"
                       : ""
-                  }`}
+                    }`}
                 >
                   전체
                 </button>
@@ -595,11 +592,10 @@ export default function WorkoutCreatePage() {
                   <button
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
-                    className={`mr-2 px-2 py-1 border rounded ${
-                      selectedToolFilter === tool
+                    className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === tool
                         ? "bg-primary-light text-white"
                         : ""
-                    }`}
+                      }`}
                   >
                     {tool}
                   </button>
@@ -904,26 +900,30 @@ export default function WorkoutCreatePage() {
           </div>
         </div>
 
-        {/* 해시태그 추가 - flex row로 버튼 밀림 방지, 글자수 제한 10자 */}
-        <div className="mt-4 flex items-center">
-          <input
-            type="text"
-            className="p-2 border rounded resize-none w-[15ch]"
-            value={newHashtag}
-            onChange={(e) => setNewHashtag(e.target.value.replace(/\s/g, ""))}
-            onKeyDown={handleKeyDown}
-            placeholder="해시태그 입력"
-            maxLength={10}
-          />
-          <span className="ml-2 text-sm text-gray-400">
-            {newHashtag.length}/10
-          </span>
-          <button
-            onClick={handleAddHashtag}
-            className="ml-2 p-2 bg-primary-light text-white rounded whitespace-nowrap"
-          >
-            추가
-          </button>
+        {/* 해시태그 추가 */}
+        <div className="mt-4">
+          <div className="flex items-center">
+            <div className="flex flex-col">
+              <input
+                type="text"
+                className="p-2 border rounded resize-none w-[15ch]"
+                value={newHashtag}
+                onChange={(e) => setNewHashtag(e.target.value.replace(/\s/g, ""))}
+                onKeyDown={handleKeyDown}
+                placeholder="해시태그 입력"
+                maxLength={10}
+              />
+              <div className="text-right text-xs text-gray-400">
+                {newHashtag.length}/10
+              </div>
+            </div>
+            <button
+              onClick={handleAddHashtag}
+              className="ml-2 p-2 bg-primary-light text-white rounded whitespace-nowrap"
+            >
+              추가
+            </button>
+          </div>
         </div>
 
         {/* 해시태그 출력 */}

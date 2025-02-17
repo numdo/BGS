@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,7 @@ import WeightRecordCard from "../../components/stat/WeightRecordCard";
 import WeightHistoryChart from "../../components/stat/WeightHistoryChart";
 import WorkoutBalanceRadarChart from "../../components/stat/WorkoutBalanceRadarChart";
 import PartVolumeBarChart from "../../components/stat/PartVolumeBarChart";
+import useUserStore from "../../stores/useUserStore";
 
 // toastrAlert 함수들 import
 import {
@@ -25,6 +26,11 @@ import LoadingSpinner from "../../components/common/LoadingSpinner";
 export default function MainPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const { fetchMe } = useUserStore();
+
+  useEffect(() => {
+    fetchMe();
+  }, [fetchMe]);
 
   const handleAttendanceCheck = async () => {
     // 사용자의 위치 정보를 가져오기 위해 Geolocation API 사용
@@ -40,44 +46,32 @@ export default function MainPage() {
         try {
           // 출석 체크 API 호출 시 현재 위치 정보를 보내줍니다.
           const result = await checkAttendance({ latitude, longitude });
-          console.log("출석 체크 완료:", result);
-          await showConfirmAlert("출석 체크가 완료되었습니다!");
+          setIsLoading(false); // 결과를 받은 후 로딩 해제
+
+          // 백엔드에서 반환한 결과에 streak(연속 출석 일수)가 있다면 메세지에 추가
+          let successMessage = result.message || "출석 체크가 완료되었습니다!";
+          if (result.streak !== undefined && result.streak !== null) {
+            successMessage += ` (연속 출석 일수: ${result.streak}일)`;
+          }
+          await showSuccessAlert(successMessage);
         } catch (error) {
-          console.error("출석 체크 실패:", error);
-          await showErrorAlert("출석 체크에 실패했습니다. 다시 시도해주세요.");
-        } finally {
-          setIsLoading(false);
+          setIsLoading(false); // 에러 발생 시 로딩 해제
+
+          // error.response.data가 문자열이면 그대로 사용하고, 아니면 message 필드를 확인합니다.
+          const errorMsg =
+            typeof error.response?.data === "string"
+              ? error.response.data
+              : error.response?.data?.message ||
+                "출석 체크에 실패했습니다. 다시 시도해주세요.";
+          await showErrorAlert(errorMsg);
         }
       },
       async (error) => {
-        console.error("위치 정보 에러:", error);
+        setIsLoading(false); // 위치 정보를 가져오지 못했을 경우에도 로딩 해제
         await showErrorAlert("현재 위치를 가져올 수 없습니다.");
-        setIsLoading(false);
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
-  };
-
-  const radarData = {
-    labels: ["근력", "속도", "지구력", "유연성", "파워", "협응성"],
-    datasets: [
-      {
-        label: "내 운동 지표",
-        data: [65, 59, 90, 81, 56, 55],
-        fill: true,
-        backgroundColor: "rgba(54, 162, 235, 0.2)",
-        borderColor: "rgb(54, 162, 235)",
-      },
-    ],
-  };
-
-  const radarOptions = {
-    scales: {
-      r: {
-        suggestedMin: 0,
-        suggestedMax: 100,
-      },
-    },
   };
 
   return (
@@ -133,7 +127,7 @@ export default function MainPage() {
         <div className="grid grid-cols-3 gap-4 mt-5">
           <button
             onClick={() => navigate("/workout")}
-            className="flex flex-col items-start p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-md"
+            className="flex flex-col items-start p-3 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-md"
           >
             <div className="flex justify-between items-center w-full">
               <p className="text-xl font-semibold text-gray-800">일지</p>
@@ -146,7 +140,7 @@ export default function MainPage() {
 
           <button
             onClick={() => navigate("/feeds")}
-            className="flex flex-col items-start p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-md"
+            className="flex flex-col items-start p-3 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-md"
           >
             <div className="flex justify-between items-center w-full">
               <p className="text-xl font-semibold text-gray-800">피드</p>
@@ -159,14 +153,14 @@ export default function MainPage() {
 
           <button
             onClick={() => navigate("/evaluationcreate")}
-            className="flex flex-col items-start p-4 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-md"
+            className="flex flex-col items-start p-3 bg-white border rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-md"
           >
             <div className="flex justify-between items-center w-full">
               <p className="text-xl font-semibold text-gray-800">평가</p>
               <span className="text-2xl">⭐</span>
             </div>
-            <p className="text-sm text-gray-600 mt-1 break-keep">
-              3대 운동을 자랑하고 평가해봐요!
+            <p className="text-sm text-gray-600 mt-1 text-left break-keep">
+              3대 운동을 자랑하고 평가해보세요요!
             </p>
           </button>
         </div>
@@ -178,10 +172,10 @@ export default function MainPage() {
           <WeightHistoryChart />
         </div>
         <div className="mt-12 mb-12">
-          <WorkoutBalanceRadarChart  />
+          <WorkoutBalanceRadarChart />
         </div>
         <div className="mt-12 mb-12">
-          <PartVolumeBarChart   />
+          <PartVolumeBarChart />
         </div>
       </div>
 

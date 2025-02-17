@@ -18,11 +18,9 @@ const useProfileGuard = (enabled = true) => {
   useEffect(() => {
     if (!enabled) return; // 프로필 체크가 비활성화된 경우 실행하지 않음.
     const checkProfile = async () => {
-      console.log("[useProfileGuard] checkProfile 호출");
       setLoading(true);
       try {
         const user = await getUser();
-        console.log("[useProfileGuard] 백엔드에서 받은 user:", user);
         setProfile(user);
         // 필수 정보가 모두 있으면 profileIncomplete = false, 그렇지 않으면 true
         if (
@@ -32,10 +30,8 @@ const useProfileGuard = (enabled = true) => {
           !user.sex?.trim() ||
           !user.weight
         ) {
-          console.log("[useProfileGuard] 필수 정보가 없어 프로필 미완성 상태");
           setProfileIncomplete(true);
         } else {
-          console.log("[useProfileGuard] 필수 정보가 모두 존재해 프로필 완성 상태");
           setProfileIncomplete(false);
         }
       } catch (err) {
@@ -52,12 +48,7 @@ const useProfileGuard = (enabled = true) => {
   useEffect(() => {
     if (!enabled) return; // 프로필 체크가 비활성화된 경우 실행하지 않음.
     if (!loading) {
-      console.log(
-        "[useProfileGuard] 로딩 완료. profileIncomplete:",
-        profileIncomplete
-      );
       if (profileIncomplete) {
-        console.log("[useProfileGuard] /social-signup으로 이동");
         navigate("/social-signup");
       }
     }
