@@ -1,8 +1,14 @@
 import { create } from "zustand";
-import { getUser, updateUser, deleteUser, changePassword, checkNickname } from "../api/User";
+import {
+  getUser,
+  updateUser,
+  deleteUser,
+  changePassword,
+  checkNickname,
+} from "../api/User";
 
 const useUserStore = create((set) => ({
-  me: {
+  me: JSON.parse(localStorage.getItem("me")) || {
     userId: 0,
     name: "",
     nickname: "",
@@ -19,6 +25,10 @@ const useUserStore = create((set) => ({
     profileImageUrl: "",
     accountType: "",
   },
+  setMe: (userData) => {
+    localStorage.setItem("me", JSON.stringify(userData));
+    set({ me: userData });
+  },
   user: {
     userId: 0,
     nickname: "",
@@ -26,7 +36,6 @@ const useUserStore = create((set) => ({
     profileImageUrl: "",
   },
   setUser: (userData) => set({ user: userData }),
-  setMe: (userData) => set({ me: userData }),
   fetchMe: async () => {
     try {
       const data = await getUser(0);
