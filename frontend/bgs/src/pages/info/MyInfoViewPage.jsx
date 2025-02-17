@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import useUserStore from "../../stores/useUserStore";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
-import logoutIcon from "../../assets/icons/signout.svg";
 import myinfo from "../../assets/icons/myinfo.png";
 import { handleLogout } from "../../api/Auth";
 import { changePassword } from "../../api/User";
@@ -103,16 +102,7 @@ export default function MyInfoViewPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* ✅ 상단바 */}
-      <div className="relative">
-        <TopBar />
-        {/* ✅ 로그아웃 버튼 */}
-        <button
-          onClick={confirmLogout}
-          className="absolute top-3.5 right-2.5 z-40"
-        >
-          <img src={logoutIcon} alt="로그아웃" className="w-6 h-6" />
-        </button>
-      </div>
+      <TopBar />
 
       <div className="flex-1 flex flex-col items-center px-6 pt-4 max-w-3xl mx-auto w-full pb-16">
         {/* ✅ 프로필 섹션 */}
@@ -190,6 +180,16 @@ export default function MyInfoViewPage() {
           <hr className="border-gray-300 my-4" />
           <p className="text-right text-primary font-semibold py-3 hover:text-blue-700">
             비밀번호 변경
+          </p>
+        </div>
+
+        {/* ✅ 로그아웃 버튼 */}
+        <div
+          onClick={confirmLogout}
+          className="w-full max-w-xl mt-6 cursor-pointer"
+        >
+          <p className="text-right text-primary font-semibold py-3 hover:text-blue-700">
+            로그아웃
           </p>
         </div>
       </div>
