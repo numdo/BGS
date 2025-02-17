@@ -1,16 +1,15 @@
 import React, { useState } from "react";
 import { addWeightHistory } from "../../api/Stat";
-import { showSuccessAlert, showErrorAlert } from "../../utils/toastrAlert"; // toastrAlert 함수들이 정의된 파일
+import { showSuccessAlert, showErrorAlert } from "../../utils/toastrAlert"; // toastrAlert 함수들
+import ConfirmModal from "../common/ConfirmModal"; // ConfirmModal 컴포넌트 import (경로에 맞게 조정)
 
 export default function WeightRecordCard() {
   const [weight, setWeight] = useState("");
   const [loading, setLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!weight || isNaN(weight)) {
-      showErrorAlert("유효한 몸무게(kg)를 입력해주세요.");
-      return;
-    }
+  const handleActualSubmit = async () => {
+    setConfirmOpen(false);
     setLoading(true);
     try {
       await addWeightHistory({ weight: parseFloat(weight) });
@@ -20,8 +19,23 @@ export default function WeightRecordCard() {
       showErrorAlert("몸무게 기록 추가에 실패했습니다.");
     } finally {
       setLoading(false);
-      window.location.reload();
+      window.location.reload(); // 필요에 따라 새로고침 여부 결정
     }
+  };
+
+  const handleSubmit = async () => {
+    const weightNum = parseFloat(weight);
+    if (!weight || isNaN(weightNum)) {
+      showErrorAlert("유효한 몸무게(kg)를 입력해주세요.");
+      return;
+    }
+    // 10kg 이상 1000kg 이하만 허용 (음수 및 그 외 범위 불허)
+    if (weightNum < 10 || weightNum > 1000) {
+      showErrorAlert("몸무게는 10kg 이상 1000kg 이하로 입력해주세요.");
+      return;
+    }
+    // ConfirmModal을 열어서 사용자가 입력한 값 확인
+    setConfirmOpen(true);
   };
 
   // 엔터 키 입력 감지하여 handleSubmit 실행
@@ -40,6 +54,8 @@ export default function WeightRecordCard() {
         <input
           type="number"
           step="0.1"
+          min="10"
+          max="1000"
           value={weight}
           onChange={(e) => setWeight(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -55,6 +71,20 @@ export default function WeightRecordCard() {
           {loading ? "저장 중..." : "기록하기"}
         </button>
       </div>
+
+      {/* ConfirmModal: 사용자가 입력한 몸무게 확인 */}
+      {confirmOpen && (
+        <ConfirmModal
+          message={`입력하신 몸무게 ${weight}kg가 맞습니까?`}
+          confirmText="확인"
+          cancelText="취소"
+          confirmColor="bg-primary"
+          cancelColor="bg-gray-200"
+          textColor="text-white"
+          onConfirm={handleActualSubmit}
+          onCancel={() => setConfirmOpen(false)}
+        />
+      )}
     </div>
   );
 }
