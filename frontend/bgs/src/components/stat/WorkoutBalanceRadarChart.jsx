@@ -46,9 +46,9 @@ export default function WorkoutBalanceRadarChart() {
         workoutBalance.chest,
         workoutBalance.lat,
         workoutBalance.triceps,
-        workoutBalance.shoulder,
-        workoutBalance.biceps,
         workoutBalance.leg,
+        workoutBalance.biceps,
+        workoutBalance.shoulder,
       ]
     : [0, 0, 0, 0, 0, 0];
 

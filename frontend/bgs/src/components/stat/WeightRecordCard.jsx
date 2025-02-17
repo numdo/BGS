@@ -44,13 +44,13 @@ export default function WeightRecordCard() {
           onChange={(e) => setWeight(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="몸무게를 입력하세요"
-          className="flex-grow border border-gray-300 rounded-l px-3 py-2 focus:outline-none"
+          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
         />
         <span className="px-2 text-gray-700">kg</span>
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="px-4 py-2 bg-primary text-white font-semibold rounded-r hover:bg-primary-light transition-colors whitespace-nowrap"
+          className="px-4 py-2 bg-primary text-white font-semibold rounded hover:bg-primary-light transition-colors whitespace-nowrap"
         >
           {loading ? "저장 중..." : "기록하기"}
         </button>
