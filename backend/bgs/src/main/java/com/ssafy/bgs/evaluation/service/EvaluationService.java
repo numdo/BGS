@@ -1,15 +1,16 @@
 package com.ssafy.bgs.evaluation.service;
 
 import com.ssafy.bgs.common.UnauthorizedAccessException;
+import com.ssafy.bgs.diary.dto.request.CommentRequestDto;
+import com.ssafy.bgs.diary.dto.response.CommentResponseDto;
+import com.ssafy.bgs.diary.exception.CommentNotFoundException;
 import com.ssafy.bgs.evaluation.dto.request.EvaluationRequestDto;
 import com.ssafy.bgs.evaluation.dto.response.EvaluationFeedResponseDto;
 import com.ssafy.bgs.evaluation.dto.response.EvaluationResponseDto;
-import com.ssafy.bgs.evaluation.entity.Evaluation;
-import com.ssafy.bgs.evaluation.entity.Vote;
-import com.ssafy.bgs.evaluation.entity.VoteId;
-import com.ssafy.bgs.evaluation.entity.WorkoutRecord;
+import com.ssafy.bgs.evaluation.entity.*;
 import com.ssafy.bgs.evaluation.exception.EvaluationNotFoundException;
 import com.ssafy.bgs.evaluation.exception.VoteNotFoundException;
+import com.ssafy.bgs.evaluation.repository.EvaluationCommentRepository;
 import com.ssafy.bgs.evaluation.repository.EvaluationRepository;
 import com.ssafy.bgs.evaluation.repository.VoteRepository;
 import com.ssafy.bgs.evaluation.repository.WorkoutRecordRepository;
@@ -49,6 +50,7 @@ public class EvaluationService {
     private final UserRepository userRepository;
     private final ImageService imageService;
     private final CoinHistoryRepository coinHistoryRepository;
+    private final EvaluationCommentRepository evaluationCommentRepository;
 
     public List<EvaluationFeedResponseDto> getFeedList(Boolean closed, int page, int pageSize) {
         List<EvaluationFeedResponseDto> feedList = new ArrayList<>();
@@ -463,4 +465,49 @@ public class EvaluationService {
                 .build();
     }
 
+    public List<CommentResponseDto> getCommentList(Integer evaluationId) {
+        return evaluationCommentRepository.findCommentsByEvaluationId(evaluationId);
+    }
+
+    public void addComment(CommentRequestDto commentRequestDto) {
+        EvaluationComment comment = new EvaluationComment();
+        comment.setEvaluationId(commentRequestDto.getDiaryId());
+        comment.setUserId(commentRequestDto.getUserId());
+        comment.setContent(commentRequestDto.getContent());
+        evaluationCommentRepository.save(comment);
+    }
+
+    /**
+     * Comment update
+     **/
+    public void updateComment(CommentRequestDto commentRequestDto) {
+        // 댓글 미존재
+        EvaluationComment comment = evaluationCommentRepository.findById(commentRequestDto.getCommentId()).orElseThrow(() -> new CommentNotFoundException(commentRequestDto.getCommentId()));
+
+        // 댓글 수정 권한 없음
+        if (!comment.getUserId().equals(commentRequestDto.getUserId()))
+            throw new UnauthorizedAccessException("댓글 수정 권한 없음") {
+            };
+        comment.setContent(commentRequestDto.getContent());
+        evaluationCommentRepository.save(comment);
+    }
+
+    /**
+     * Comment delete
+     **/
+    public void deleteComment(Integer userId, Integer commentId) {
+        // 댓글 미존재
+        EvaluationComment comment = evaluationCommentRepository.findById(commentId).orElse(null);
+        if (comment == null || comment.getDeleted()) {
+            throw new CommentNotFoundException(commentId);
+        }
+
+        // 댓글 삭제 권한 없음
+        if (!comment.getUserId().equals(userId))
+            throw new UnauthorizedAccessException("댓글 삭제 권한 없음") {
+            };
+
+        comment.setDeleted(true);
+        evaluationCommentRepository.save(comment);
+    }
 }

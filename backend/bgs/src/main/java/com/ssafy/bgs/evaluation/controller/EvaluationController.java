@@ -1,6 +1,8 @@
 package com.ssafy.bgs.evaluation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ssafy.bgs.diary.dto.request.CommentRequestDto;
+import com.ssafy.bgs.diary.dto.response.CommentResponseDto;
 import com.ssafy.bgs.evaluation.dto.request.EvaluationRequestDto;
 import com.ssafy.bgs.evaluation.dto.response.EvaluationFeedResponseDto;
 import com.ssafy.bgs.evaluation.dto.response.EvaluationResponseDto;
@@ -134,5 +136,49 @@ public class EvaluationController {
 
         evaluationService.vote(evaluationId, userId, approval);
         return ResponseEntity.ok("투표가 완료되었습니다.");
+    }
+
+    @GetMapping("/{evaluationId}/comments")
+    public ResponseEntity<?> getCommentList(
+            @PathVariable Integer evaluationId
+    ) {
+        List<CommentResponseDto> commentList = evaluationService.getCommentList(evaluationId);
+
+        return new ResponseEntity<>(commentList, HttpStatus.OK);
+    }
+
+    @PostMapping("/{evaluationId}/comments")
+    public ResponseEntity<?> addComment(
+            @AuthenticationPrincipal Integer userId,
+            @PathVariable Integer evaluationId,
+            @RequestBody CommentRequestDto commentRequestDto
+    ) {
+        commentRequestDto.setUserId(userId);
+        commentRequestDto.setDiaryId(evaluationId);
+        evaluationService.addComment(commentRequestDto);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @PatchMapping("/{evaluationId}/comments/{commentId}")
+    public ResponseEntity<CommentResponseDto> updateComment(
+            @AuthenticationPrincipal Integer userId,
+            @PathVariable Integer evaluationId,
+            @PathVariable Integer commentId,
+            @RequestBody CommentRequestDto commentRequestDto
+    ) {
+        commentRequestDto.setUserId(userId);
+        commentRequestDto.setDiaryId(evaluationId);
+        commentRequestDto.setCommentId(commentId);
+        evaluationService.updateComment(commentRequestDto);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{evaluationId}/comments/{commentId}")
+    public ResponseEntity<Boolean> deleteComment(
+            @AuthenticationPrincipal Integer userId,
+            @PathVariable Integer evaluationId,
+            @PathVariable Integer commentId) {
+        evaluationService.deleteComment(userId, commentId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
