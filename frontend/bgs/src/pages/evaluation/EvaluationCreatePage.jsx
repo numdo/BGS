@@ -11,44 +11,34 @@ export default function EvaluationCreatePage() {
   const [workoutType, setWorkoutType] = useState("BENCH"); // BENCH, DEAD, SQUAT
   const [content, setContent] = useState("");
   const [weight, setWeight] = useState(""); // Decimal(4,1) 형식
-  const [files, setFiles] = useState([]); // 여러 파일
-  const [previewUrls, setPreviewUrls] = useState([]); // 미리보기 URL
+  const [file, setFile] = useState(null); // 단일 파일
+  const [previewUrl, setPreviewUrl] = useState(null); // 미리보기 URL
   const fileInputRef = useRef(null);
 
-  // 파일 업로드 (이미지 & 동영상)
+  // 파일 업로드 (영상만 허용, 1개 제한)
   const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    const maxAllowedSize = 100 * 1024 * 1024; // 최대 20MB 제한
+    const selectedFile = e.target.files[0];
+    const maxAllowedSize = 100 * 1024 * 1024; // 최대 100MB 제한
 
-    for (let file of selectedFiles) {
-      if (file.size > maxAllowedSize) {
-        alert(`파일이 너무 큽니다: ${file.name}`);
-        return;
-      }
-    }
+    if (!selectedFile) return;
 
-    if (selectedFiles.length + files.length > 6) {
-      alert("이미지 또는 동영상은 최대 6개까지 업로드할 수 있습니다.");
+    if (!selectedFile.type.startsWith("video/")) {
+      alert("영상 파일만 업로드할 수 있습니다.");
       return;
     }
 
-    setFiles((prev) => [...prev, ...selectedFiles]);
+    if (selectedFile.size > maxAllowedSize) {
+      alert(`파일이 너무 큽니다: ${selectedFile.name}`);
+      return;
+    }
 
-    const newPreviews = selectedFiles.map((file) => {
-      if (file.type.startsWith("video/")) {
-        return URL.createObjectURL(file); // 동영상 URL
-      } else if (file.type.startsWith("image/")) {
-        return URL.createObjectURL(file); // 이미지 URL
-      }
-      return null;
-    });
-
-    setPreviewUrls((prev) => [...prev, ...newPreviews]);
+    setFile(selectedFile);
+    setPreviewUrl(URL.createObjectURL(selectedFile));
   };
 
-  const handleRemoveFile = (index) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-    setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
+  const handleRemoveFile = () => {
+    setFile(null);
+    setPreviewUrl(null);
   };
 
   // 숫자 및 소수점 1자리까지 입력 검증
@@ -86,7 +76,9 @@ export default function EvaluationCreatePage() {
       "data",
       new Blob([JSON.stringify(data)], { type: "application/json" })
     );
-    files.forEach((f) => formData.append("images", f));
+    if (file) {
+      formData.append("images", file);
+    }
 
     try {
       await axiosInstance.post("/evaluations", formData, {
@@ -136,51 +128,42 @@ export default function EvaluationCreatePage() {
           />
         </div>
 
-        {/* 파일 업로드 (이미지 & 동영상) */}
+        {/* 영상 업로드 (1개 제한) */}
         <div className="mt-4">
           <input
             type="file"
-            accept="image/*, video/mp4"
-            multiple
+            accept="video/mp4"
             onChange={handleFileChange}
             ref={fileInputRef}
             style={{ display: "none" }}
           />
           <div className="flex flex-col">
-            <label className="font-bold mb-2">이미지 / 동영상 업로드 (최대 6개)</label>
+            <label className="font-bold mb-2">영상 업로드 (1개만 가능)</label>
 
             <div className="flex flex-wrap gap-2">
-              {previewUrls.map((url, idx) => (
-                <div key={idx} className="relative w-40 h-40">
-                  {files[idx].type.startsWith("video/") ? (
-                    <video
-                      src={url}
-                      className="w-full h-full object-cover rounded-md shadow-md"
-                    />
-                  ) : (
-                    <img
-                      src={url}
-                      alt="preview"
-                      className="w-full h-full object-cover rounded-md shadow-md"
-                    />
-                  )}
+              {previewUrl && (
+                <div className="relative w-40 h-40">
+                  <video
+                    src={previewUrl}
+                    className="w-full h-full object-cover rounded-md shadow-md"
+                    controls
+                  />
                   <button
-                    onClick={() => handleRemoveFile(idx)}
+                    onClick={handleRemoveFile}
                     className="absolute top-1 right-1 bg-red-600 text-white text-sm px-1 rounded"
                   >
                     X
                   </button>
                 </div>
-              ))}
-              {Array.from({ length: 1 }).map((_, i) => (
+              )}
+              {!previewUrl && (
                 <div
-                  key={`placeholder-${i}`}
                   className="w-40 h-40 bg-gray-200 rounded-md flex items-center justify-center cursor-pointer"
                   onClick={() => fileInputRef.current.click()}
                 >
                   <img src={addlogo} alt="추가 아이콘" />
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
