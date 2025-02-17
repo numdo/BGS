@@ -8,6 +8,7 @@ const useMyGymStore = create((set) => ({
     wallColor: "",
     userId: "",
     nickname: "",
+    flowed : true,
   },
   setMyGym: (MyGym) => set({ myGym: MyGym }),
 }));
