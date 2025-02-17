@@ -214,7 +214,7 @@ export default function WorkoutDiaryPage() {
                       <span className="font-medium">세트 {index + 1}:</span>
                       {set.workoutTime ? (
                         <span className="text-gray-900">
-                          {set.workoutTime}초
+                          {set.workoutTime}분
                         </span>
                       ) : (
                         <span>

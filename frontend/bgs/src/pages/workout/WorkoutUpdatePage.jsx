@@ -236,8 +236,8 @@ export default function WorkoutUpdatePage() {
       const workoutIds = record.workoutIds
         ? record.workoutIds
         : record.workoutId
-          ? [record.workoutId]
-          : [];
+        ? [record.workoutId]
+        : [];
       workoutIds.forEach((wid) => {
         if (!newDiaryWorkouts.some((dw) => dw.workoutId === wid)) {
           const type = getWorkoutType(wid);
@@ -387,7 +387,6 @@ export default function WorkoutUpdatePage() {
     }));
   };
 
-  // 세트 추가 시에도 운동 타입에 따라 기본 세트 객체 결정
   const handleAddSet = (workoutId) => {
     setDiary((prevDiary) => {
       const idx = prevDiary.diaryWorkouts.findIndex(
@@ -461,8 +460,6 @@ export default function WorkoutUpdatePage() {
     setFiles((prev) => [...prev, ...selectedFiles]);
     const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
     setPreviewUrls((prev) => [...prev, ...newPreviews]);
-
-    // 파일 입력값 초기화 -> 같은 파일도 다시 선택 가능하게 함
     e.target.value = "";
   };
 
@@ -471,6 +468,7 @@ export default function WorkoutUpdatePage() {
     setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // 운동일지 수정 핸들러
   const handleDiaryUpdate = async () => {
     if (!diary.diaryId) {
       showErrorAlert("수정할 일지 ID가 없습니다!");
@@ -495,11 +493,11 @@ export default function WorkoutUpdatePage() {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
-      await showConfirmAlert("✅ 수정 완료!");
-      navigate("/workout");
+      // 수정 성공 후 바로 /workout 페이지로 이동하면서 성공 메시지 전달
+      navigate("/workout", { state: { showSuccessMessage: "✅ 수정 완료!" } });
     } catch (err) {
       console.error("❌ 수정 오류:", err);
-      await showErrorAlert("🚨 수정 실패!");
+      showErrorAlert("🚨 수정 실패!");
     }
   };
 
@@ -583,7 +581,9 @@ export default function WorkoutUpdatePage() {
                 <span className="mr-2 font-semibold">부위: </span>
                 <button
                   onClick={() => setSelectedPartFilter("")}
-                  className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === "" ? "bg-primary-light text-white" : ""}`}
+                  className={`mr-2 px-2 py-1 border rounded ${
+                    selectedPartFilter === "" ? "bg-primary-light text-white" : ""
+                  }`}
                 >
                   전체
                 </button>
@@ -591,7 +591,9 @@ export default function WorkoutUpdatePage() {
                   <button
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
-                    className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === part ? "bg-primary-light text-white" : ""}`}
+                    className={`mr-2 px-2 py-1 border rounded ${
+                      selectedPartFilter === part ? "bg-primary-light text-white" : ""
+                    }`}
                   >
                     {part}
                   </button>
@@ -602,7 +604,9 @@ export default function WorkoutUpdatePage() {
                 <span className="mr-2 font-semibold">기구: </span>
                 <button
                   onClick={() => setSelectedToolFilter("")}
-                  className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === "" ? "bg-primary-light text-white" : ""}`}
+                  className={`mr-2 px-2 py-1 border rounded ${
+                    selectedToolFilter === "" ? "bg-primary-light text-white" : ""
+                  }`}
                 >
                   전체
                 </button>
@@ -610,7 +614,9 @@ export default function WorkoutUpdatePage() {
                   <button
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
-                    className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === tool ? "bg-primary-light text-white" : ""}`}
+                    className={`mr-2 px-2 py-1 border rounded ${
+                      selectedToolFilter === tool ? "bg-primary-light text-white" : ""
+                    }`}
                   >
                     {tool}
                   </button>
@@ -729,7 +735,10 @@ export default function WorkoutUpdatePage() {
               {diary.diaryWorkouts.map((workout, wIndex) => {
                 const type = getWorkoutType(workout.workoutId);
                 return (
-                  <div key={`dw-${wIndex}`} className="border p-4 rounded-md mb-4 bg-white shadow">
+                  <div
+                    key={`dw-${wIndex}`}
+                    className="border p-4 rounded-md mb-4 bg-white shadow"
+                  >
                     {/* 운동명 및 삭제 버튼 */}
                     <div className="flex justify-between items-center pb-2 border-b">
                       <h2 className="text-base font-semibold text-gray-800">
@@ -944,7 +953,9 @@ export default function WorkoutUpdatePage() {
             type="text"
             className="p-2 border rounded resize-none w-[15ch]"
             value={newHashtag}
-            onChange={(e) => setNewHashtag(e.target.value)}
+            onChange={(e) =>
+              setNewHashtag(e.target.value.replace(/\s/g, ""))
+            }
             placeholder="해시태그 입력"
             maxLength={10}
           />
@@ -960,10 +971,7 @@ export default function WorkoutUpdatePage() {
         </div>
         <div className="mt-2">
           {diary.hashtags.map((tag) => (
-            <span
-              key={tag}
-              className="p-1 bg-gray-200 rounded-full text-sm mr-2"
-            >
+            <span key={tag} className="p-1 bg-gray-200 rounded-full text-sm mr-2">
               #{tag}
             </span>
           ))}

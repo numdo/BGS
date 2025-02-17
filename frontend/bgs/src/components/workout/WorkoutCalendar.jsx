@@ -57,6 +57,14 @@ const StyledCalendarWrapper = styled.div`
     position: relative;
     background: none !important;
     color: ${(props) => props.theme.gray_1 || "#555"};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    abbr {
+      position: relative;
+      z-index: 2;
+    }
   }
 
   /* 오늘 날짜 스타일 */
@@ -80,20 +88,46 @@ const StyledCalendarWrapper = styled.div`
 
   /* hover 스타일 */
   .react-calendar__tile:enabled:hover {
-    background-color: #7985ef !important;
-    border-radius: 0.3rem;
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 80px;
+      background-color: #7985ef;
+      border-radius: 0.3rem;
+      z-index: 1;
+    }
+    
+    abbr {
+      color: white;
+    }
   }
 
   /* 선택된 날짜 스타일 */
   .custom-selected-date {
-    background-color: #7985ef !important;
-    border-radius: 0.3rem;
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 80px;
+      background-color: #7985ef;
+      border-radius: 0.3rem;
+      z-index: 1;
+    }
     
     abbr {
       color: white !important;
     }
   }
 `;
+
+// ... 나머지 코드는 동일 ...
 
 const MarkerContainer = styled.div`
   position: absolute;
@@ -105,6 +139,7 @@ const MarkerContainer = styled.div`
   justify-content: center;
   gap: 2px;
   pointer-events: none;
+  z-index: 2;
 `;
 
 const Marker = React.memo(({ isAttended, isDiary }) => (
@@ -129,7 +164,6 @@ const LegendContainer = styled.div`
   background: white;
   padding: 4px 8px;
   border-radius: 4px;
-  /* box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);  제거 또는 주석 처리 */
   font-size: 0.9rem;
   color: ${(props) => props.theme.gray_1 || "#555"};
   display: flex;
@@ -137,18 +171,15 @@ const LegendContainer = styled.div`
   gap: 4px;
 `;
 
-
 const WorkoutCalendar = ({
   onDateSelect,
   selectedDate,
   diaryDates = [],
   streakSegments = [],
 }) => {
-  // value와 activeDate를 분리하여 관리
   const [value, setValue] = useState(selectedDate || new Date());
   const [activeDate, setActiveDate] = useState(selectedDate || new Date());
 
-  // selectedDate prop이 변경될 때 상태 업데이트
   useEffect(() => {
     if (selectedDate) {
       setValue(selectedDate);
@@ -212,7 +243,6 @@ const WorkoutCalendar = ({
         tileClassName={tileClassName}
         onActiveStartDateChange={({ activeStartDate }) => setActiveDate(activeStartDate)}
       />
-      {/* 달력 우측 상단에 레전드 추가 */}
       <LegendContainer>
         <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           <span>✅</span>
