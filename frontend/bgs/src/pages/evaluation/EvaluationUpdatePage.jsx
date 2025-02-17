@@ -55,7 +55,7 @@ export default function EvaluationUpdatePage() {
   // 새 이미지 추가
   const handleImageChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-    const maxAllowedSize = 1 * 1024 * 1024;
+    const maxAllowedSize = 100 * 1024 * 1024;
 
     for (let file of selectedFiles) {
       if (file.size > maxAllowedSize) {

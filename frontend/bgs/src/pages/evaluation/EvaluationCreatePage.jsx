@@ -18,7 +18,7 @@ export default function EvaluationCreatePage() {
   // 파일 업로드 (이미지 & 동영상)
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-    const maxAllowedSize = 20 * 1024 * 1024; // 최대 20MB 제한
+    const maxAllowedSize = 100 * 1024 * 1024; // 최대 20MB 제한
 
     for (let file of selectedFiles) {
       if (file.size > maxAllowedSize) {
