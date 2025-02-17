@@ -27,7 +27,7 @@ const FeedPage = () => {
   //스와이프 관련 상태
   const [startX, setStartX] = useState(0);
   const [translateX, setTranslateX] = useState(0);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(feedType === "diary" ? 0 : 1);
   const containerRef = useRef(null);
 
   //스크롤 높이 관련 상태
@@ -131,7 +131,6 @@ const FeedPage = () => {
       if (newEvaluations.length === 0) {
         setHasMoreEvaluation(false);
       } else {
-        console.log("더불러오기");
         setEvaluations((prev) => [...prev, ...newEvaluations]);
         setEvaluationPage((prevPage) => prevPage + 1);
       }
@@ -221,8 +220,8 @@ const FeedPage = () => {
           style={{
             height: `${
               activeIndex === 0
-                ? feeds.length * 40 + 100
-                : evaluations.length * 40 + 100
+                ? feeds.filter((feed) => feed.imageUrl).length * 32 + 200
+                : evaluations.filter((feed) => feed.imageUrl).length * 32 + 200
             }px`,
           }}
           className="relative w-full flex-grow overflow-hidden"
@@ -231,7 +230,7 @@ const FeedPage = () => {
           onTouchEnd={handleTouchEnd}
         >
           <div
-            className="flex w-full h-full transition-transform duration-300"
+            className="flex w-full transition-transform duration-300"
             style={{
               transform: `translateX(calc(${
                 activeIndex * -100
@@ -267,22 +266,25 @@ const FeedPage = () => {
             {/* 평가 피드 */}
             <div className="w-full flex-shrink-0 p-4" ref={evaluationRef}>
               <div className="grid grid-cols-3 gap-2">
-                {evaluations.map((feed, index) => (
-                  <FeedItem
-                    key={index}
-                    feed={feed}
-                    onClick={() =>
-                      handleImageClick(feed.diaryId || feed.evaluationId)
-                    }
-                  />
-                ))}
+                {evaluations.map(
+                  (feed, index) =>
+                    feed.imageUrl && (
+                      <FeedItem
+                        key={index}
+                        feed={feed}
+                        onClick={() =>
+                          handleImageClick(feed.diaryId || feed.evaluationId)
+                        }
+                      />
+                    )
+                )}
               </div>
               {hasMoreEvaluation && (
                 <div
                   ref={evaluationLoaderRef}
                   className="h-10 mt-4 flex justify-center items-center"
                 >
-                  {evaluationLoaderRef && (
+                  {evaluationLoading && (
                     <p className="text-gray-500">Loading...</p>
                   )}
                 </div>

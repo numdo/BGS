@@ -1,4 +1,4 @@
-import { formatDistanceToNow } from "date-fns";
+import { formatDistance } from "date-fns";
 import { ko } from "date-fns/locale";
 import person from "../../assets/icons/person.svg";
 import more_horiz from "../../assets/icons/more_horiz.svg";
@@ -20,10 +20,10 @@ const CommentList = ({ key, comments }) => {
                   <div className="flex items-center">
                     <p className="text-sm font-semibold">{comment.writer}</p>
                     <p className="ml-3 text-xs text-gray-400">
-                      {formatDistanceToNow(new Date(comment.createdAt), {
-                        addSuffix: true,
+                      {formatDistance(new Date(comment.createdAt), new Date(), {
                         locale: ko,
-                      })}
+                      })}{" "}
+                      전
                     </p>
                   </div>
                   <p className="text-sm">{comment.content}</p>
