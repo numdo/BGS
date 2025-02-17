@@ -29,8 +29,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -149,7 +149,8 @@ public class EvaluationService {
      * 평가 게시글 작성 시 하루 한 번만 코인 +1 지급
      */
     @Transactional
-    public EvaluationResponseDto createEvaluation(Integer userId, EvaluationRequestDto dto, List<File> videos) {
+    public EvaluationResponseDto createEvaluation(Integer userId, EvaluationRequestDto dto, List<MultipartFile> images) {
+        // 오늘 작성된 평가 게시물이 있는지 확인 (오늘 00:00 ~ 23:59:59.999)
         Timestamp startOfToday = Timestamp.valueOf(LocalDate.now().atStartOfDay());
         Timestamp endOfToday = Timestamp.valueOf(LocalDate.now().atTime(LocalTime.MAX));
         boolean hasEvaluationToday = evaluationRepository.existsByUserIdAndCreatedAtBetween(userId, startOfToday, endOfToday);
@@ -168,14 +169,16 @@ public class EvaluationService {
 
         Evaluation savedEvaluation = evaluationRepository.save(evaluation);
 
+        // 오늘 첫 평가 게시물 작성이면 코인 지급
         if (!hasEvaluationToday) {
             giveCoinForEvaluation(userId, savedEvaluation.getEvaluationId());
         }
 
-        // 🔹 영상 업로드 처리
-        if (videos != null && !videos.isEmpty()) {
-            videos.forEach(video -> imageService.uploadImage(video, "evaluation", Long.valueOf(savedEvaluation.getEvaluationId())));
-        }
+        if (images != null && !images.isEmpty()) {
+                images.forEach(image -> {
+                    imageService.uploadImageWithThumbnail(image, "evaluation", Long.valueOf(savedEvaluation.getEvaluationId()));
+                });
+            }
 
         return convertToDto(savedEvaluation);
     }
@@ -202,7 +205,7 @@ public class EvaluationService {
      * 평가 게시물 수정 (이미지 포함)
      */
     @Transactional
-    public EvaluationResponseDto updateEvaluation(Integer evaluationId, Integer userId, Map<String, Object> updates, List<String> existingImageUrls, List<File> newImages) {
+    public EvaluationResponseDto updateEvaluation(Integer evaluationId, Integer userId, Map<String, Object> updates, List<String> existingImageUrls, List<MultipartFile> newImages) {
         Evaluation evaluation = evaluationRepository.findById(evaluationId)
                 .orElseThrow(() -> new EvaluationNotFoundException(evaluationId));
 

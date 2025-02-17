@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,31 +84,6 @@ public class ImageService {
     }
 
     @Transactional
-    public Image uploadImage(File file, String usageType, Long usageId) {
-        try {
-            // 1) S3 업로드 -> key 반환
-            String s3Key = s3Uploader.upload(file, "images/" + usageType + "/" + usageId);
-
-            // 2) 파일 확장자 추출
-            String ext = getFileExtension(file.getName());
-
-            // 3) DB에 이미지 저장
-            Image image = Image.builder()
-                    .url(s3Key)
-                    .extension(ext)
-                    .createdAt(LocalDateTime.now())
-                    .deleted(false)
-                    .usageType(usageType)
-                    .usageId(usageId)
-                    .build();
-            return imageRepository.save(image);
-        } catch (Exception e) {
-            throw new ImageUploadException();
-        }
-    }
-
-
-    @Transactional
     public Image uploadImageWithThumbnail(MultipartFile file, String usageType, Long usageId) {
         try {
             // 1) 원본 이미지 S3 업로드 -> key 반환
@@ -136,35 +110,6 @@ public class ImageService {
             throw new ImageUploadException();
         }
     }
-
-    @Transactional
-    public Image uploadImageWithThumbnail(File file, String usageType, Long usageId) {
-        try {
-            // 1) 원본 이미지 S3 업로드 -> key 반환
-            String s3Key = s3Uploader.upload(file, "images/" + usageType + "/" + usageId);
-
-            // 2) 썸네일 생성 및 S3 업로드 -> key 반환
-            String thumbnailKey = s3Uploader.uploadThumbnail(file, "thumbnails/" + usageType + "/" + usageId);
-
-            // 3) 파일 확장자 추출
-            String ext = getFileExtension(file.getName());
-
-            // 4) DB에 이미지 저장
-            Image image = Image.builder()
-                    .url(s3Key)  // 원본 이미지 URL
-                    .thumbnailUrl(thumbnailKey)
-                    .extension(ext)
-                    .createdAt(LocalDateTime.now())
-                    .deleted(false)
-                    .usageType(usageType)
-                    .usageId(usageId)
-                    .build();
-            return imageRepository.save(image);
-        } catch (Exception e) {
-            throw new ImageUploadException();
-        }
-    }
-
 
 
     public Image getImage(Long imageId) {

@@ -19,12 +19,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/evaluations")
@@ -69,43 +66,46 @@ public class EvaluationController {
         return ResponseEntity.ok(evaluationService.getEvaluationById(evaluationId, userId));
     }
 
+    /**
+     * 평가 게시물 등록 (이미지 포함)
+     */
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<EvaluationResponseDto> createEvaluation(
             Authentication authentication,
-            @RequestPart("data") String jsonData,
-            @RequestPart(value = "videos", required = false) List<MultipartFile> videos) throws IOException {
+            @RequestPart("data") String jsonData, // JSON 데이터를 String으로 받음
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException {
 
         Integer userId = Integer.parseInt(authentication.getName());
 
+        // JSON 문자열을 DTO로 변환
         ObjectMapper objectMapper = new ObjectMapper();
         EvaluationRequestDto dto = objectMapper.readValue(jsonData, EvaluationRequestDto.class);
 
-        // HEVC 변환 로직 적용
-        List<File> processedVideos = processVideos(videos);
-
-        return ResponseEntity.ok(evaluationService.createEvaluation(userId, dto, processedVideos));
+        return ResponseEntity.ok(evaluationService.createEvaluation(userId, dto, images));
     }
 
+    /**
+     * 평가 게시물 수정 (이미지 포함)
+     */
     @PatchMapping(value = "/{evaluationId}", consumes = "multipart/form-data")
     public ResponseEntity<EvaluationResponseDto> updateEvaluation(
             @PathVariable Integer evaluationId,
-            Authentication authentication,
+            Authentication authentication, // 인증 정보
             @RequestPart(name = "updates", required = false) String updatesJson,
-            @RequestParam(value = "existingVideoUrls", required = false) List<String> existingVideoUrls,
-            @RequestPart(value = "newVideos", required = false) List<MultipartFile> newVideos) throws IOException {
+            @RequestParam(value = "existingImageUrls", required = false) List<String> existingImageUrls,
+            @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages) throws IOException {
 
+        // 인증 정보 없으면 401 응답
         if (authentication == null || authentication.getName() == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         Integer userId = Integer.parseInt(authentication.getName());
+
         ObjectMapper objectMapper = new ObjectMapper();
         Map<String, Object> updates = objectMapper.readValue(updatesJson, Map.class);
 
-        // HEVC 변환 로직 적용
-        List<File> processedVideos = processVideos(newVideos);
-
-        return ResponseEntity.ok(evaluationService.updateEvaluation(evaluationId, userId, updates, existingVideoUrls, processedVideos));
+        return ResponseEntity.ok(evaluationService.updateEvaluation(evaluationId, userId, updates, existingImageUrls, newImages));
     }
 
 
@@ -180,53 +180,5 @@ public class EvaluationController {
             @PathVariable Integer commentId) {
         evaluationService.deleteComment(userId, commentId);
         return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-
-
-    private List<File> processVideos(List<MultipartFile> videos) throws IOException {
-        if (videos == null || videos.isEmpty()) {
-            return List.of();
-        }
-
-        return videos.stream().map(this::convertVideoIfHEVC).collect(Collectors.toList());
-    }
-
-    private File convertVideoIfHEVC(MultipartFile file) {
-        try {
-            // 원본 파일 저장
-            File originalFile = new File("uploads/" + file.getOriginalFilename());
-            file.transferTo(originalFile);
-
-            // FFmpeg를 사용해 코덱 확인 (HEVC인지 판별)
-            Process checkProcess = new ProcessBuilder(
-                    "ffmpeg", "-i", originalFile.getAbsolutePath(), "-hide_banner"
-            ).redirectErrorStream(true).start();
-            String output = new String(checkProcess.getInputStream().readAllBytes());
-            checkProcess.waitFor();
-
-            if (output.contains("Video: hevc")) {
-                // H.264로 변환할 파일 경로 설정
-                String outputFileName = originalFile.getAbsolutePath().replace(".mov", ".mp4");
-                File convertedFile = new File(outputFileName);
-
-                // HEVC → H.264 변환
-                Process convertProcess = new ProcessBuilder(
-                        "ffmpeg", "-i", originalFile.getAbsolutePath(),
-                        "-vcodec", "libx264", "-crf", "23", "-preset", "medium",
-                        convertedFile.getAbsolutePath()
-                ).start();
-                convertProcess.waitFor();
-
-                // 원본 파일 삭제
-                Files.delete(originalFile.toPath());
-
-                return convertedFile;
-            }
-
-            return originalFile; // HEVC가 아니면 그대로 반환
-        } catch (Exception e) {
-            throw new RuntimeException("🚨 동영상 처리 실패!", e);
-        }
     }
 }
