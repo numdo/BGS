@@ -10,6 +10,9 @@ import StatsTab from "../../components/myinfo/StatsTab"; // ✅ 통계 탭
 import MyGymTab from "../../components/myinfo/MyGymTab"; // ✅ 마이짐 탭
 import BottomBar from "../../components/bar/BottomBar"; // ✅ 하단 네비게이션 바
 import TopBar from "../../components/bar/TopBar"; // ✅ 상단 네비게이션 바
+import BeatLoader from "../../components/common/LoadingSpinner"; // ✅ 로딩 스피너 추가
+import AlertModal from "../../components/common/AlertModal"; // ✅ 알림 모달 추가
+import ConfirmModal from "../../components/common/ConfirmModal"; // ✅ 확인 모달 추가
 
 export default function MyInfoPage() {
   const navigate = useNavigate();
@@ -18,6 +21,10 @@ export default function MyInfoPage() {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [postCount, setPostCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false); // ✅ 로딩 상태 추가
+  const [alertData, setAlertData] = useState(null); // ✅ 알림 모달 상태 추가
+  const [confirmData, setConfirmData] = useState(null); // ✅ 확인 모달 상태 추가
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false); // ✅ 프로필 이미지 모달 상태
 
   // 스와이프 관련 상태
   const [startX, setStartX] = useState(0);
@@ -27,6 +34,7 @@ export default function MyInfoPage() {
 
   useEffect(() => {
     const fetchUserData = async () => {
+      setIsLoading(true); // ✅ 데이터 로딩 시작
       try {
         const res = await getUser();
         setMe(res);
@@ -42,6 +50,11 @@ export default function MyInfoPage() {
         setPostCount(postData ?? 0);
       } catch (error) {
         console.error("❌ 내 프로필 가져오기 실패:", error);
+        setAlertData({
+          message: "내 프로필 정보를 불러오는 중 오류가 발생했습니다.",
+        });
+      } finally {
+        setIsLoading(false); // ✅ 로딩 종료
       }
     };
 
@@ -82,11 +95,12 @@ export default function MyInfoPage() {
       <div className="px-6 pt-4 max-w-3xl mx-auto">
         {/* ✅ 상단 프로필 섹션 */}
         <div className="flex items-center justify-between">
-          {/* 프로필 이미지 */}
+          {/* ✅ 프로필 이미지 클릭 시 확대 */}
           <img
             src={me.profileImageUrl || myinfo}
             alt="Profile"
-            className="rounded-full h-20 w-20"
+            className="rounded-full h-20 w-20 cursor-pointer"
+            onClick={() => setIsImageModalOpen(true)} // ✅ 클릭 시 이미지 확대
           />
 
           <div className="flex flex-col">
@@ -143,50 +157,48 @@ export default function MyInfoPage() {
             <div
               className="absolute bottom-0 left-0 h-[2px] bg-primary transition-transform duration-300 ease-in-out"
               style={{
-                width: "33%", // 각 탭 크기에 맞게 설정
-                transform: `translateX(${activeIndex * 100}%)`, // 부드러운 이동 효과
+                width: "33%",
+                transform: `translateX(${activeIndex * 100}%)`,
               }}
             ></div>
           </div>
         </div>
 
-        {/* ✅ 탭 내용 영역 */}
-        <div className="relative w-full overflow-hidden mt-4">
-          {/* 슬라이드 컨테이너 */}
+        {/* ✅ 프로필 이미지 확대 모달 */}
+        {isImageModalOpen && (
           <div
-            ref={containerRef}
-            className="flex w-full transition-transform duration-300 ease-in-out"
-            style={{
-              transform: `translateX(calc(${
-                activeIndex * -100
-              }% + ${translateX}px))`,
-            }}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+            onClick={() => setIsImageModalOpen(false)}
           >
-            {/* MyGymTab을 부모 크기에 맞게 조정 */}
-            <div className="w-full flex-shrink-0 max-w-full overflow-hidden">
-              <MyGymTab friendId={me.userId} />
-            </div>
-
-            {/* StatsTab을 부모 크기에 맞게 조정 */}
-            <div className="w-full flex-shrink-0">
-              <StatsTab />
-            </div>
-
-            {/* PostsTab을 부모 크기에 맞게 조정 */}
-            <div className="w-full flex-shrink-0">
-              <PostsTab userId={me.userId} />
+            <div className="relative p-4">
+              <img
+                src={me.profileImageUrl || myinfo}
+                alt="Profile Enlarged"
+                className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-lg"
+              />
             </div>
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* ✅ 하단바 공간 확보 */}
-      <div className="pb-16">
-        <BottomBar />
+        {/* ✅ 모달 적용 */}
+        {alertData && (
+          <AlertModal {...alertData} onClose={() => setAlertData(null)} />
+        )}
+        {confirmData && (
+          <ConfirmModal
+            {...confirmData}
+            onCancel={() => setConfirmData(null)}
+          />
+        )}
+
+        {/* ✅ 로딩 화면 적용 */}
+        {isLoading && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <BeatLoader size={15} color="white" />
+          </div>
+        )}
       </div>
+      <BottomBar />
     </>
   );
 }

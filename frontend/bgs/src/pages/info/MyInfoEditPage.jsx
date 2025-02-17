@@ -5,6 +5,8 @@ import TopBar from "../../components/bar/TopBar";
 import { updateUser, getUser, checkNickname, deleteUser } from "../../api/User";
 import axiosInstance from "../../utils/axiosInstance";
 import BeatLoader from "../../components/common/LoadingSpinner";
+import AlertModal from "../../components/common/AlertModal";
+import ConfirmModal from "../../components/common/ConfirmModal";
 import myinfo from "../../assets/icons/myinfo.png";
 
 export default function MyInfoEditPage() {
@@ -16,6 +18,10 @@ export default function MyInfoEditPage() {
   const [isChecking, setIsChecking] = useState(false);
   const [nicknameChecked, setNicknameChecked] = useState(false);
   const [nicknameValid, setNicknameValid] = useState(null);
+
+  // ✅ 모달 상태
+  const [alertData, setAlertData] = useState(null);
+  const [confirmData, setConfirmData] = useState(null);
 
   const [formData, setFormData] = useState({
     nickname: me.nickname || "",
@@ -40,24 +46,31 @@ export default function MyInfoEditPage() {
 
   const handleCheckNickname = async () => {
     if (!formData.nickname.trim()) {
-      alert("닉네임을 입력해주세요.");
+      setAlertData({ message: "닉네임을 입력해주세요." });
       return;
     }
 
     setIsChecking(true);
     try {
-      const isAvailable = await checkNickname(formData.nickname);
+      const response = await checkNickname(formData.nickname); // ✅ API 호출
+      const isAvailable = response?.available; // ✅ `available` 값 추출
+
       if (isAvailable) {
         setNicknameValid(true);
-        alert("닉네임을 사용할 수 있습니다.");
+        setNicknameChecked(true);
+        setAlertData({
+          message: "닉네임을 사용할 수 있습니다.",
+          success: true,
+        });
       } else {
         setNicknameValid(false);
-        alert("이미 사용 중인 닉네임입니다.");
+        setNicknameChecked(false);
+        setFormData((prev) => ({ ...prev, nickname: me.nickname })); // ✅ 원래 닉네임 복구
+        setAlertData({ message: "이미 사용 중인 닉네임입니다." });
       }
-      setNicknameChecked(true);
     } catch (error) {
       console.error("닉네임 중복 확인 실패:", error);
-      alert("닉네임 중복 확인 중 오류가 발생했습니다.");
+      setAlertData({ message: "닉네임 중복 확인 중 오류가 발생했습니다." });
     } finally {
       setIsChecking(false);
     }
@@ -69,7 +82,6 @@ export default function MyInfoEditPage() {
 
     try {
       let updateData = { ...formData };
-
       updateData.birthDate = me.birthDate;
 
       if (!nicknameChecked || !nicknameValid) {
@@ -79,16 +91,29 @@ export default function MyInfoEditPage() {
       await updateUser(updateData);
       const updatedUser = await getUser();
       setMe(updatedUser);
-      alert("회원정보 수정 성공했습니다");
+      setAlertData({
+        message: "회원정보가 성공적으로 수정되었습니다.",
+        success: true,
+      });
       navigate(-1);
     } catch (error) {
       console.error("❌ 회원정보 수정 실패:", error);
 
-      // ✅ 500 에러 발생 시 키와 몸무게 길이 제한 안내
-      if (error.response && error.response.status === 500) {
-        alert("몸무게와 키는 4자리 이상 입력할 수 없습니다.");
+      if (error.response) {
+        if (error.response.status === 500) {
+          setAlertData({
+            message: "몸무게와 키는 4자리 이상 입력할 수 없습니다.",
+          });
+        } else if (error.response.status === 409) {
+          setAlertData({
+            message: "닉네임이 중복되었습니다. 다시 중복 확인을 해주세요.",
+            onClose: () => setNicknameChecked(false),
+          });
+        } else {
+          setAlertData({ message: "회원정보 수정 실패했습니다." });
+        }
       } else {
-        alert("회원정보 수정 실패했습니다.");
+        setAlertData({ message: "알 수 없는 오류가 발생했습니다." });
       }
     } finally {
       setIsLoading(false);
@@ -99,7 +124,7 @@ export default function MyInfoEditPage() {
     const selectedFile = e.target.files[0];
     const maxAllowedSize = 1 * 1024 * 1024;
     if (selectedFile.size > maxAllowedSize) {
-      alert(`파일이 너무 큽니다: ${selectedFile.name}`);
+      setAlertData({ message: `파일이 너무 큽니다: ${selectedFile.name}` });
       return;
     }
     const formData = new FormData();
@@ -115,34 +140,32 @@ export default function MyInfoEditPage() {
     setPreviewUrl(newPreview);
   };
 
-  // ✅ 회원 탈퇴 처리 함수
-  const handleDeleteUser = async () => {
-    console.log("[handleDeleteUser] User clicked 'Delete' button");
-    const isConfirmed = window.confirm("정말로 탈퇴하시겠습니까?");
-    console.log(`[handleDeleteUser] Confirm result: ${isConfirmed}`);
+  // ✅ 회원 탈퇴 처리 함수 (모달 사용)
+  const handleDeleteUser = () => {
+    setConfirmData({
+      message: "정말로 탈퇴하시겠습니까?",
+      confirmText: "탈퇴",
+      cancelText: "취소",
+      confirmColor: "bg-red-500",
+      textColor: "text-white",
+      onConfirm: async () => {
+        try {
+          await deleteUser();
 
-    if (isConfirmed) {
-      try {
-        // deleteUser() API 호출 전
-        console.log("[handleDeleteUser] Calling deleteUser() API...");
-        const result = await deleteUser();
-        // API 호출 후 응답
-        console.log("[handleDeleteUser] deleteUser() success. Result:", result);
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
 
-        alert("회원 탈퇴가 완료되었습니다.");
-
-        // 로컬 스토리지 토큰 삭제
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-
-        // 로그인 페이지로 이동
-        console.log("[handleDeleteUser] Navigating to /login");
-        navigate("/login");
-      } catch (error) {
-        console.error("[handleDeleteUser] Error while deleting user:", error);
-        alert("회원 탈퇴 중 오류가 발생했습니다.");
-      }
-    }
+          setAlertData({
+            message: "회원 탈퇴가 완료되었습니다.",
+            success: true,
+            onClose: () => navigate("/login"),
+          });
+        } catch (error) {
+          console.error("회원 탈퇴 실패:", error);
+          setAlertData({ message: "회원 탈퇴 중 오류가 발생했습니다." });
+        }
+      },
+    });
   };
 
   return (
@@ -217,7 +240,10 @@ export default function MyInfoEditPage() {
                 </button>
               </div>
               <p className="text-sm text-gray-500 ml-2 mt-1">
-                닉네임은 최대 12글자까지 입력할 수 있습니다.
+                - 닉네임은 최대 12글자까지 입력할 수 있습니다.
+              </p>
+              <p className="text-sm text-gray-500 ml-2 mt-1">
+                - 중복체크를 하지 않을 경우 적용되지 않습니다.
               </p>
             </div>
 
@@ -260,6 +286,14 @@ export default function MyInfoEditPage() {
           </p>
         </div>
       </div>
+
+      {/* ✅ 모달 적용 */}
+      {alertData && (
+        <AlertModal {...alertData} onClose={() => setAlertData(null)} />
+      )}
+      {confirmData && (
+        <ConfirmModal {...confirmData} onCancel={() => setConfirmData(null)} />
+      )}
 
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">

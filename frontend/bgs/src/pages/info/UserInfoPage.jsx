@@ -2,22 +2,25 @@ import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { getUser } from "../../api/User";
 import { follow, unfollow, getFollowingList } from "../../api/Follow";
-import { getUserPostCount } from "../../api/Feed"; // ✅ 게시물 개수 가져오기 API
+import { getUserPostCount } from "../../api/Feed";
 import PostsTab from "../../components/myinfo/PostsTab";
 import MyGymTab from "../../components/myinfo/MyGymTab";
-import StatsTab from "../../components/myinfo/StatsTab"; // ✅ 통계 탭 추가!
 import DefaultProfileImage from "../../assets/icons/myinfo.png";
 import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
+import AlertModal from "../../components/common/AlertModal";
+import BeatLoader from "../../components/common/LoadingSpinner";
 
 export default function UserInfoPage() {
   const { userId } = useParams();
-
   const [user, setUser] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [activeTab, setActiveTab] = useState("myGym");
   const [activeIndex, setActiveIndex] = useState(0);
   const [postCount, setPostCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [alertData, setAlertData] = useState(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false); // ✅ 프로필 이미지 확대 모달 상태
 
   const containerRef = useRef(null);
   const [startX, setStartX] = useState(0);
@@ -26,6 +29,7 @@ export default function UserInfoPage() {
   // ✅ 유저 정보 가져오기 (프로필 & 게시물 개수)
   useEffect(() => {
     const fetchUserData = async () => {
+      setLoading(true);
       try {
         const res = await getUser(userId);
         setUser(res);
@@ -39,13 +43,16 @@ export default function UserInfoPage() {
         setPostCount(postData ?? 0);
       } catch (error) {
         console.error("❌ 친구 프로필 가져오기 실패:", error);
+        setAlertData({ message: "유저 정보를 불러오지 못했습니다." });
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchUserData();
   }, [userId]);
 
-  // ✅ 팔로우 / 언팔로우 처리 함수
+  // ✅ 팔로우 / 언팔로우 즉시 변경
   const handleFollowToggle = async () => {
     if (!user?.userId) return;
 
@@ -57,6 +64,7 @@ export default function UserInfoPage() {
     } catch (error) {
       console.error("❌ 팔로우 변경 중 오류 발생:", error);
       setIsFollowing(previousState);
+      setAlertData({ message: "팔로우 변경 중 오류가 발생했습니다." });
     }
   };
 
@@ -64,7 +72,7 @@ export default function UserInfoPage() {
   const handleTouchStart = (e) => setStartX(e.touches[0].clientX);
   const handleTouchMove = (e) => setTranslateX(e.touches[0].clientX - startX);
   const handleTouchEnd = () => {
-    if (translateX < -50 && activeIndex < 2) moveTab(activeIndex + 1);
+    if (translateX < -50 && activeIndex < 1) moveTab(activeIndex + 1);
     else if (translateX > 50 && activeIndex > 0) moveTab(activeIndex - 1);
     setTranslateX(0);
   };
@@ -72,11 +80,17 @@ export default function UserInfoPage() {
   // ✅ 탭 변경 함수
   const moveTab = (index) => {
     setActiveIndex(index);
-    const tabKeys = ["myGym", "stats", "posts"];
+    const tabKeys = ["myGym", "posts"];
     setActiveTab(tabKeys[index]);
   };
 
-  if (!user) return <p>로딩 중...</p>;
+  if (!user || loading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+        <BeatLoader size={15} color="white" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -88,7 +102,8 @@ export default function UserInfoPage() {
             <img
               src={user.profileImageUrl || DefaultProfileImage}
               alt="Profile"
-              className="rounded-full h-20 w-20"
+              className="rounded-full h-20 w-20 cursor-pointer"
+              onClick={() => setIsImageModalOpen(true)} // ✅ 이미지 클릭 시 모달 열기
             />
             <div className="ml-3">
               <h2 className="text-2xl font-semibold text-gray-800">
@@ -102,10 +117,10 @@ export default function UserInfoPage() {
           </div>
           {/* ✅ 팔로우 / 언팔로우 버튼 */}
           <button
-            className={`py-3 px-2 rounded-md whitespace-nowrap ${
+            className={`py-3 px-4 rounded-md whitespace-nowrap ${
               isFollowing
-                ? "bg-gray-400 text-sm text-white"
-                : "bg-primary text-sm text-white"
+                ? "bg-gray-400 text-base text-white"
+                : "bg-primary text-base text-white"
             }`}
             onClick={handleFollowToggle}
           >
@@ -118,7 +133,6 @@ export default function UserInfoPage() {
           <div className="flex justify-between relative">
             {[
               { key: "myGym", label: "마이짐" },
-              { key: "stats", label: "통계" },
               { key: "posts", label: `게시물 ${postCount}` },
             ].map((tab, index) => (
               <button
@@ -137,7 +151,7 @@ export default function UserInfoPage() {
             <div
               className="absolute bottom-0 left-0 h-[2px] bg-primary transition-transform duration-300 ease-in-out"
               style={{
-                width: "33%",
+                width: "50%",
                 transform: `translateX(${activeIndex * 100}%)`,
               }}
             ></div>
@@ -162,15 +176,33 @@ export default function UserInfoPage() {
               <MyGymTab friendId={user.userId} />
             </div>
             <div className="w-full flex-shrink-0">
-              <StatsTab />
-            </div>
-            <div className="w-full flex-shrink-0">
               <PostsTab userId={user.userId} />
             </div>
           </div>
         </div>
       </div>
       <BottomBar />
+
+      {/* ✅ 프로필 이미지 확대 모달 */}
+      {isImageModalOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          onClick={() => setIsImageModalOpen(false)} // ✅ 모달 닫기
+        >
+          <div className="relative p-4">
+            <img
+              src={user.profileImageUrl || DefaultProfileImage}
+              alt="Profile Enlarged"
+              className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-lg"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ✅ 모달 적용 */}
+      {alertData && (
+        <AlertModal {...alertData} onClose={() => setAlertData(null)} />
+      )}
     </>
   );
 }

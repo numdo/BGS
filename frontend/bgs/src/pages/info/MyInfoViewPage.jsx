@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import useUserStore from "../../stores/useUserStore";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
-import logoutIcon from "../../assets/icons/signout.svg"; // ✅ 로그아웃 아이콘
+import logoutIcon from "../../assets/icons/signout.svg";
 import myinfo from "../../assets/icons/myinfo.png";
 import { handleLogout } from "../../api/Auth";
 import { changePassword } from "../../api/User";
-import BeatLoader from "../../components/common/LoadingSpinner"; // ✅ 로딩 애니메이션 추가
+import BeatLoader from "../../components/common/LoadingSpinner";
+import AlertModal from "../../components/common/AlertModal";
+import ConfirmModal from "../../components/common/ConfirmModal";
 
 export default function MyInfoViewPage() {
   const navigate = useNavigate();
@@ -18,8 +20,9 @@ export default function MyInfoViewPage() {
     newPassword: "",
     confirmNewPassword: "",
   });
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [alertData, setAlertData] = useState(null);
+  const [confirmData, setConfirmData] = useState(null);
 
   // ✅ 비밀번호 입력값 변경 핸들러
   const handleChange = (e) => {
@@ -35,36 +38,55 @@ export default function MyInfoViewPage() {
     );
   };
 
+  // ✅ 로그아웃 확인 모달
+  const confirmLogout = () => {
+    setConfirmData({
+      message: "정말 로그아웃 하시겠습니까?",
+      confirmText: "로그아웃",
+      cancelText: "취소",
+      onConfirm: () => handleLogout(navigate),
+    });
+  };
+
   // ✅ 비밀번호 변경 요청
   const handlePasswordChange = async (e) => {
     e.preventDefault();
 
     if (!isPasswordValid()) {
-      setError("비밀번호는 8자 이상이어야 합니다.");
+      setAlertData({
+        message:
+          "비밀번호는 8자 이상이어야 하며, 확인 비밀번호와 일치해야 합니다.",
+      });
       return;
     }
 
     try {
       setLoading(true);
-      setError("");
 
-      const response = await changePassword({
+      await changePassword({
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword,
         confirmNewPassword: formData.confirmNewPassword,
       });
 
-      alert("비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.");
-      setIsPasswordModalOpen(false);
-      localStorage.removeItem("accessToken");
-      navigate("/login");
+      setAlertData({
+        message: "비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.",
+        success: true,
+        onClose: () => {
+          setIsPasswordModalOpen(false);
+          localStorage.removeItem("accessToken");
+          navigate("/login");
+        },
+      });
     } catch (err) {
       if (err.response) {
-        setError(
-          err.response.data.message || "비밀번호 변경 실패. 다시 시도해주세요."
-        );
+        setAlertData({
+          message:
+            err.response.data.message ||
+            "비밀번호 변경 실패. 다시 시도해주세요.",
+        });
       } else {
-        setError("서버와 통신 중 오류가 발생했습니다.");
+        setAlertData({ message: "서버와 통신 중 오류가 발생했습니다." });
       }
     } finally {
       setLoading(false);
@@ -76,9 +98,9 @@ export default function MyInfoViewPage() {
       {/* ✅ 상단바 */}
       <div className="relative">
         <TopBar />
-        {/* ✅ 로그아웃 버튼 (상단바 우측) */}
+        {/* ✅ 로그아웃 버튼 */}
         <button
-          onClick={() => handleLogout(navigate)}
+          onClick={confirmLogout}
           className="absolute top-3.5 right-2.5 z-40"
         >
           <img src={logoutIcon} alt="로그아웃" className="w-6 h-6" />
@@ -114,7 +136,7 @@ export default function MyInfoViewPage() {
           </button>
         </div>
 
-        {/* ✅ 유저 정보 (input 대신 div로 변경) */}
+        {/* ✅ 유저 정보 */}
         <div className="mt-6 bg-white shadow-md rounded-lg p-4 w-full max-w-xl">
           {[
             { label: "이름", value: me.name || "정보 없음" },
@@ -172,60 +194,21 @@ export default function MyInfoViewPage() {
 
       {/* ✅ 비밀번호 변경 모달 */}
       {isPasswordModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-semibold text-center mb-4">
-              비밀번호 변경
-            </h2>
-            <form onSubmit={handlePasswordChange} className="space-y-3">
-              <input
-                type="password"
-                name="currentPassword"
-                placeholder="현재 비밀번호"
-                value={formData.currentPassword}
-                onChange={handleChange}
-                className="w-full p-3 border rounded-lg"
-                required
-              />
-              <input
-                type="password"
-                name="newPassword"
-                placeholder="새 비밀번호 (8자 이상)"
-                value={formData.newPassword}
-                onChange={handleChange}
-                className="w-full p-3 border rounded-lg"
-                required
-              />
-              <input
-                type="password"
-                name="confirmNewPassword"
-                placeholder="새 비밀번호 확인"
-                value={formData.confirmNewPassword}
-                onChange={handleChange}
-                className="w-full p-3 border rounded-lg"
-                required
-              />
-              {error && (
-                <p className="text-red-500 text-sm text-center">{error}</p>
-              )}
-              <div className="flex justify-between mt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsPasswordModalOpen(false)}
-                  className="bg-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400"
-                >
-                  취소
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg bg-primary text-white"
-                >
-                  변경
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <ConfirmModal
+          message="비밀번호를 변경하시겠습니까?"
+          confirmText="변경"
+          cancelText="취소"
+          onConfirm={handlePasswordChange}
+          onCancel={() => setIsPasswordModalOpen(false)}
+        />
+      )}
+
+      {/* ✅ 모달 적용 */}
+      {alertData && (
+        <AlertModal {...alertData} onClose={() => setAlertData(null)} />
+      )}
+      {confirmData && (
+        <ConfirmModal {...confirmData} onCancel={() => setConfirmData(null)} />
       )}
 
       {/* ✅ 로딩 화면 */}
