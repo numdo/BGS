@@ -63,23 +63,29 @@ export default function PartVolumeBarChart() {
     fetchPartVolume();
   }, [fetchPartVolume]);
 
-  // 데이터가 없으면 기본 빈 객체 사용
+  // 기본 객체에 이두(biceps)와 삼두(triceps)도 추가
   const thisWeek = partVolume?.thisWeek || {
     chest: 0,
     lat: 0,
     shoulder: 0,
+    biceps: 0,
+    triceps: 0,
     leg: 0,
   };
   const lastWeek = partVolume?.lastWeek || {
     chest: 0,
     lat: 0,
     shoulder: 0,
+    biceps: 0,
+    triceps: 0,
     leg: 0,
   };
   const twoWeeksAgo = partVolume?.twoWeeksAgo || {
     chest: 0,
     lat: 0,
     shoulder: 0,
+    biceps: 0,
+    triceps: 0,
     leg: 0,
   };
 
@@ -89,22 +95,39 @@ export default function PartVolumeBarChart() {
       week.chest === 0 &&
       week.lat === 0 &&
       week.shoulder === 0 &&
+      week.biceps === 0 &&
+      week.triceps === 0 &&
       week.leg === 0
     );
   });
 
-  const labels = ["가슴", "등", "어깨", "하체"];
+  // 라벨에 이두와 삼두 추가 ("이두"는 biceps, "삼두"는 triceps)
+  const labels = ["가슴", "등", "어깨", "이두", "삼두", "하체"];
   const chartData = {
     labels,
     datasets: [
       {
         label: "이번주",
-        data: [thisWeek.chest, thisWeek.lat, thisWeek.shoulder, thisWeek.leg],
+        data: [
+          thisWeek.chest,
+          thisWeek.lat,
+          thisWeek.shoulder,
+          thisWeek.biceps,
+          thisWeek.triceps,
+          thisWeek.leg,
+        ],
         backgroundColor: thisWeekColor,
       },
       {
         label: "저번주",
-        data: [lastWeek.chest, lastWeek.lat, lastWeek.shoulder, lastWeek.leg],
+        data: [
+          lastWeek.chest,
+          lastWeek.lat,
+          lastWeek.shoulder,
+          lastWeek.biceps,
+          lastWeek.triceps,
+          lastWeek.leg,
+        ],
         backgroundColor: lastWeekColor,
       },
       {
@@ -113,6 +136,8 @@ export default function PartVolumeBarChart() {
           twoWeeksAgo.chest,
           twoWeeksAgo.lat,
           twoWeeksAgo.shoulder,
+          twoWeeksAgo.biceps,
+          twoWeeksAgo.triceps,
           twoWeeksAgo.leg,
         ],
         backgroundColor: twoWeekColor,
@@ -171,7 +196,7 @@ export default function PartVolumeBarChart() {
             >
               <h3 className="text-white p-2 text-center text-lg">
                 <p>운동을 시작해서</p>
-                <p>나의 부위별 운동량을 측정해보세요!</p>{" "}
+                <p>나의 부위별 운동량을 측정해보세요!</p>
               </h3>
             </Box>
           )}

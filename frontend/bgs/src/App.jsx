@@ -33,6 +33,7 @@ import AdminMainPage from "./pages/admin/AdminMainPage";
 import ForbiddenPage from "./pages/error/ForbiddenPage"; // 403 페이지 추가
 import ItemShopPage from "./pages/mygym/ItemShopPage";
 import MyInfoViewPage from "./pages/info/MyInfoViewPage";
+import NotFoundPage from "./pages/error/NotFoundPage";
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
 
         {/* 403 Forbidden 페이지 */}
         <Route path="/403" element={<ForbiddenPage />} />
+        <Route path="*" element={<NotFoundPage />} />
 
         {/* Protected Routes: 로그인이 되어 있어야 함 */}
         <Route element={<ProtectedRoute />}>
