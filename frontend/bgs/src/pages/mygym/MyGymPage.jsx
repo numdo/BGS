@@ -10,6 +10,7 @@ import SelectBackImg from "../../components/mygym/SelectBackImg";
 import "../../style.css";
 import editicon from "../../assets/icons/editicon.png";
 import shopicon from "../../assets/icons/shopicon.png";
+import effecticon from "../../assets/icons/effecticon.png";
 
 import useUserStore from "../../stores/useUserStore";
 import useMyGymStore from "../../stores/useMyGymStore";
@@ -83,6 +84,7 @@ const MyGymPage = () => {
       setUser(response);
       getMygym(response.userId).then((MyGym) => {
         setMyGym(MyGym);
+        setIsBgMoving(MyGym.flowed);
       });
       try {
         const data = await getGuestBooks(response.userId, 0, 10);
@@ -163,7 +165,7 @@ const MyGymPage = () => {
               onClick={() => setIsEffectModalOpen(true)}
               className="bg-white px-2 py-2 z-30 flex items-center justify-center rounded-xl shadow-md w-14 h-10"
             >
-              <span className="text-sm">이펙트</span>
+              <img src={effecticon} alt="effect icon" className="w-7 h-7" />
             </button>
           </div>
           <SelectColor setRoomColor={setWallColor} onClick={handlePaletteClick} />
@@ -242,24 +244,25 @@ const MyGymPage = () => {
               ✖
             </button>
             <div className="p-4">
-              <h2 className="text-xl mb-4">배경 효과 선택</h2>
-              <div className="flex gap-4">
+              <h2 className="text-xl mb-4 text-center">배경 효과</h2>
+              <div className="flex justify-center gap-10">
                 {/* 움직이는 배경 미리보기 */}
                 <div
                   onClick={() => {
                     setIsBgMoving(true);
+                    setMyGym({...myGym,flowed:true});
                     setIsEffectModalOpen(false);
                   }}
-                  className="cursor-pointer border p-2"
+                  className="cursor-pointer border p-2 rounded-md"
                 >
                   <p className="text-center">움직임</p>
-                  <div className="w-20 h-20 border mt-2 overflow-hidden relative">
+                  <div className="w-20 h-20 border mt-2 overflow-hidden relative rounded-xl">
                     <div
                       className="absolute top-0 left-0 w-full h-full"
                       style={{
                         backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg})`,
                         backgroundSize: "cover",
-                        animation: "moveBg 20s linear infinite",
+                        animation: "moveBg 30s linear infinite",
                       }}
                     ></div>
                   </div>
@@ -268,14 +271,13 @@ const MyGymPage = () => {
                 <div
                   onClick={() => {
                     setIsBgMoving(false);
-                    // 고정을 누르면 myGym의 flowed 값을 false로 업데이트
                     setMyGym({ ...myGym, flowed: false });
                     setIsEffectModalOpen(false);
                   }}
-                  className="cursor-pointer border p-2"
+                  className="cursor-pointer border p-2 rounded-md"
                 >
-                  <p className="text-center">고정</p>
-                  <div className="w-20 h-20 border mt-2 overflow-hidden">
+                  <p className="text-center">없음</p>
+                  <div className="w-20 h-20 border mt-2 overflow-hidden rounded-xl">
                     <div
                       className="w-full h-full"
                       style={{
