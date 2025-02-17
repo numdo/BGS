@@ -14,8 +14,6 @@ const KakaoRedirectPage = () => {
         // 서버가 임시 토큰인 경우 newUser 플래그를 true로 전달하도록 합니다.
         const newUser = params.get("newUser") === "true";
 
-        console.log("🔹 [Kakao] 토큰 저장 처리 중...");
-        console.log("🔹 [Kakao] accessToken:", accessToken);
         if (accessToken) {
           // 토큰 저장
           localStorage.setItem("accessToken", accessToken);
