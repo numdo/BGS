@@ -1,8 +1,9 @@
 import { create } from "zustand";
 
 const useFeedTypeStore = create((set) => ({
-  feedType: "diary",
+  feedType: JSON.parse(localStorage.getItem("feedType")) || "diary",
   setFeedType: (FeedType) => {
+    localStorage.setItem("feedType", JSON.stringify(FeedType));
     set({ feedType: FeedType });
   },
   evaluationStatus: "ongoing",
