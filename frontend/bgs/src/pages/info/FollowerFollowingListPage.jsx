@@ -5,6 +5,7 @@ import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
 import UserList from "../../components/follow/UserList";
 import BeatLoader from "../../components/common/LoadingSpinner"; // ✅ 로딩 스피너
+import DefaultProfileImage from "../../assets/icons/myinfo.png"; // ✅ 기본 프로필 이미지
 
 export default function FollowerFollowingListPage() {
   const { type } = useParams();

@@ -1,18 +1,35 @@
-import UserItem from "./UserItem";
+import DefaultProfileImage from "../../assets/icons/myinfo.png"; // ✅ 기본 프로필 이미지 추가
 
-export default function UserList({ users, emptyMessage, emptyClass }) {
+export default function UserList({ users, emptyMessage }) {
+  if (!users || users.length === 0) {
+    return <p className="text-center text-gray-500">{emptyMessage}</p>;
+  }
+
   return (
-    <div className="w-full flex-shrink-0 flex flex-col items-start px-4 mt-4 relative h-full">
-      {users.length > 0 ? (
-        users.map((user) => <UserItem key={user.userId} user={user} />)
-      ) : (
-        // ✅ 리스트가 없을 경우 중앙에 메시지 표시 + 추가 여백
+    <div className="w-full">
+      {users.map((user) => (
         <div
-          className={`absolute inset-0 flex justify-center items-center ${emptyClass}`}
+          key={user.userId}
+          className="flex items-center gap-4 p-3 border-b last:border-none"
         >
-          <p className="text-gray-500 text-lg text-center">{emptyMessage}</p>
+          {/* ✅ 프로필 이미지 추가 (없으면 기본 이미지 사용) */}
+          <img
+            src={user.profileImageUrl || DefaultProfileImage}
+            alt={user.nickname}
+            className="w-12 h-12 rounded-full border border-gray-300"
+          />
+
+          {/* ✅ 닉네임 & 소개 추가 */}
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-gray-800">
+              {user.nickname}
+            </span>
+            <span className="text-xs text-gray-600">
+              {user.introduction?.trim() || "소개 없음"}
+            </span>
+          </div>
         </div>
-      )}
+      ))}
     </div>
   );
 }

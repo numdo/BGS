@@ -142,7 +142,7 @@ const DiaryDetailPage = () => {
                 {feed.writer}
               </p>
               <p className="text-sm text-gray-500">
-                {formatDistanceToNow(new Date(feed.workoutDate), {
+                {formatDistanceToNow(new Date(feed.createdAt), {
                   addSuffix: true,
                   locale: ko,
                 })}
