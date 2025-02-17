@@ -28,7 +28,7 @@ const CommentInput = React.memo(
           onChange={(e) => setNewComment(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="방명록 추가..."
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="flex-1 min-w-0 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
           style={{zIndex:5}}
         />
         <img src={send} alt="전송" onClick={onAddComment} />
