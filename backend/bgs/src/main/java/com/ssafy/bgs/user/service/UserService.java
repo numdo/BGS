@@ -3,6 +3,7 @@ package com.ssafy.bgs.user.service;
 
 import com.ssafy.bgs.auth.service.VerificationService;
 import com.ssafy.bgs.common.DuplicatedException;
+import com.ssafy.bgs.image.dto.response.ImageResponseDto;
 import com.ssafy.bgs.image.entity.Image;
 import com.ssafy.bgs.image.service.ImageService;
 import com.ssafy.bgs.redis.service.RedisService;
@@ -275,6 +276,11 @@ public class UserService {
                 .filter(u -> u != null && (u.getDeleted() == null || !u.getDeleted()))
                 .filter(u -> nicknameFilter == null || u.getNickname().contains(nicknameFilter))
                 .map(this::toUserResponseDto)
+                .peek(followee -> {
+                    ImageResponseDto image = imageService.getImage("profile", followee.getUserId());
+                    if (image != null)
+                        followee.setProfileImageUrl(imageService.getS3Url(image.getUrl()));
+                })
                 .collect(Collectors.toList()); // toList() 대신 collect(Collectors.toList()) 사용
     }
 
@@ -298,6 +304,11 @@ public class UserService {
                 .filter(u -> u != null && (u.getDeleted() == null || !u.getDeleted()))
                 .filter(u -> nicknameFilter == null || u.getNickname().contains(nicknameFilter))
                 .map(this::toUserResponseDto)
+                .peek(followee -> {
+                    ImageResponseDto image = imageService.getImage("profile", followee.getUserId());
+                    if (image != null)
+                        followee.setProfileImageUrl(imageService.getS3Url(image.getUrl()));
+                })
                 .collect(Collectors.toList()); // toList() 대신 collect(Collectors.toList()) 사용
     }
     @Transactional(readOnly = true)

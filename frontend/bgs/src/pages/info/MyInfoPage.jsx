@@ -153,7 +153,6 @@ export default function MyInfoPage() {
                 {tab.label}
               </button>
             ))}
-            {/* 🔥 슬라이딩 애니메이션이 적용된 하이라이트 바 */}
             <div
               className="absolute bottom-0 left-0 h-[2px] bg-primary transition-transform duration-300 ease-in-out"
               style={{
@@ -164,40 +163,49 @@ export default function MyInfoPage() {
           </div>
         </div>
 
-        {/* ✅ 프로필 이미지 확대 모달 */}
-        {isImageModalOpen && (
+        {/* ✅ 탭 콘텐츠 추가 */}
+        <div className="relative w-full overflow-hidden mt-4">
           <div
-            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
-            onClick={() => setIsImageModalOpen(false)}
+            ref={containerRef}
+            className="flex w-full transition-transform duration-300 ease-in-out"
+            style={{
+              transform: `translateX(calc(${
+                activeIndex * -100
+              }% + ${translateX}px))`,
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
-            <div className="relative p-4">
-              <img
-                src={me.profileImageUrl || myinfo}
-                alt="Profile Enlarged"
-                className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-lg"
-              />
+            <div className="w-full flex-shrink-0 max-w-full overflow-hidden">
+              <MyGymTab friendId={me.userId} />
+            </div>
+            <div className="w-full flex-shrink-0 p-2">
+              <StatsTab />
+            </div>
+            <div className="w-full flex-shrink-0">
+              <PostsTab userId={me.userId} />
             </div>
           </div>
-        )}
-
-        {/* ✅ 모달 적용 */}
-        {alertData && (
-          <AlertModal {...alertData} onClose={() => setAlertData(null)} />
-        )}
-        {confirmData && (
-          <ConfirmModal
-            {...confirmData}
-            onCancel={() => setConfirmData(null)}
-          />
-        )}
-
-        {/* ✅ 로딩 화면 적용 */}
-        {isLoading && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <BeatLoader size={15} color="white" />
-          </div>
-        )}
+        </div>
       </div>
+
+      {/* ✅ 프로필 이미지 확대 모달 */}
+      {isImageModalOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          onClick={() => setIsImageModalOpen(false)}
+        >
+          <div className="relative p-4">
+            <img
+              src={me.profileImageUrl || myinfo}
+              alt="Profile Enlarged"
+              className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-lg"
+            />
+          </div>
+        </div>
+      )}
+
       <BottomBar />
     </>
   );
