@@ -13,5 +13,6 @@ public class MygymResponseDto {
     private String nickname;
     private String backgroundColor;
     private String wallColor;
+    private Boolean flowed;
     private List<PlaceResponseDto> places = new ArrayList<>();
 }

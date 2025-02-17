@@ -16,7 +16,9 @@ public class MygymColor {
     private Integer userId;
 
     @Column
-    private String backgroundColor = "#FFFFFF";
+    private String backgroundColor = "bgimg";
     @Column
-    private String wallColor = "#000000";
+    private String wallColor = "#F5F1D9";
+    @Column
+    private Boolean flowed = true;
 }

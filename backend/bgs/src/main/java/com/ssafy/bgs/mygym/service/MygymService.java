@@ -61,6 +61,7 @@ public class MygymService {
         MygymColor mygymColor = mygymColorRepository.findById(userId).orElse(new MygymColor());
         mygymResponseDto.setBackgroundColor(mygymColor.getBackgroundColor());
         mygymResponseDto.setWallColor(mygymColor.getWallColor());
+        mygymResponseDto.setFlowed(mygymColor.getFlowed());
 
         // 마이짐 배치 조회
         List<Place> places = placeRepository.findByUserIdAndDeletedFalse(userId);
@@ -93,6 +94,7 @@ public class MygymService {
         mygymColor.setUserId(userId);
         mygymColor.setBackgroundColor(mygymRequestDto.getBackgroundColor());
         mygymColor.setWallColor(mygymRequestDto.getWallColor());
+        mygymColor.setFlowed(mygymRequestDto.getFlowed());
         mygymColorRepository.save(mygymColor);
 
         // 마이짐 배치 update

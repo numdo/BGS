@@ -12,5 +12,6 @@ public class MygymRequestDto {
     private Integer userId;
     private String backgroundColor;
     private String wallColor;
+    private Boolean flowed;
     private List<PlaceRequestDto> places = new ArrayList<>();
 }
