@@ -32,12 +32,6 @@ const DiaryDetailPage = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [comments, setComments] = useState([]);
   useEffect(() => {
-    console.log(feed);
-  }, [feed]);
-  useEffect(() => {
-    console.log(refreshKey);
-  }, refreshKey);
-  useEffect(() => {
     const fetchComments = async () => {
       try {
         const response = await axiosInstance.get(
@@ -119,6 +113,27 @@ const DiaryDetailPage = () => {
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
+  };
+
+  //댓글 삭제 함수
+  const onDelete = (commentId) => {
+    setComments((prev) =>
+      prev.filter((comment) => comment.commentId !== commentId)
+    );
+    axiosInstance.delete(`/diaries/${diaryId}/comments/${commentId}`);
+  };
+  const onUpdate = (commentId, content) => {
+    setComments((prev) =>
+      prev.map((comment) =>
+        comment.commentId === commentId
+          ? { ...comment, content: content }
+          : comment
+      )
+    );
+    axiosInstance.patch(`/diaries/${diaryId}/comments/${commentId}`, {
+      commentId,
+      content,
+    });
   };
 
   return (
@@ -250,7 +265,13 @@ const DiaryDetailPage = () => {
                   setRefreshKey((prev) => prev + 1);
                 }}
               />
-              <CommentList key={refreshKey} comments={comments} />
+              <CommentList
+                key={refreshKey}
+                comments={comments}
+                userId={me.userId}
+                onDelete={onDelete}
+                onUpdate={onUpdate}
+              />
             </div>
           )}
           {isWorkoutsOpen && (
