@@ -267,13 +267,15 @@ public class EvaluationService {
         Evaluation evaluation = evaluationRepository.findById(evaluationId)
                 .orElseThrow(() -> new EvaluationNotFoundException(evaluationId));
 
+        User user = userRepository.findById(loggedInUserId).orElseThrow(() -> new UserNotFoundException(loggedInUserId));
+
         // 1. 본인 게시물이 맞는지 확인
-        if (!evaluation.getUserId().equals(loggedInUserId)) {
+        if (!evaluation.getUserId().equals(loggedInUserId) && !user.getRole().equals("ADMIN")) {
             throw new UnauthorizedAccessException("본인 게시물이 아니므로 삭제할 수 없습니다.");
         }
 
         // 2. 투표가 시작된 게시물은 삭제 불가
-        if (Boolean.TRUE.equals(evaluation.getOpened())) {
+        if (!user.getRole().equals("ADMIN") || Boolean.TRUE.equals(evaluation.getOpened())) {
             throw new UnauthorizedAccessException("투표가 시작된 게시물은 삭제할 수 없습니다.");
         }
 
@@ -466,7 +468,15 @@ public class EvaluationService {
     }
 
     public List<CommentResponseDto> getCommentList(Integer evaluationId) {
-        return evaluationCommentRepository.findCommentsByEvaluationId(evaluationId);
+        List<CommentResponseDto> comments = evaluationCommentRepository.findCommentsByEvaluationId(evaluationId);
+
+        comments.forEach(comment -> {
+            ImageResponseDto image = imageService.getImage("profile", comment.getUserId());
+            if (image != null)
+                comment.setProfileUrl(imageService.getS3Url(image.getUrl()));
+        });
+
+        return comments;
     }
 
     public void addComment(CommentRequestDto commentRequestDto) {
@@ -502,8 +512,10 @@ public class EvaluationService {
             throw new CommentNotFoundException(commentId);
         }
 
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
         // 댓글 삭제 권한 없음
-        if (!comment.getUserId().equals(userId))
+        if (!comment.getUserId().equals(userId) && !user.getRole().equals("ADMIN"))
             throw new UnauthorizedAccessException("댓글 삭제 권한 없음") {
             };
 

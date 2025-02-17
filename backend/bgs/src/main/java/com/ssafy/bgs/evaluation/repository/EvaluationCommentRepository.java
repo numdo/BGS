@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface EvaluationCommentRepository extends JpaRepository<EvaluationComment, Integer> {
 
-    @Query("SELECT new com.ssafy.bgs.diary.dto.response.CommentResponseDto(c.EvaluationCommentId, c.evaluationId, u.nickname, c.content, c.createdAt, c.modifiedAt, c.deleted) " +
+    @Query("SELECT new com.ssafy.bgs.diary.dto.response.CommentResponseDto(c.EvaluationCommentId, c.evaluationId, u.id, u.nickname, c.content, c.createdAt, c.modifiedAt, c.deleted) " +
             "FROM EvaluationComment c JOIN User u ON c.userId = u.id WHERE c.evaluationId = :evaluationId")
     List<CommentResponseDto> findCommentsByEvaluationId(@Param("evaluationId") Integer evaluationId);
 }

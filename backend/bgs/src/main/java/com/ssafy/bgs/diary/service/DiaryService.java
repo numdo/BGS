@@ -18,6 +18,7 @@ import com.ssafy.bgs.image.service.ImageService;
 import com.ssafy.bgs.mygym.entity.CoinHistory;
 import com.ssafy.bgs.mygym.repository.CoinHistoryRepository;
 import com.ssafy.bgs.user.entity.User;
+import com.ssafy.bgs.user.exception.UserNotFoundException;
 import com.ssafy.bgs.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
@@ -500,8 +501,10 @@ public class DiaryService {
             throw new DiaryNotFoundException(diaryId);
         }
 
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
         // 다이어리 삭제 권한 없음
-        if (!diary.getUserId().equals(userId))
+        if (!diary.getUserId().equals(userId) && !user.getRole().equals("ADMIN"))
             throw new UnauthorizedAccessException("다이어리 삭제 권한 없음") {
             };
 
@@ -538,7 +541,15 @@ public class DiaryService {
      * Comment select
      **/
     public List<CommentResponseDto> getCommentList(Integer diaryId) {
-        return commentRepository.findCommentsByDiaryId(diaryId);
+        List<CommentResponseDto> comments = commentRepository.findCommentsByDiaryId(diaryId);
+
+        comments.forEach(comment -> {
+            ImageResponseDto image = imageService.getImage("profile", comment.getUserId());
+            if (image != null)
+                comment.setProfileUrl(imageService.getS3Url(image.getUrl()));
+        });
+
+        return comments;
     }
 
     /**
@@ -577,8 +588,10 @@ public class DiaryService {
             throw new CommentNotFoundException(commentId);
         }
 
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
         // 댓글 삭제 권한 없음
-        if (!comment.getUserId().equals(userId))
+        if (!comment.getUserId().equals(userId) && !user.getRole().equals("ADMIN"))
             throw new UnauthorizedAccessException("댓글 삭제 권한 없음") {
             };
 
