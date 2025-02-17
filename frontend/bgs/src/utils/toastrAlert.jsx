@@ -40,30 +40,23 @@ export const showConfirmAlert = (message) => {
   });
 };
 
-export const showErrorAlert = (message) => {
-  return new Promise((resolve) => {
-    const $toast = toastr.error(
-      `<div id="toastrErrorBtn" class="w-full max-w-sm rounded-lg p-4">
-                ${message}
-            </div>`,
-      null,
-      {
-        allowHtml: true,
-        showMethod: "show",
-        hideMethod: "hide",
-        onShown: function () {
-          const errorBtn = document.getElementById("toastrErrorBtn");
-          if (errorBtn) {
-            errorBtn.addEventListener("click", () => {
-              toastr.clear($toast);
-              resolve(true);
-            });
-          }
-        },
-      }
-    );
-  });
+export const showErrorAlert = (message, duration = 3000) => {
+  const $toast = toastr.error(
+    `<div class="w-full max-w-sm rounded-lg p-4">
+        ${message}
+      </div>`,
+    null,
+    {
+      allowHtml: true,
+      timeOut: duration,
+      extendedTimeOut: duration / 2,
+      closeButton: true,
+      progressBar: true,
+    }
+  );
+  return $toast;
 };
+
 
 // 성공 알림 (자동 닫힘)
 export const showSuccessAlert = (message, duration = 3000) => {

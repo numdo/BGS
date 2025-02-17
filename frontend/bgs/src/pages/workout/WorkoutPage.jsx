@@ -1,6 +1,6 @@
 // src/pages/WorkoutPage.jsx
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
@@ -13,10 +13,11 @@ import { getUser } from "../../api/User";
 import { getCurrentMonthAttendance } from "../../api/Attendance"; 
 import { buildStreakSegments } from "../../utils/streakUtil";
 import DeleteConfirmAlert from "../../components/common/DeleteConfirmAlert";
+import { showSuccessAlert } from "../../utils/toastrAlert";
 
 // 페이지 전체의 배경색을 설정하는 컨테이너
 const PageWrapper = styled.div`
-  background-color:rgb(255, 255, 255); /* 원하는 배경색으로 변경 */
+  background-color: rgb(255, 255, 255); /* 원하는 배경색으로 변경 */
   min-height: 100vh;
 `;
 
@@ -24,6 +25,15 @@ export default function WorkoutPage() {
   const { user, setUser } = useUserStore();
   const { diaries, setDiaries } = useDiaryStore();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // 만약 이전 페이지(예: WorkoutCreatePage)에서 성공 메시지를 전달했다면 toastr 성공 알림 실행
+  useEffect(() => {
+    if (location.state && location.state.showSuccessMessage) {
+      showSuccessAlert(location.state.showSuccessMessage);
+      // 필요하다면 history.replace를 사용해 state를 제거할 수 있습니다.
+    }
+  }, [location]);
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [filteredDiaries, setFilteredDiaries] = useState([]);
@@ -91,7 +101,9 @@ export default function WorkoutPage() {
       })
       .replace(/\. /g, "-")
       .replace(".", "");
-    setFilteredDiaries(diaries.filter((diary) => diary.workoutDate === formattedDate));
+    setFilteredDiaries(
+      diaries.filter((diary) => diary.workoutDate === formattedDate)
+    );
   }, [diaries, selectedDate]);
 
   const handleDateSelect = (date) => {

@@ -454,8 +454,8 @@ export default function WorkoutCreatePage() {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
-      await showConfirmAlert("저장이 완료되었습니다.");
-      navigate("/workout");
+      // 저장 성공 후 바로 /workout 페이지로 이동 (성공 알림은 이동한 페이지에서 toastr로 뜹니다.)
+      navigate("/workout", { state: { showSuccessMessage: "저장이 완료되었습니다" } });
     } catch (error) {
       console.error("❌ 저장 오류:", error);
       if (error.response && error.response.status === 401) {
@@ -467,7 +467,7 @@ export default function WorkoutCreatePage() {
     }
   };
 
-  // 해시태그 추가 핸들러
+  // 해시태그 추가 핸들러 (띄어쓰기는 제거)
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault(); // 폼 제출 기본 동작 방지 (필요한 경우)
@@ -910,7 +910,7 @@ export default function WorkoutCreatePage() {
             type="text"
             className="p-2 border rounded resize-none w-[15ch]"
             value={newHashtag}
-            onChange={(e) => setNewHashtag(e.target.value)}
+            onChange={(e) => setNewHashtag(e.target.value.replace(/\s/g, ""))}
             onKeyDown={handleKeyDown}
             placeholder="해시태그 입력"
             maxLength={10}
