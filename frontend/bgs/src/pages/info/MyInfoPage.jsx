@@ -21,10 +21,10 @@ export default function MyInfoPage() {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [postCount, setPostCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false); // ✅ 로딩 상태 추가
-  const [alertData, setAlertData] = useState(null); // ✅ 알림 모달 상태 추가
-  const [confirmData, setConfirmData] = useState(null); // ✅ 확인 모달 상태 추가
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false); // ✅ 프로필 이미지 모달 상태
+  const [isLoading, setIsLoading] = useState(false);
+  const [alertData, setAlertData] = useState(null);
+  const [confirmData, setConfirmData] = useState(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   // 스와이프 관련 상태
   const [startX, setStartX] = useState(0);
@@ -34,7 +34,7 @@ export default function MyInfoPage() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      setIsLoading(true); // ✅ 데이터 로딩 시작
+      setIsLoading(true);
       try {
         const res = await getUser();
         setMe(res);
@@ -54,7 +54,7 @@ export default function MyInfoPage() {
           message: "내 프로필 정보를 불러오는 중 오류가 발생했습니다.",
         });
       } finally {
-        setIsLoading(false); // ✅ 로딩 종료
+        setIsLoading(false);
       }
     };
 
@@ -94,16 +94,17 @@ export default function MyInfoPage() {
       <TopBar />
       <div className="px-6 pt-4 max-w-3xl mx-auto">
         {/* ✅ 상단 프로필 섹션 */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
           {/* ✅ 프로필 이미지 클릭 시 확대 */}
           <img
             src={me.profileImageUrl || myinfo}
             alt="Profile"
             className="rounded-full h-20 w-20 cursor-pointer"
-            onClick={() => setIsImageModalOpen(true)} // ✅ 클릭 시 이미지 확대
+            onClick={() => setIsImageModalOpen(true)}
           />
 
-          <div className="flex flex-col">
+          {/* ✅ 닉네임, 설명, 팔로우/팔로잉 */}
+          <div className="flex flex-col justify-center">
             <h2 className="text-lg font-semibold text-gray-800">
               {me.nickname}
             </h2>
@@ -127,7 +128,7 @@ export default function MyInfoPage() {
           {/* 상세정보 버튼 */}
           <button
             onClick={() => navigate("/myinfoview")}
-            className="px-3 py-2 text-sm text-white bg-primary rounded-md whitespace-nowrap"
+            className="ml-auto px-3 py-2 text-sm text-white bg-primary rounded-md whitespace-nowrap"
           >
             상세정보
           </button>
@@ -162,30 +163,30 @@ export default function MyInfoPage() {
             ></div>
           </div>
         </div>
+      </div>
 
-        {/* ✅ 탭 콘텐츠 추가 */}
-        <div className="relative w-full overflow-hidden mt-4">
-          <div
-            ref={containerRef}
-            className="flex w-full transition-transform duration-300 ease-in-out"
-            style={{
-              transform: `translateX(calc(${
-                activeIndex * -100
-              }% + ${translateX}px))`,
-            }}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            <div className="w-full flex-shrink-0 max-w-full overflow-hidden">
-              <MyGymTab friendId={me.userId} />
-            </div>
-            <div className="w-full flex-shrink-0 p-2">
-              <StatsTab />
-            </div>
-            <div className="w-full flex-shrink-0">
-              <PostsTab userId={me.userId} />
-            </div>
+      {/* ✅ 탭 콘텐츠 추가 */}
+      <div className="relative w-full overflow-hidden mt-4">
+        <div
+          ref={containerRef}
+          className="flex w-full transition-transform duration-300 ease-in-out"
+          style={{
+            transform: `translateX(calc(${
+              activeIndex * -100
+            }% + ${translateX}px))`,
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div className="w-full flex-shrink-0 max-w-full overflow-hidden">
+            <MyGymTab friendId={me.userId} />
+          </div>
+          <div className="w-full flex-shrink-0 p-2">
+            <StatsTab />
+          </div>
+          <div className="w-full flex-shrink-0">
+            <PostsTab userId={me.userId} />
           </div>
         </div>
       </div>
