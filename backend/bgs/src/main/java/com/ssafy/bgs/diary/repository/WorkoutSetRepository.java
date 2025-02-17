@@ -23,6 +23,8 @@ public interface WorkoutSetRepository extends JpaRepository<WorkoutSet, Integer>
     WHERE d.deleted = false
     AND dw.deleted = false
     AND ws.deleted = false
+    AND ws.repetition IS NOT NULL
+    AND ws.weight IS NOT NULL
     AND d.user_id = :userId
     AND d.workout_date BETWEEN :startDate AND :endDate
     GROUP BY w.part
