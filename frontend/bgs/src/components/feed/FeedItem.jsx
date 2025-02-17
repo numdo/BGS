@@ -41,7 +41,9 @@ const FeedItem = ({ feed, onClick }) => {
           muted
           loop
           playsInline
-          preload="auto"
+          webkitPlaysinline="true"
+          preload="metadata"
+          poster={feed.posterUrl || DEFAULT_IMAGE_URL}
         />
       ) : (
         <img
