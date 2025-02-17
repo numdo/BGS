@@ -24,7 +24,6 @@ const DiaryDetailPage = () => {
   const { diaryId } = useParams();
   const navigate = useNavigate();
   const [feed, setFeed] = useState(null);
-  const [userId, setUserId] = useState(me.userId);
   const [isLiked, setIsLiked] = useState(false);
   const [likedCount, setLikedCount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -152,7 +151,7 @@ const DiaryDetailPage = () => {
 
             {/* 메뉴바 */}
             <div className="ml-auto relative">
-              {feed.userId == userId && (
+              {feed.userId === me.userId && (
                 <button onClick={toggleMenu} className="text-xl">
                   ⋮
                 </button>
