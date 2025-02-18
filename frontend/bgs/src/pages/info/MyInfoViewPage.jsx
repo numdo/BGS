@@ -76,6 +76,8 @@ export default function MyInfoViewPage() {
         confirmNewPassword: formData.confirmNewPassword,
       });
 
+      setLoading(false); // ✅ 알림 모달이 나타나기 전에 로딩 종료
+
       setAlertData({
         message: "비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.",
         success: true,
@@ -85,6 +87,7 @@ export default function MyInfoViewPage() {
       setIsPasswordModalOpen(false);
       localStorage.removeItem("accessToken");
     } catch (err) {
+      setLoading(false); // ✅ 오류 발생 시 로딩 종료
       if (err.response) {
         setAlertData({
           message:
@@ -94,8 +97,6 @@ export default function MyInfoViewPage() {
       } else {
         setAlertData({ message: "서버와 통신 중 오류가 발생했습니다." });
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -283,7 +284,7 @@ export default function MyInfoViewPage() {
       {/* ✅ 로딩 화면 */}
       {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <BeatLoader size={15} color="white" />
+          <BeatLoader size={15} color="#5968eb" />
         </div>
       )}
     </div>

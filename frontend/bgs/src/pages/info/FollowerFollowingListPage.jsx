@@ -124,7 +124,7 @@ export default function FollowerFollowingListPage() {
         {/* ✅ 로딩 중일 때 BeatLoader 적용 */}
         {isLoading || activeIndex === null ? (
           <div className="flex justify-center items-center h-64">
-            <BeatLoader color="#3498db" />
+            <BeatLoader color="#5968eb" />
           </div>
         ) : (
           /* ✅ 슬라이드 컨테이너 */
@@ -140,7 +140,7 @@ export default function FollowerFollowingListPage() {
                     emptyMessage="팔로워가 없습니다."
                   />
                 ) : (
-                  <BeatLoader color="#3498db" />
+                  <BeatLoader color="#5968eb" />
                 )}
               </div>
               <div className="w-full flex-shrink-0 flex justify-center">
@@ -150,7 +150,7 @@ export default function FollowerFollowingListPage() {
                     emptyMessage="팔로잉이 없습니다."
                   />
                 ) : (
-                  <BeatLoader color="#3498db" />
+                  <BeatLoader color="#5968eb" />
                 )}
               </div>
             </div>
