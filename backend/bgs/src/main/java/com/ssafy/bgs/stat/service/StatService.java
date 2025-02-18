@@ -2,9 +2,11 @@ package com.ssafy.bgs.stat.service;
 
 import com.ssafy.bgs.diary.repository.DiaryWorkoutRepository;
 import com.ssafy.bgs.diary.repository.WorkoutSetRepository;
+import com.ssafy.bgs.evaluation.repository.WorkoutRecordRepository;
 import com.ssafy.bgs.stat.dto.request.WeightRequestDto;
 import com.ssafy.bgs.stat.dto.response.PartVolumeResponseDto;
 import com.ssafy.bgs.stat.dto.response.WorkoutBalanceResponseDto;
+import com.ssafy.bgs.stat.dto.response.WorkoutRecordResponseDto;
 import com.ssafy.bgs.stat.entity.WeightHistory;
 import com.ssafy.bgs.stat.entity.WorkoutPart;
 import com.ssafy.bgs.stat.repository.WeightHistoryRepository;
@@ -27,12 +29,14 @@ public class StatService {
     private final UserRepository userRepository;
     private final DiaryWorkoutRepository diaryWorkoutRepository;
     private final WorkoutSetRepository workoutSetRepository;
+    private final WorkoutRecordRepository workoutRecordRepository;
 
-    public StatService(WeightHistoryRepository weightHistoryRepository, UserRepository userRepository, DiaryWorkoutRepository diaryWorkoutRepository, WorkoutSetRepository workoutSetRepository) {
+    public StatService(WeightHistoryRepository weightHistoryRepository, UserRepository userRepository, DiaryWorkoutRepository diaryWorkoutRepository, WorkoutSetRepository workoutSetRepository, WorkoutRecordRepository workoutRecordRepository) {
         this.weightHistoryRepository = weightHistoryRepository;
         this.userRepository = userRepository;
         this.diaryWorkoutRepository = diaryWorkoutRepository;
         this.workoutSetRepository = workoutSetRepository;
+        this.workoutRecordRepository = workoutRecordRepository;
     }
 
     public List<WeightHistory> getWeightHistories(Integer userId) {
@@ -157,6 +161,27 @@ public class StatService {
                 case "하체" -> responseDto.setLeg(totalVolume);
             }
         }
+
+        return responseDto;
+    }
+
+    public WorkoutRecordResponseDto getWorkoutRecord(Integer userId) {
+        WorkoutRecordResponseDto responseDto = new WorkoutRecordResponseDto();
+        workoutRecordRepository.findById(userId).ifPresent(workoutRecord -> {
+            responseDto.setBench(workoutRecord.getBenchpress());
+            responseDto.setDead(workoutRecord.getDeadlift());
+            responseDto.setSquat(workoutRecord.getSquat());
+        });
+
+        return responseDto;
+    }
+
+    public WorkoutRecordResponseDto getOrm(Integer userId) {
+        WorkoutRecordResponseDto responseDto = new WorkoutRecordResponseDto();
+
+        responseDto.setBench(Math.round(workoutSetRepository.getORM(userId, 1) * 10.0) / 10.0); // 벤치프레스
+        responseDto.setDead(Math.round(workoutSetRepository.getORM(userId, 85) * 10.0) / 10.0); // 데드리프트
+        responseDto.setSquat(Math.round(workoutSetRepository.getORM(userId, 561) * 10.0) / 10.0); // 바벨 스쿼트
 
         return responseDto;
     }
