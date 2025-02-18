@@ -137,6 +137,11 @@ const SignupForm = ({ email, onSubmit, loading, error }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+    // 음수 값 방지 로직 추가
+    if ((name === "height" || name === "weight") && parseFloat(value) < 0) {
+      return; // 음수 값 입력 차단
+    }
+
     // 닉네임 변경 시 중복 체크 초기화
     if (name === "nickname") {
       setNicknameStatus(null);
