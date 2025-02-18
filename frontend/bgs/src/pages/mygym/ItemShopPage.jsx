@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import emitter from "../../utils/emitter"; // 전역 emitter 임포트
+import BeatLoader from "../../components/common/LoadingSpinner";
 
 const ItemShopPage = () => {
   const [items, setItems] = useState([]);
@@ -50,7 +51,14 @@ const ItemShopPage = () => {
     }
   };
 
-  if (loading) return <p>로딩 중...</p>;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <BeatLoader size={20} color="#2563eb" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 max-w-lg mx-auto">
