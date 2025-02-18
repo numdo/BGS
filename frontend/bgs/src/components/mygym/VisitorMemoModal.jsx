@@ -111,7 +111,7 @@ const VisitorMemoModal = ({ isOpen, onClose, visitorMemos, setVisitorMemos, user
         <CommentInput newComment={newComment} setNewComment={setNewComment} onAddComment={handleAddComment} />
         {/* 댓글 목록 */}
         <div className="space-y-4 mt-4">
-          {visitorMemos.map((memo) => (
+          {visitorMemos.slice().reverse().map((memo) => (
             <CommentList
               key={memo.guestbookId}
               memo={memo}

@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import useUserStore from "../../stores/useUserStore";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
-import logoutIcon from "../../assets/icons/signout.svg";
 import myinfo from "../../assets/icons/myinfo.png";
 import { handleLogout } from "../../api/Auth";
 import { changePassword } from "../../api/User";
 import BeatLoader from "../../components/common/LoadingSpinner";
 import AlertModal from "../../components/common/AlertModal";
 import ConfirmModal from "../../components/common/ConfirmModal";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { IconButton, InputAdornment, TextField } from "@mui/material";
 
 export default function MyInfoViewPage() {
   const navigate = useNavigate();
@@ -23,6 +24,11 @@ export default function MyInfoViewPage() {
   const [loading, setLoading] = useState(false);
   const [alertData, setAlertData] = useState(null);
   const [confirmData, setConfirmData] = useState(null);
+
+  // ✅ 비밀번호 표시/숨기기 상태
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // ✅ 비밀번호 입력값 변경 핸들러
   const handleChange = (e) => {
@@ -44,6 +50,7 @@ export default function MyInfoViewPage() {
       message: "정말 로그아웃 하시겠습니까?",
       confirmText: "로그아웃",
       cancelText: "취소",
+      confirmColor: "bg-red-400",
       onConfirm: () => handleLogout(navigate),
     });
   };
@@ -72,12 +79,11 @@ export default function MyInfoViewPage() {
       setAlertData({
         message: "비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.",
         success: true,
-        onClose: () => {
-          setIsPasswordModalOpen(false);
-          localStorage.removeItem("accessToken");
-          navigate("/login");
-        },
+        navigateTo: "/login", // ✅ "확인" 버튼 클릭 시 로그인 페이지로 이동
       });
+
+      setIsPasswordModalOpen(false);
+      localStorage.removeItem("accessToken");
     } catch (err) {
       if (err.response) {
         setAlertData({
@@ -96,16 +102,7 @@ export default function MyInfoViewPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* ✅ 상단바 */}
-      <div className="relative">
-        <TopBar />
-        {/* ✅ 로그아웃 버튼 */}
-        <button
-          onClick={confirmLogout}
-          className="absolute top-3.5 right-2.5 z-40"
-        >
-          <img src={logoutIcon} alt="로그아웃" className="w-6 h-6" />
-        </button>
-      </div>
+      <TopBar />
 
       <div className="flex-1 flex flex-col items-center px-6 pt-4 max-w-3xl mx-auto w-full pb-16">
         {/* ✅ 프로필 섹션 */}
@@ -185,6 +182,16 @@ export default function MyInfoViewPage() {
             비밀번호 변경
           </p>
         </div>
+
+        {/* ✅ 로그아웃 버튼 */}
+        <div
+          onClick={confirmLogout}
+          className="w-full max-w-xl mt-6 cursor-pointer"
+        >
+          <p className="text-right text-primary font-semibold py-3 hover:text-blue-700">
+            로그아웃
+          </p>
+        </div>
       </div>
 
       {/* ✅ 하단바 공간 확보 */}
@@ -194,13 +201,75 @@ export default function MyInfoViewPage() {
 
       {/* ✅ 비밀번호 변경 모달 */}
       {isPasswordModalOpen && (
-        <ConfirmModal
-          message="비밀번호를 변경하시겠습니까?"
-          confirmText="변경"
-          cancelText="취소"
-          onConfirm={handlePasswordChange}
-          onCancel={() => setIsPasswordModalOpen(false)}
-        />
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-xl font-semibold text-center mb-4">
+              비밀번호 변경
+            </h2>
+            <form onSubmit={handlePasswordChange} className="space-y-3">
+              {[
+                {
+                  label: "현재 비밀번호",
+                  name: "currentPassword",
+                  type: showCurrentPassword ? "text" : "password",
+                  toggle: () => setShowCurrentPassword(!showCurrentPassword),
+                },
+                {
+                  label: "새 비밀번호",
+                  name: "newPassword",
+                  type: showPassword ? "text" : "password",
+                  toggle: () => setShowPassword(!showPassword),
+                },
+                {
+                  label: "새 비밀번호 확인",
+                  name: "confirmNewPassword",
+                  type: showConfirmPassword ? "text" : "password",
+                  toggle: () => setShowConfirmPassword(!showConfirmPassword),
+                },
+              ].map((field, index) => (
+                <TextField
+                  key={index}
+                  type={field.type}
+                  name={field.name}
+                  label={field.label}
+                  value={formData[field.name]}
+                  onChange={handleChange}
+                  variant="outlined"
+                  fullWidth
+                  required
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={field.toggle} edge="end">
+                          {field.type === "password" ? (
+                            <VisibilityOff />
+                          ) : (
+                            <Visibility />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              ))}
+              <div className="flex justify-between mt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsPasswordModalOpen(false)}
+                  className="bg-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg bg-primary text-white"
+                >
+                  변경
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* ✅ 모달 적용 */}

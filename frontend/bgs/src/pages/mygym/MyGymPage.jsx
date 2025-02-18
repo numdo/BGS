@@ -10,6 +10,7 @@ import SelectBackImg from "../../components/mygym/SelectBackImg";
 import "../../style.css";
 import editicon from "../../assets/icons/editicon.png";
 import shopicon from "../../assets/icons/shopicon.png";
+import effecticon from "../../assets/icons/effecticon.png";
 
 import useUserStore from "../../stores/useUserStore";
 import useMyGymStore from "../../stores/useMyGymStore";
@@ -44,6 +45,10 @@ const MyGymPage = () => {
   const [isItemOpen, setIsItemOpen] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isSelectBackImgOpen, setIsSelectBackImgOpen] = useState(false); // 배경 선택 모달 상태
+  const [isEffectModalOpen, setIsEffectModalOpen] = useState(false); // 이펙트 모달 상태
+
+  // 배경 효과 상태 (움직임 여부)
+  const [isBgMoving, setIsBgMoving] = useState(true);
 
   // 편집 모드 상태
   const [isEditing, setIsEditing] = useState(false);
@@ -79,6 +84,7 @@ const MyGymPage = () => {
       setUser(response);
       getMygym(response.userId).then((MyGym) => {
         setMyGym(MyGym);
+        setIsBgMoving(MyGym.flowed);
       });
       try {
         const data = await getGuestBooks(response.userId, 0, 10);
@@ -99,7 +105,7 @@ const MyGymPage = () => {
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "repeat-x",
-        animation: "moveBg 60s linear infinite",
+        animation: isBgMoving ? "moveBg 60s linear infinite" : "none",
         position: "relative",
       }}
     >
@@ -109,15 +115,23 @@ const MyGymPage = () => {
         </h1>
       </div>
 
-      {/* 상단 우측 버튼들 */}
+      {/* 우측 상단 버튼들 */}
       <div className="absolute top-10 right-2 flex flex-col gap-3">
         {isEditing ? (
-          <button
-            onClick={handleFinishEdit}
-            className="bg-primary px-4 py-2 rounded-full text-white w-14 h-10"
-          >
-            ✔
-          </button>
+          <>
+            <button
+              onClick={handleFinishEdit}
+              className="bg-primary px-4 py-2 rounded-full text-white w-14 h-10"
+            >
+              ✔
+            </button>
+            <button
+              onClick={() => setIsShopOpen(true)}
+              className="bg-white px-4 py-2 rounded-full shadow-md z-30"
+            >
+              <img src={shopicon} alt="상점" className="w-6 h-6" />
+            </button>
+          </>
         ) : (
           <button
             onClick={handleEditMode}
@@ -132,28 +146,28 @@ const MyGymPage = () => {
         // 편집 모드
         <>
           <MyGymRoomEdit />
-          {/* 배경 선택 버튼*/}
-      <div className="absolute top-10 left-2 flex flex-col gap-3">
-        <button
-          onClick={() => setIsSelectBackImgOpen(true)}
-          className="bg-white px-2 py-2 z-30 flex items-center justify-center rounded-xl shadow-md w-14 h-10"
-        >
-          <div
-            className="w-6 h-6 rounded"
-            style={{
-              backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          />
-        </button>
-        <button
-          onClick={() => setIsShopOpen(true)}
-          className="bg-white px-4 py-2 z-30 flex items-center justify-center rounded-xl shadow-md"
-        >
-          <img src={shopicon} alt="상점" className="w-6 h-6" />
-        </button>
-      </div>
+          {/* 좌측 상단: 배경 선택 버튼 및 이펙트 버튼 */}
+          <div className="absolute top-10 left-2 flex flex-col gap-3">
+            <button
+              onClick={() => setIsSelectBackImgOpen(true)}
+              className="bg-white px-2 py-2 z-30 flex items-center justify-center rounded-xl shadow-md w-14 h-10"
+            >
+              <div
+                className="w-6 h-6 rounded"
+                style={{
+                  backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+            </button>
+            <button
+              onClick={() => setIsEffectModalOpen(true)}
+              className="bg-white px-2 py-2 z-30 flex items-center justify-center rounded-xl shadow-md w-14 h-10"
+            >
+              <img src={effecticon} alt="effect icon" className="w-7 h-7" />
+            </button>
+          </div>
           <SelectColor setRoomColor={setWallColor} onClick={handlePaletteClick} />
           <MyGymItem setItems={setItems} forceOpen={isItemOpen} />
         </>
@@ -171,7 +185,7 @@ const MyGymPage = () => {
         </>
       )}
 
-      {/* 상점 */}
+      {/* 상점 모달 */}
       {isShopOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 flex justify-end"
@@ -209,6 +223,72 @@ const MyGymPage = () => {
               ✖
             </button>
             <SelectBackImg />
+          </div>
+        </div>
+      )}
+
+      {/* 이펙트 모달 */}
+      {isEffectModalOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 flex justify-center items-center"
+          onClick={() => setIsEffectModalOpen(false)}
+        >
+          <div
+            className="relative w-80 bg-white shadow-lg rounded-lg overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setIsEffectModalOpen(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+            >
+              ✖
+            </button>
+            <div className="p-4">
+              <h2 className="text-xl mb-4 text-center">배경 효과</h2>
+              <div className="flex justify-center gap-10">
+                {/* 움직이는 배경 미리보기 */}
+                <div
+                  onClick={() => {
+                    setIsBgMoving(true);
+                    setMyGym({...myGym,flowed:true});
+                    setIsEffectModalOpen(false);
+                  }}
+                  className="cursor-pointer border p-2 rounded-md"
+                >
+                  <p className="text-center">움직임</p>
+                  <div className="w-20 h-20 border mt-2 overflow-hidden relative rounded-xl">
+                    <div
+                      className="absolute top-0 left-0 w-full h-full"
+                      style={{
+                        backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg})`,
+                        backgroundSize: "cover",
+                        animation: "moveBg 30s linear infinite",
+                      }}
+                    ></div>
+                  </div>
+                </div>
+                {/* 고정된 배경 미리보기 */}
+                <div
+                  onClick={() => {
+                    setIsBgMoving(false);
+                    setMyGym({ ...myGym, flowed: false });
+                    setIsEffectModalOpen(false);
+                  }}
+                  className="cursor-pointer border p-2 rounded-md"
+                >
+                  <p className="text-center">없음</p>
+                  <div className="w-20 h-20 border mt-2 overflow-hidden rounded-xl">
+                    <div
+                      className="w-full h-full"
+                      style={{
+                        backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg})`,
+                        backgroundSize: "cover",
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
