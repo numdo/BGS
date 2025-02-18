@@ -8,6 +8,7 @@ import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 import AdminItemCreateModal from "./AdminItemCreateModal";
+import BeatLoader from "../common/LoadingSpinner";
 
 export default function AdminItemManagement() {
   const [items, setItems] = useState([]);
@@ -377,7 +378,7 @@ export default function AdminItemManagement() {
       {/* 아이템 목록 테이블 */}
       {loading ? (
         <div className="flex items-center justify-center h-screen">
-          <LoadingSpinner />
+          <BeatLoader />
         </div>
       ) : (
         <table className="w-full border-collapse border border-gray-300">

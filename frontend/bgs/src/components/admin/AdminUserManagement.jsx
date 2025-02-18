@@ -7,6 +7,7 @@ import { Paginator } from "primereact/paginator";
 import "primereact/resources/themes/saga-blue/theme.css"; // 테마 CSS (필요에 따라)
 import "primereact/resources/primereact.min.css"; // PrimeReact 기본 CSS
 import "primeicons/primeicons.css"; // 아이콘 CSS
+import BeatLoader from "../common/LoadingSpinner";
 
 export default function AdminUserManagement() {
   const navigate = useNavigate();
@@ -121,7 +122,7 @@ export default function AdminUserManagement() {
 
       {loading ? (
         <div className="flex items-center justify-center h-screen">
-          <LoadingSpinner />
+          <BeatLoader />
         </div>
       ) : (
         <>
