@@ -55,4 +55,15 @@ public class StatController {
         Map<String, PartVolumeResponseDto> weeklyPartVolume = statService.getPartVolume(userId);
         return new ResponseEntity<>(weeklyPartVolume, HttpStatus.OK);
     }
+
+    @GetMapping("/workout-record")
+    public ResponseEntity<?> getWorkoutRecord(@AuthenticationPrincipal Integer userId) {
+        return new ResponseEntity<>(statService.getWorkoutRecord(userId), HttpStatus.OK);
+    }
+
+    @GetMapping("/orm")
+    public ResponseEntity<?> getOrm(@AuthenticationPrincipal Integer userId) {
+        return new ResponseEntity<>(statService.getOrm(userId), HttpStatus.OK);
+    }
+
 }

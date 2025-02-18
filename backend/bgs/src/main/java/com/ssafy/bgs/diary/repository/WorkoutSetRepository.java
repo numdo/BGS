@@ -34,4 +34,18 @@ public interface WorkoutSetRepository extends JpaRepository<WorkoutSet, Integer>
                                            @Param("endDate") Date endDate);
 
 
+    @Query(value = """
+    SELECT COALESCE(MAX(ws.weight * (1 + ws.repetition / 30)), 0) AS one_rep_max
+    FROM workout_sets ws
+    JOIN diary_workouts dw ON ws.diary_workout_id = dw.diary_workout_id
+    JOIN diaries d ON dw.diary_id = d.diary_id
+    WHERE d.user_id = :userId
+    AND dw.workout_id = :workoutId
+    AND d.deleted = false
+    AND dw.deleted = false
+    AND ws.deleted = false
+    """, nativeQuery = true)
+    Double getORM(@Param("userId") Integer userId, @Param("workoutId") Integer workoutId);
+
+
 }
