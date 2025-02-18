@@ -21,11 +21,10 @@ public class AdminItemService {
     private final ItemRepository itemRepository;
     private final ImageService imageService;
 
-    public List<ItemResponseDto> getItemList(int page, int pageSize, String keyword) {
-        List<ItemResponseDto> itemList = new ArrayList<>();
+    public Page<ItemResponseDto> getItemList(int page, int pageSize, String keyword) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
-
         Page<Item> items;
+
         if (keyword != null && !keyword.trim().isEmpty()) {
             // 검색어가 있을 경우, itemName에서 검색
             items = itemRepository.findByItemNameContaining(keyword, pageable);
@@ -34,24 +33,23 @@ public class AdminItemService {
             items = itemRepository.findAll(pageable);
         }
 
-        items.forEach(item -> {
-            // 아이템 정보 조회
-            ItemResponseDto itemResponseDto = new ItemResponseDto();
-            itemResponseDto.setItemId(item.getItemId());
-            itemResponseDto.setItemName(item.getItemName());
-            itemResponseDto.setWidth(item.getWidth());
-            itemResponseDto.setHeight(item.getHeight());
-            itemResponseDto.setPrice(item.getPrice());
-            itemResponseDto.setUsable(item.getUsable());
+        // Page의 map 메서드를 사용하여 ItemResponseDto로 변환
+        Page<ItemResponseDto> dtoPage = items.map(item -> {
+            ItemResponseDto dto = new ItemResponseDto();
+            dto.setItemId(item.getItemId());
+            dto.setItemName(item.getItemName());
+            dto.setWidth(item.getWidth());
+            dto.setHeight(item.getHeight());
+            dto.setPrice(item.getPrice());
+            dto.setUsable(item.getUsable());
 
-            // 사진 조회
+            // 사진 조회 및 URL 변환
             ImageResponseDto image = imageService.getImage("item", item.getItemId());
-            itemResponseDto.setImageUrl(imageService.getS3Url(image.getUrl()));
-
-            itemList.add(itemResponseDto);
+            dto.setImageUrl(imageService.getS3Url(image.getUrl()));
+            return dto;
         });
 
-        return itemList;
+        return dtoPage;
     }
 
     public AdminItemService(ItemRepository itemRepository, ImageService imageService) {
