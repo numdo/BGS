@@ -11,6 +11,7 @@ import ProfileDefaultImage from "../../assets/icons/myinfo.png";
 import MoreIcon from "../../assets/icons/more.svg";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 const API_URL = "/evaluations";
 
@@ -55,16 +56,22 @@ const EvaluationDetailPage = () => {
     fetchComments();
   }, [evaluationId, refreshKey]);
 
-  if (!evaluation) return <p>로딩 중...</p>;
-
-  // ✅ 프로필 클릭 시 해당 유저 프로필 페이지로 이동하는 함수
+  // 평가 데이터가 아직 로드되지 않았다면 LoadingSpinner 표시
+  if (!evaluation) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+  // 프로필 클릭 시 해당 유저 프로필 페이지로 이동하는 함수
   const handleProfileClick = () => {
     if (evaluation.userId) {
       navigate(`/profile/${evaluation.userId}`);
     }
   };
 
-  // ✅ 투표 기능 (찬성 / 반대 / 취소)
+  // 투표 기능 (찬성 / 반대 / 취소)
   const handleVote = async (approval) => {
     const newVote = voted === approval ? null : approval;
 
@@ -239,7 +246,7 @@ const EvaluationDetailPage = () => {
             <p className="mt-2 text-sm text-gray-700">{evaluation.weight}kg</p>
           </div>
 
-          {/* ✅ 투표 (찬성 / 반대) */}
+          {/* 투표 (찬성 / 반대) */}
           <div className="mt-4 flex gap-4">
             <button
               onClick={() => handleVote(true)}
@@ -267,12 +274,12 @@ const EvaluationDetailPage = () => {
           <div className="mt-6">
             <CommentInput onCommentSubmit={handleCommentSubmit} />
             <CommentList
-                key={refreshKey}
-                comments={comments}
-                userId={me.userId}
-                onDelete={onDelete}
-                onUpdate={onUpdate}
-              />
+              key={refreshKey}
+              comments={comments}
+              userId={me.userId}
+              onDelete={onDelete}
+              onUpdate={onUpdate}
+            />
           </div>
         </div>
 

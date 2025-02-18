@@ -17,6 +17,8 @@ import "slick-carousel/slick/slick-theme.css";
 import useUserStore from "../../stores/useUserStore";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
+import BeatLoader from "../../components/common/LoadingSpinner";
+
 const API_URL = "/diaries";
 
 const DiaryDetailPage = () => {
@@ -31,6 +33,8 @@ const DiaryDetailPage = () => {
   const [isWorkoutsOpen, setIsWorkoutsOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [comments, setComments] = useState([]);
+
+  // 댓글 목록 불러오기
   useEffect(() => {
     const fetchComments = async () => {
       try {
@@ -49,6 +53,8 @@ const DiaryDetailPage = () => {
 
     fetchComments();
   }, [diaryId, refreshKey]);
+
+  // 게시글 데이터 불러오기
   useEffect(() => {
     axiosInstance
       .get(`${API_URL}/${diaryId}`)
@@ -60,14 +66,20 @@ const DiaryDetailPage = () => {
       .catch((error) => console.error("게시글 불러오기 오류:", error));
   }, [diaryId]);
 
-  if (!feed) return <p>로딩 중...</p>;
+  // 평가 데이터가 아직 로드되지 않았다면 중앙에 BeatLoader 표시
+  if (!feed)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <BeatLoader />
+      </div>
+    );
 
-  // ✅ 프로필 클릭 시 해당 유저 프로필 페이지로 이동하는 함수
+  // 프로필 클릭 시 해당 유저 프로필 페이지로 이동하는 함수
   const handleProfileClick = () => {
     if (feed.userId === me.userId) {
-      navigate(`/myinfo`); // ✅ 내 정보 페이지로 이동
+      navigate(`/myinfo`);
     } else {
-      navigate(`/profile/${feed.userId}`); // ✅ 해당 유저의 프로필 페이지로 이동
+      navigate(`/profile/${feed.userId}`);
     }
   };
 
@@ -107,7 +119,6 @@ const DiaryDetailPage = () => {
         diaryId,
         content,
       });
-
       setRefreshKey((prev) => prev + 1); // 댓글 추가 후 목록 갱신
     } catch (error) {
       console.error("댓글 작성 오류:", error);
@@ -128,13 +139,15 @@ const DiaryDetailPage = () => {
     slidesToScroll: 1,
   };
 
-  //댓글 삭제 함수
+  // 댓글 삭제 함수
   const onDelete = (commentId) => {
     setComments((prev) =>
       prev.filter((comment) => comment.commentId !== commentId)
     );
     axiosInstance.delete(`/diaries/${diaryId}/comments/${commentId}`);
   };
+
+  // 댓글 수정 함수
   const onUpdate = (commentId, content) => {
     setComments((prev) =>
       prev.map((comment) =>
@@ -184,14 +197,12 @@ const DiaryDetailPage = () => {
                   ⋮
                 </button>
               )}
-
-              {/* 메뉴 */}
               {isMenuOpen && (
                 <div className="absolute right-0 mt-2 bg-white border shadow-lg rounded-md w-40 z-10">
                   <ul>
                     <li
                       onClick={() => {
-                        navigate(`/workoutupdate/${diaryId}`); // 수정 페이지로 이동
+                        navigate(`/workoutupdate/${diaryId}`);
                       }}
                       className="px-4 py-2 cursor-pointer hover:bg-gray-200"
                     >
@@ -308,7 +319,6 @@ const DiaryDetailPage = () => {
                   </div>
                 )}
                 {(feed.diaryWorkouts || []).map((workout) => {
-                  // 만약 diaryWorkouts에 workoutName이 있다면 바로 사용
                   const workoutName = workout.workoutName;
                   return (
                     <div

@@ -14,7 +14,7 @@ import {
 } from "chart.js";
 import useWeightHistoryStore from "../../stores/useWeightHistoryStore";
 import useUserStore from "../../stores/useUserStore.jsx";
-
+import BeatLoader from "../common/LoadingSpinner";  
 // ChartJS에 필요한 컴포넌트 등록
 ChartJS.register(
   CategoryScale,
@@ -157,7 +157,7 @@ export default function WeightHistoryChart() {
     }
   }, [labels, canvasWidth]);
 
-  if (loading) return <div>로딩 중...</div>;
+  if (loading) return       <BeatLoader color="#2563eb" size={15} margin={2} />;
   if (error) return <div style={{ color: "red" }}>Error: {error}</div>;
   if (!originalDataPoints.length) return <div>데이터가 없습니다.</div>;
 
