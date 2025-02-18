@@ -12,7 +12,6 @@ const useStatsStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const data = await getWorkoutBalance(scope);
-      console.log("Workout balance data fetched:", data); // 데이터 출력
       set({ workoutBalance: data, loading: false });
     } catch (error) {
       console.error("Error fetching workout balance:", error);
@@ -24,7 +23,6 @@ const useStatsStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const data = await getPartVolume();
-      console.log("Part volume data fetched:", data); // 데이터 출력
       set({ partVolume: data, loading: false });
     } catch (error) {
       console.error("Error fetching part volume:", error);
