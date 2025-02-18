@@ -313,7 +313,7 @@ export default function MyInfoEditPage() {
       {isDeleting && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="text-center">
-            <BeatLoader size={20} color="white" />
+            <BeatLoader size={20} color="#5968eb" />
             <p className="text-white mt-4 text-lg">회원 탈퇴 중...</p>
           </div>
         </div>

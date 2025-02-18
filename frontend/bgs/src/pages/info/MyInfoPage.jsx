@@ -96,7 +96,7 @@ export default function MyInfoPage() {
       {/* ✅ 로딩 중일 때 BeatLoader 표시 */}
       {isLoading ? (
         <div className="flex justify-center items-center h-screen">
-          <BeatLoader color="#3498db" />
+          <BeatLoader color="#5968eb" />
         </div>
       ) : (
         <>
