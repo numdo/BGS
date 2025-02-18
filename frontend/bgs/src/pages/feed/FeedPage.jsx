@@ -3,6 +3,7 @@ import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import FeedItem from "../../components/feed/FeedItem";
 import axiosInstance from "../../utils/axiosInstance";
+import addicon from "../../assets/icons/add.svg";
 import { useNavigate } from "react-router-dom";
 import useFeedTypeStore from "../../stores/useFeedTypeStore";
 
@@ -293,6 +294,26 @@ const FeedPage = () => {
           </div>
         </div>
       </div>
+      <button
+        onClick={() => {
+          if (feedType === "diary") {
+            navigate("/workout");
+          } else if (feedType === "evaluation") {
+            navigate("/evaluationcreate");
+          }
+        }}
+        className="fixed bottom-20 right-4 bg-[#5968eb] text-white font-bold py-5 px-5 rounded-full transition-all duration-300"
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="white" />
+        </svg>
+      </button>
       <BottomBar />
     </>
   );
