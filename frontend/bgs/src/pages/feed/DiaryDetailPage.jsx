@@ -41,7 +41,6 @@ const DiaryDetailPage = () => {
             pageSize: 100,
           }
         );
-        console.log(response.data);
         setComments(response.data);
       } catch (error) {
         console.error("댓글 불러오기 오류:", error);
@@ -98,6 +97,20 @@ const DiaryDetailPage = () => {
       } catch (error) {
         console.error("삭제 오류:", error);
       }
+    }
+  };
+
+  // 댓글 작성 함수
+  const handleCommentSubmit = async (content) => {
+    try {
+      await axiosInstance.post(`${API_URL}/${diaryId}/comments`, {
+        diaryId,
+        content,
+      });
+
+      setRefreshKey((prev) => prev + 1); // 댓글 추가 후 목록 갱신
+    } catch (error) {
+      console.error("댓글 작성 오류:", error);
     }
   };
 
@@ -275,12 +288,7 @@ const DiaryDetailPage = () => {
           {/* 댓글 입력창 & 댓글 목록 */}
           {isCommentsOpen && (
             <div className="mt-6">
-              <CommentInput
-                diaryId={diaryId}
-                onCommentAdded={() => {
-                  setRefreshKey((prev) => prev + 1);
-                }}
-              />
+              <CommentInput onCommentSubmit={handleCommentSubmit} />
               <CommentList
                 key={refreshKey}
                 comments={comments}
