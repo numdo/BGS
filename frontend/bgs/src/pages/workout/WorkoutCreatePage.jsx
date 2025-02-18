@@ -549,7 +549,7 @@ export default function WorkoutCreatePage() {
         {/* 운동 추가 모달 */}
         {isExerciseModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded shadow-lg max-w-2xl w-full">
+            <div className="bg-white p-6 rounded shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <h2 className="text-xl font-bold mb-4">운동 추가하기</h2>
               {/* 부위 필터 */}
               <div className="mb-2">
@@ -557,8 +557,8 @@ export default function WorkoutCreatePage() {
                 <button
                   onClick={() => setSelectedPartFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === ""
-                      ? "bg-primary-light text-white"
-                      : ""
+                    ? "bg-primary-light text-white"
+                    : ""
                     }`}
                 >
                   전체
@@ -568,8 +568,8 @@ export default function WorkoutCreatePage() {
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
                     className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === part
-                        ? "bg-primary-light text-white"
-                        : ""
+                      ? "bg-primary-light text-white"
+                      : ""
                       }`}
                   >
                     {part}
@@ -582,8 +582,8 @@ export default function WorkoutCreatePage() {
                 <button
                   onClick={() => setSelectedToolFilter("")}
                   className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === ""
-                      ? "bg-primary-light text-white"
-                      : ""
+                    ? "bg-primary-light text-white"
+                    : ""
                     }`}
                 >
                   전체
@@ -593,8 +593,8 @@ export default function WorkoutCreatePage() {
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
                     className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === tool
-                        ? "bg-primary-light text-white"
-                        : ""
+                      ? "bg-primary-light text-white"
+                      : ""
                       }`}
                   >
                     {tool}
