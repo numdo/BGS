@@ -101,14 +101,12 @@ export default function WorkoutCreatePage() {
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      console.log("로그인되지 않은 상태입니다.");
     }
     axiosInstance
       .get("/diaries/workout", { withCredentials: true })
       .then((res) => {
         setAllWorkoutList(res.data);
         setWorkoutList(res.data);
-        console.log("운동목록 : ", res.data);
       })
       .catch((err) => console.error("🚨 운동 목록 불러오기 실패:", err));
 
@@ -305,7 +303,6 @@ export default function WorkoutCreatePage() {
               withCredentials: true,
             }
           );
-          console.log("STT 응답 데이터:", response.data);
           if (response.data.invalidInput) {
             showErrorAlert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
             setIsLoading(false);
