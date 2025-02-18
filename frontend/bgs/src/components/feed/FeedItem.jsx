@@ -41,7 +41,6 @@ const FeedItem = ({ feed, onClick }) => {
           muted
           loop
           playsInline
-          webkitplaysinline="true"
           preload="auto"
         />
       ) : (
