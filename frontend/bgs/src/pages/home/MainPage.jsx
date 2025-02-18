@@ -105,7 +105,7 @@ export default function MainPage() {
               <span className="text-2xl">📆</span>
             </div>
             <p className="text-base text-gray-600 mt-1 text-left break-keep">
-              지금 헬스장이신데 출석은 하셨나요?
+              500m 근처에 헬스장이 있을 경우, 출석체크가 완료됩니다.
             </p>
           </button>
 

@@ -55,17 +55,6 @@ export default function SttWorkoutGuide({ onCancel, toggleRecording, isRecording
           </div>
         </div>
 
-        {/* 다시 보지 않기 체크박스 */}
-        <label className="mt-4 flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            checked={dontShowAgain}
-            onChange={(e) => setDontShowAgain(e.target.checked)}
-            className="w-4 h-4 text-blue-500 focus:ring-blue-400"
-          />
-          <span className="ml-2 text-gray-600">다시 보지 않기</span>
-        </label>
-
         {/* 버튼 영역 */}
         <div className="mt-4 flex justify-end space-x-3">
           <button

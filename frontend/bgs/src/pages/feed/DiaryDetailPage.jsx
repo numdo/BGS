@@ -32,12 +32,6 @@ const DiaryDetailPage = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [comments, setComments] = useState([]);
   useEffect(() => {
-    console.log(feed);
-  }, [feed]);
-  useEffect(() => {
-    console.log(refreshKey);
-  }, refreshKey);
-  useEffect(() => {
     const fetchComments = async () => {
       try {
         const response = await axiosInstance.get(
@@ -119,6 +113,27 @@ const DiaryDetailPage = () => {
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
+  };
+
+  //댓글 삭제 함수
+  const onDelete = (commentId) => {
+    setComments((prev) =>
+      prev.filter((comment) => comment.commentId !== commentId)
+    );
+    axiosInstance.delete(`/diaries/${diaryId}/comments/${commentId}`);
+  };
+  const onUpdate = (commentId, content) => {
+    setComments((prev) =>
+      prev.map((comment) =>
+        comment.commentId === commentId
+          ? { ...comment, content: content }
+          : comment
+      )
+    );
+    axiosInstance.patch(`/diaries/${diaryId}/comments/${commentId}`, {
+      commentId,
+      content,
+    });
   };
 
   return (
@@ -204,6 +219,16 @@ const DiaryDetailPage = () => {
           {/* 게시글 정보 */}
           <div className="mt-4">
             <p className="text-lg font-bold">{feed.content}</p>
+            <div className="mt-2">
+              {feed.hashtags.map((tag) => (
+                <span
+                  key={tag}
+                  className="p-1 bg-gray-200 rounded-full text-sm mr-2"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
             <div className="flex justify-end mr-3">
               <img src={fire_colored} alt="" />
               <div className="text-gray-500 m-1"> {likedCount}</div>
@@ -224,6 +249,9 @@ const DiaryDetailPage = () => {
                 <img
                   onClick={() => {
                     setIsCommentsOpen(!isCommentsOpen);
+                    if (isWorkoutsOpen) {
+                      setIsWorkoutsOpen(false);
+                    }
                   }}
                   src={chat}
                   alt=""
@@ -233,6 +261,9 @@ const DiaryDetailPage = () => {
                 <img
                   onClick={() => {
                     setIsWorkoutsOpen(!isWorkoutsOpen);
+                    if (isCommentsOpen) {
+                      setIsCommentsOpen(false);
+                    }
                   }}
                   src={fitness_center}
                   alt=""
@@ -250,13 +281,24 @@ const DiaryDetailPage = () => {
                   setRefreshKey((prev) => prev + 1);
                 }}
               />
-              <CommentList key={refreshKey} comments={comments} />
+              <CommentList
+                key={refreshKey}
+                comments={comments}
+                userId={me.userId}
+                onDelete={onDelete}
+                onUpdate={onUpdate}
+              />
             </div>
           )}
           {isWorkoutsOpen && (
             <div className="mt-6">
               {/* 운동 세트 정보 */}
               <div className="space-y-4">
+                {feed.diaryWorkouts.length === 0 && (
+                  <div className="p-4 bg-gray-100 rounded-lg shadow">
+                    <p>운동 내역이 없습니다</p>
+                  </div>
+                )}
                 {(feed.diaryWorkouts || []).map((workout) => {
                   // 만약 diaryWorkouts에 workoutName이 있다면 바로 사용
                   const workoutName = workout.workoutName;

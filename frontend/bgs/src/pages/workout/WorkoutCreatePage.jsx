@@ -548,132 +548,135 @@ export default function WorkoutCreatePage() {
 
         {/* 운동 추가 모달 */}
         {isExerciseModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded shadow-lg max-w-2xl w-full">
-              <h2 className="text-xl font-bold mb-4">운동 추가하기</h2>
-              {/* 부위 필터 */}
-              <div className="mb-2">
-                <span className="mr-2 font-semibold">부위: </span>
-                <button
-                  onClick={() => setSelectedPartFilter("")}
-                  className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === ""
-                      ? "bg-primary-light text-white"
-                      : ""
-                    }`}
-                >
-                  전체
-                </button>
-                {[...new Set(allWorkoutList.map((w) => w.part))].map((part) => (
-                  <button
-                    key={`part-${part}`}
-                    onClick={() => setSelectedPartFilter(part)}
-                    className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === part
-                        ? "bg-primary-light text-white"
-                        : ""
-                      }`}
-                  >
-                    {part}
-                  </button>
-                ))}
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="bg-white rounded shadow-lg max-w-2xl w-full max-h-[80vh] flex flex-col">
+      {/* 헤더 영역 */}
+<div className="p-4 sm:p-6">
+  <h2 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4">
+    운동 추가하기
+  </h2>
+  {/* 부위/기구 필터 */}
+  <div className="mb-2">
+    <span className="mr-1 font-semibold text-sm sm:text-base">부위:</span>
+    <button
+      onClick={() => setSelectedPartFilter("")}
+      className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${
+        selectedPartFilter === "" ? "bg-primary-light text-white" : ""
+      }`}
+    >
+      전체
+    </button>
+    {[...new Set(allWorkoutList.map((w) => w.part))].map((part) => (
+      <button
+        key={`part-${part}`}
+        onClick={() => setSelectedPartFilter(part)}
+        className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${
+          selectedPartFilter === part ? "bg-primary-light text-white" : ""
+        }`}
+      >
+        {part}
+      </button>
+    ))}
+  </div>
+  <div className="mb-2">
+    <span className="mr-1 font-semibold text-sm sm:text-base">기구:</span>
+    <button
+      onClick={() => setSelectedToolFilter("")}
+      className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${
+        selectedToolFilter === "" ? "bg-primary-light text-white" : ""
+      }`}
+    >
+      전체
+    </button>
+    {[...new Set(allWorkoutList.map((w) => w.tool))].map((tool) => (
+      <button
+        key={`tool-${tool}`}
+        onClick={() => setSelectedToolFilter(tool)}
+        className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${
+          selectedToolFilter === tool ? "bg-primary-light text-white" : ""
+        }`}
+      >
+        {tool}
+      </button>
+    ))}
+  </div>
+  {/* 검색창 및 최근 운동 토글 */}
+  <input
+    type="text"
+    placeholder="운동 검색"
+    className="w-full p-1 border rounded text-xs sm:text-sm mb-2"
+    value={searchKeyword}
+    onChange={(e) => handleSearch(e.target.value)}
+  />
+  <div className="mb-2">
+    <button
+      onClick={toggleRecentExercisesVisibility}
+      className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs sm:text-sm"
+    >
+      {showRecentExercises ? "최근 운동 숨기기" : "최근 운동 보기"}
+    </button>
+  </div>
+  {showRecentExercises && (
+    <div className="space-y-1 max-h-32 overflow-y-auto mb-2 border-t pt-2">
+      {recentExercises.map((exercise, idx) => (
+        <div
+          key={`recent-${exercise.diaryWorkoutId}-${idx}`}
+          className="p-1 border-b cursor-pointer text-xs"
+          onClick={() => handleAddRecord(exercise)}
+        >
+          {exercise.workoutName} ({exercise.tool})
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
+
+      {/* 콘텐츠 영역: 운동 목록 */}
+      <div className="flex-1 overflow-y-auto px-6 border-t">
+        <div className="space-y-2 pt-4">
+          {workoutList.map((workout) => (
+            <div
+              key={`w-${workout.workoutId}`}
+              className="flex justify-between items-center p-2 border rounded hover:bg-gray-100 cursor-pointer"
+              onClick={() => toggleSelectedWorkout(workout.workoutId)}
+            >
+              <div>
+                <p className="font-bold">{workout.workoutName}</p>
+                <p className="text-sm text-gray-600">
+                  {workout.part} / {workout.tool}
+                </p>
               </div>
-              {/* 기구 필터 */}
-              <div className="mb-2">
-                <span className="mr-2 font-semibold">기구: </span>
-                <button
-                  onClick={() => setSelectedToolFilter("")}
-                  className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === ""
-                      ? "bg-primary-light text-white"
-                      : ""
-                    }`}
-                >
-                  전체
-                </button>
-                {[...new Set(allWorkoutList.map((w) => w.tool))].map((tool) => (
-                  <button
-                    key={`tool-${tool}`}
-                    onClick={() => setSelectedToolFilter(tool)}
-                    className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === tool
-                        ? "bg-primary-light text-white"
-                        : ""
-                      }`}
-                  >
-                    {tool}
-                  </button>
-                ))}
-              </div>
-              {/* 검색창 */}
               <input
-                type="text"
-                placeholder="운동 검색"
-                className="w-full p-2 border rounded mb-4"
-                value={searchKeyword}
-                onChange={(e) => handleSearch(e.target.value)}
+                type="checkbox"
+                className="accent-primary"
+                checked={selectedWorkouts.includes(workout.workoutId)}
+                readOnly
               />
-              {/* 최근 운동 (토글) */}
-              <div className="mb-4">
-                <button
-                  onClick={toggleRecentExercisesVisibility}
-                  className="px-4 py-2 bg-gray-200 text-gray-600 rounded"
-                >
-                  {showRecentExercises ? "최근 운동 숨기기" : "최근 운동 보기"}
-                </button>
-              </div>
-              {showRecentExercises && (
-                <div className="space-y-1 max-h-48 overflow-y-auto mb-4 border-t pt-2">
-                  {recentExercises.map((exercise, idx) => (
-                    <div
-                      key={`recent-${exercise.diaryWorkoutId}-${idx}`}
-                      className="p-2 border-b cursor-pointer"
-                      onClick={() => handleAddRecord(exercise)}
-                    >
-                      <p className="text-sm">
-                        {exercise.workoutName} ({exercise.tool})
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {/* 필터 후 목록 */}
-              <div className="space-y-2 max-h-60 overflow-y-auto border-t pt-2">
-                {workoutList.map((workout) => (
-                  <div
-                    key={`w-${workout.workoutId}`}
-                    className="flex justify-between items-center p-2 border rounded hover:bg-gray-100 cursor-pointer"
-                    onClick={() => toggleSelectedWorkout(workout.workoutId)}
-                  >
-                    <div>
-                      <p className="font-bold">{workout.workoutName}</p>
-                      <p className="text-sm text-gray-600">
-                        {workout.part} / {workout.tool}
-                      </p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      className="accent-primary"
-                      checked={selectedWorkouts.includes(workout.workoutId)}
-                      readOnly
-                    />
-                  </div>
-                ))}
-              </div>
-              {/* 하단 버튼 */}
-              <div className="mt-4 flex justify-end space-x-2">
-                <button
-                  onClick={closeExerciseModal}
-                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                >
-                  취소
-                </button>
-                <button
-                  onClick={handleWorkoutSelection}
-                  className="px-4 py-2 bg-primary text-white rounded"
-                >
-                  추가 완료
-                </button>
-              </div>
             </div>
-          </div>
-        )}
+          ))}
+        </div>
+      </div>
+
+      {/* 푸터 영역: 버튼 */}
+      <div className="p-4 border-t flex justify-end space-x-2">
+        <button
+          onClick={closeExerciseModal}
+          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+        >
+          취소
+        </button>
+        <button
+          onClick={handleWorkoutSelection}
+          className="px-4 py-2 bg-primary text-white rounded"
+        >
+          추가 완료
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
         {/* 이전 기록 모달 */}
         {isPreviousModalOpen && (

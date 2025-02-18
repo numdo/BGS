@@ -25,6 +25,16 @@ export default {
         "custom-top": "0 -4px 8px rgba(0, 0, 0, 0.1)", // 위쪽에만 그림자
       },
     },
+    container: {
+      center: true,
+      padding: "1rem",
+      screens: {
+        sm: "320px",
+        md: "600px",
+        lg: "600px",
+        xl: "600px",
+      },
+    },
   },
   plugins: [],
 };
