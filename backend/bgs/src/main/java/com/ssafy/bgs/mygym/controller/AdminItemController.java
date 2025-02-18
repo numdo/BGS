@@ -4,6 +4,7 @@ import com.ssafy.bgs.mygym.dto.request.ItemUpdateRequestDto;
 import com.ssafy.bgs.mygym.dto.response.ItemResponseDto;
 import com.ssafy.bgs.mygym.entity.Item;
 import com.ssafy.bgs.mygym.service.AdminItemService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,7 +32,7 @@ public class AdminItemController {
             @RequestParam(required = false, defaultValue = "10") int pageSize,
             @RequestParam(required = false) String keyword
     ) {
-        List<ItemResponseDto> items = adminItemService.getItemList(page, pageSize,keyword);
+        Page<ItemResponseDto> items = adminItemService.getItemList(page, pageSize,keyword);
         return new ResponseEntity<>(items, HttpStatus.OK);
     }
 

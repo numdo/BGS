@@ -4,6 +4,7 @@ import styled from "styled-components";
 import moment from "moment";
 import "react-calendar/dist/Calendar.css";
 
+// Styled Components (원본 디자인 그대로)
 const StyledCalendarWrapper = styled.div`
   width: 100%;
   display: flex;
@@ -51,7 +52,6 @@ const StyledCalendarWrapper = styled.div`
     color: ${(props) => props.theme.red_1 || "red"};
   }
 
-  /* 모든 타일의 기본 스타일 재설정 */
   .react-calendar__tile {
     padding: 5px 0px 18px;
     position: relative;
@@ -67,7 +67,6 @@ const StyledCalendarWrapper = styled.div`
     }
   }
 
-  /* 오늘 날짜 스타일 */
   .react-calendar__tile--now {
     background: none !important;
     abbr {
@@ -75,7 +74,6 @@ const StyledCalendarWrapper = styled.div`
     }
   }
 
-  /* active 관련 모든 스타일 제거 */
   .react-calendar__tile--active,
   .react-calendar__tile--active:enabled:hover,
   .react-calendar__tile--active:enabled:focus,
@@ -86,7 +84,6 @@ const StyledCalendarWrapper = styled.div`
     color: inherit;
   }
 
-  /* hover 스타일 */
   .react-calendar__tile:enabled:hover {
     &::before {
       content: '';
@@ -106,7 +103,6 @@ const StyledCalendarWrapper = styled.div`
     }
   }
 
-  /* 선택된 날짜 스타일 */
   .custom-selected-date {
     &::before {
       content: '';
@@ -127,8 +123,6 @@ const StyledCalendarWrapper = styled.div`
   }
 `;
 
-// ... 나머지 코드는 동일 ...
-
 const MarkerContainer = styled.div`
   position: absolute;
   bottom: 4px;
@@ -141,21 +135,6 @@ const MarkerContainer = styled.div`
   pointer-events: none;
   z-index: 2;
 `;
-
-const Marker = React.memo(({ isAttended, isDiary }) => (
-  <MarkerContainer>
-    {isAttended && (
-      <span style={{ fontSize: "0.8rem", display: "inline-block" }}>
-        ✅
-      </span>
-    )}
-    {isDiary && (
-      <span style={{ fontSize: "0.8rem", display: "inline-block" }}>
-        💪
-      </span>
-    )}
-  </MarkerContainer>
-));
 
 const LegendContainer = styled.div`
   position: absolute;
@@ -171,21 +150,76 @@ const LegendContainer = styled.div`
   gap: 4px;
 `;
 
+const Marker = React.memo(({ isAttended, isDiary }) => (
+  <MarkerContainer>
+    {isAttended && (
+      <span style={{ fontSize: "0.8rem", display: "inline-block" }}>✅</span>
+    )}
+    {isDiary && (
+      <span style={{ fontSize: "0.8rem", display: "inline-block" }}>💪</span>
+    )}
+  </MarkerContainer>
+));
+
+// 수정된 WorkoutCalendar 컴포넌트
 const WorkoutCalendar = ({
   onDateSelect,
   selectedDate,
   diaryDates = [],
   streakSegments = [],
+  onMonthChange, // 부모에서 전달하는 달 변경 콜백
 }) => {
   const [value, setValue] = useState(selectedDate || new Date());
   const [activeDate, setActiveDate] = useState(selectedDate || new Date());
+  // 현재 달의 시작과 종료 날짜
+  const [currentViewDates, setCurrentViewDates] = useState({
+    start: null,
+    end: null,
+  });
 
+  // 마운트 시 activeDate를 기준으로 currentViewDates 설정 (한 번만 실행)
+  useEffect(() => {
+    const start = moment(activeDate).startOf("month").format("YYYY-MM-DD");
+    const end = moment(activeDate).endOf("month").format("YYYY-MM-DD");
+    setCurrentViewDates({ start, end });
+    if (onMonthChange) {
+      const newYear = moment(activeDate).year();
+      const newMonth = moment(activeDate).month() + 1; // month는 0부터 시작
+      onMonthChange(newYear, newMonth);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 초기 한 번 실행
+
+  // selectedDate 변경 시 value, activeDate 업데이트
   useEffect(() => {
     if (selectedDate) {
       setValue(selectedDate);
       setActiveDate(selectedDate);
     }
   }, [selectedDate]);
+
+  // activeDate 변경 시, 새로 계산한 시작/종료 날짜와 기존이 다르면 업데이트
+  useEffect(() => {
+    const newStart = moment(activeDate).startOf("month").format("YYYY-MM-DD");
+    const newEnd = moment(activeDate).endOf("month").format("YYYY-MM-DD");
+    if (currentViewDates.start !== newStart || currentViewDates.end !== newEnd) {
+      setCurrentViewDates({ start: newStart, end: newEnd });
+      if (onMonthChange) {
+        const newYear = moment(activeDate).year();
+        const newMonth = moment(activeDate).month() + 1;
+        onMonthChange(newYear, newMonth);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeDate]);
+
+  const handleActiveStartDateChange = ({ activeStartDate, view }) => {
+    if (view === "month") {
+      setActiveDate(activeStartDate);
+    } else {
+      setActiveDate(activeStartDate);
+    }
+  };
 
   const handleDateChange = useCallback(
     (newDate) => {
@@ -196,17 +230,27 @@ const WorkoutCalendar = ({
     [onDateSelect]
   );
 
+  // 현재 뷰의 월 내에 있는 날짜에 대해 마커를 표시
   const getAttendance = useCallback(
     (formatted) => {
-      const segment = streakSegments.find(
-        (seg) => formatted >= seg.start && formatted <= seg.end
-      );
-      return {
-        isAttended: segment ? segment.attended.has(formatted) : false,
-        isDiary: diaryDates.includes(formatted),
-      };
+      if (!currentViewDates.start || !currentViewDates.end) {
+        return { isAttended: false, isDiary: false };
+      }
+      const dateToCheck = moment(formatted);
+      const viewStart = moment(currentViewDates.start);
+      const viewEnd = moment(currentViewDates.end);
+      if (dateToCheck.isBetween(viewStart, viewEnd, "day", "[]")) {
+        const segment = streakSegments.find(
+          (seg) => formatted >= seg.start && formatted <= seg.end
+        );
+        return {
+          isAttended: segment ? segment.attended.has(formatted) : false,
+          isDiary: diaryDates.includes(formatted),
+        };
+      }
+      return { isAttended: false, isDiary: false };
     },
-    [streakSegments, diaryDates]
+    [streakSegments, diaryDates, currentViewDates]
   );
 
   const tileContent = useCallback(
@@ -233,6 +277,7 @@ const WorkoutCalendar = ({
         value={value}
         activeStartDate={activeDate}
         onChange={handleDateChange}
+        onActiveStartDateChange={handleActiveStartDateChange}
         formatDay={(locale, date) => moment(date).format("D")}
         calendarType="gregory"
         showNeighboringMonth={false}
@@ -241,7 +286,6 @@ const WorkoutCalendar = ({
         minDetail="year"
         tileContent={tileContent}
         tileClassName={tileClassName}
-        onActiveStartDateChange={({ activeStartDate }) => setActiveDate(activeStartDate)}
       />
       <LegendContainer>
         <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>

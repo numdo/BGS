@@ -101,14 +101,12 @@ export default function WorkoutCreatePage() {
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      console.log("로그인되지 않은 상태입니다.");
     }
     axiosInstance
       .get("/diaries/workout", { withCredentials: true })
       .then((res) => {
         setAllWorkoutList(res.data);
         setWorkoutList(res.data);
-        console.log("운동목록 : ", res.data);
       })
       .catch((err) => console.error("🚨 운동 목록 불러오기 실패:", err));
 
@@ -305,7 +303,6 @@ export default function WorkoutCreatePage() {
               withCredentials: true,
             }
           );
-          console.log("STT 응답 데이터:", response.data);
           if (response.data.invalidInput) {
             showErrorAlert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
             setIsLoading(false);
@@ -434,6 +431,15 @@ export default function WorkoutCreatePage() {
     setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // 해시태그 삭제 핸들러 추가
+  const handleRemoveHashtag = (idx) => {
+    setDiary((prev) => ({
+      ...prev,
+      hashtags: prev.hashtags.filter((_, index) => index !== idx),
+    }));
+  };
+
+
   // 운동일지 저장 핸들러
   const handleDiarySubmit = async (e) => {
     e.preventDefault();
@@ -548,134 +554,130 @@ export default function WorkoutCreatePage() {
 
         {/* 운동 추가 모달 */}
         {isExerciseModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-    <div className="bg-white rounded shadow-lg max-w-2xl w-full max-h-[80vh] flex flex-col">
-      {/* 헤더 영역 */}
-<div className="p-4 sm:p-6">
-  <h2 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4">
-    운동 추가하기
-  </h2>
-  {/* 부위/기구 필터 */}
-  <div className="mb-2">
-    <span className="mr-1 font-semibold text-sm sm:text-base">부위:</span>
-    <button
-      onClick={() => setSelectedPartFilter("")}
-      className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${
-        selectedPartFilter === "" ? "bg-primary-light text-white" : ""
-      }`}
-    >
-      전체
-    </button>
-    {[...new Set(allWorkoutList.map((w) => w.part))].map((part) => (
-      <button
-        key={`part-${part}`}
-        onClick={() => setSelectedPartFilter(part)}
-        className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${
-          selectedPartFilter === part ? "bg-primary-light text-white" : ""
-        }`}
-      >
-        {part}
-      </button>
-    ))}
-  </div>
-  <div className="mb-2">
-    <span className="mr-1 font-semibold text-sm sm:text-base">기구:</span>
-    <button
-      onClick={() => setSelectedToolFilter("")}
-      className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${
-        selectedToolFilter === "" ? "bg-primary-light text-white" : ""
-      }`}
-    >
-      전체
-    </button>
-    {[...new Set(allWorkoutList.map((w) => w.tool))].map((tool) => (
-      <button
-        key={`tool-${tool}`}
-        onClick={() => setSelectedToolFilter(tool)}
-        className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${
-          selectedToolFilter === tool ? "bg-primary-light text-white" : ""
-        }`}
-      >
-        {tool}
-      </button>
-    ))}
-  </div>
-  {/* 검색창 및 최근 운동 토글 */}
-  <input
-    type="text"
-    placeholder="운동 검색"
-    className="w-full p-1 border rounded text-xs sm:text-sm mb-2"
-    value={searchKeyword}
-    onChange={(e) => handleSearch(e.target.value)}
-  />
-  <div className="mb-2">
-    <button
-      onClick={toggleRecentExercisesVisibility}
-      className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs sm:text-sm"
-    >
-      {showRecentExercises ? "최근 운동 숨기기" : "최근 운동 보기"}
-    </button>
-  </div>
-  {showRecentExercises && (
-    <div className="space-y-1 max-h-32 overflow-y-auto mb-2 border-t pt-2">
-      {recentExercises.map((exercise, idx) => (
-        <div
-          key={`recent-${exercise.diaryWorkoutId}-${idx}`}
-          className="p-1 border-b cursor-pointer text-xs"
-          onClick={() => handleAddRecord(exercise)}
-        >
-          {exercise.workoutName} ({exercise.tool})
-        </div>
-      ))}
-    </div>
-  )}
-</div>
-
-
-      {/* 콘텐츠 영역: 운동 목록 */}
-      <div className="flex-1 overflow-y-auto px-6 border-t">
-        <div className="space-y-2 pt-4">
-          {workoutList.map((workout) => (
-            <div
-              key={`w-${workout.workoutId}`}
-              className="flex justify-between items-center p-2 border rounded hover:bg-gray-100 cursor-pointer"
-              onClick={() => toggleSelectedWorkout(workout.workoutId)}
-            >
-              <div>
-                <p className="font-bold">{workout.workoutName}</p>
-                <p className="text-sm text-gray-600">
-                  {workout.part} / {workout.tool}
-                </p>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white rounded shadow-lg max-w-2xl w-full max-h-[80vh] flex flex-col">
+              {/* 헤더 영역 */}
+              <div className="p-4 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4">
+                  운동 추가하기
+                </h2>
+                {/* 부위/기구 필터 */}
+                <div className="mb-2">
+                  <span className="mr-1 font-semibold text-sm sm:text-base">부위:</span>
+                  <button
+                    onClick={() => setSelectedPartFilter("")}
+                    className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${selectedPartFilter === "" ? "bg-primary-light text-white" : ""
+                      }`}
+                  >
+                    전체
+                  </button>
+                  {[...new Set(allWorkoutList.map((w) => w.part))].map((part) => (
+                    <button
+                      key={`part-${part}`}
+                      onClick={() => setSelectedPartFilter(part)}
+                      className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${selectedPartFilter === part ? "bg-primary-light text-white" : ""
+                        }`}
+                    >
+                      {part}
+                    </button>
+                  ))}
+                </div>
+                <div className="mb-2">
+                  <span className="mr-1 font-semibold text-sm sm:text-base">기구:</span>
+                  <button
+                    onClick={() => setSelectedToolFilter("")}
+                    className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${selectedToolFilter === "" ? "bg-primary-light text-white" : ""
+                      }`}
+                  >
+                    전체
+                  </button>
+                  {[...new Set(allWorkoutList.map((w) => w.tool))].map((tool) => (
+                    <button
+                      key={`tool-${tool}`}
+                      onClick={() => setSelectedToolFilter(tool)}
+                      className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${selectedToolFilter === tool ? "bg-primary-light text-white" : ""
+                        }`}
+                    >
+                      {tool}
+                    </button>
+                  ))}
+                </div>
+                {/* 검색창 및 최근 운동 토글 */}
+                <input
+                  type="text"
+                  placeholder="운동 검색"
+                  className="w-full p-1 border rounded text-xs sm:text-sm mb-2"
+                  value={searchKeyword}
+                  onChange={(e) => handleSearch(e.target.value)}
+                />
+                <div className="mb-2">
+                  <button
+                    onClick={toggleRecentExercisesVisibility}
+                    className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs sm:text-sm"
+                  >
+                    {showRecentExercises ? "최근 운동 숨기기" : "최근 운동 보기"}
+                  </button>
+                </div>
+                {showRecentExercises && (
+                  <div className="space-y-1 max-h-32 overflow-y-auto mb-2 border-t pt-2">
+                    {recentExercises.map((exercise, idx) => (
+                      <div
+                        key={`recent-${exercise.diaryWorkoutId}-${idx}`}
+                        className="p-1 border-b cursor-pointer text-xs"
+                        onClick={() => handleAddRecord(exercise)}
+                      >
+                        {exercise.workoutName} ({exercise.tool})
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <input
-                type="checkbox"
-                className="accent-primary"
-                checked={selectedWorkouts.includes(workout.workoutId)}
-                readOnly
-              />
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* 푸터 영역: 버튼 */}
-      <div className="p-4 border-t flex justify-end space-x-2">
-        <button
-          onClick={closeExerciseModal}
-          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-        >
-          취소
-        </button>
-        <button
-          onClick={handleWorkoutSelection}
-          className="px-4 py-2 bg-primary text-white rounded"
-        >
-          추가 완료
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+
+              {/* 콘텐츠 영역: 운동 목록 */}
+              <div className="flex-1 overflow-y-auto px-6 border-t">
+                <div className="space-y-2 pt-4">
+                  {workoutList.map((workout) => (
+                    <div
+                      key={`w-${workout.workoutId}`}
+                      className="flex justify-between items-center p-2 border rounded hover:bg-gray-100 cursor-pointer"
+                      onClick={() => toggleSelectedWorkout(workout.workoutId)}
+                    >
+                      <div>
+                        <p className="font-bold">{workout.workoutName}</p>
+                        <p className="text-sm text-gray-600">
+                          {workout.part} / {workout.tool}
+                        </p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        className="accent-primary"
+                        checked={selectedWorkouts.includes(workout.workoutId)}
+                        readOnly
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 푸터 영역: 버튼 */}
+              <div className="p-4 border-t flex justify-end space-x-2">
+                <button
+                  onClick={closeExerciseModal}
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleWorkoutSelection}
+                  className="px-4 py-2 bg-primary text-white rounded"
+                >
+                  추가 완료
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
 
         {/* 이전 기록 모달 */}
@@ -904,42 +906,41 @@ export default function WorkoutCreatePage() {
         </div>
 
         {/* 해시태그 추가 */}
-        <div className="mt-4">
-          <div className="flex items-center">
-            <div className="flex flex-col">
-              <input
-                type="text"
-                className="p-2 border rounded resize-none w-[15ch]"
-                value={newHashtag}
-                onChange={(e) => setNewHashtag(e.target.value.replace(/\s/g, ""))}
-                onKeyDown={handleKeyDown}
-                placeholder="해시태그 입력"
-                maxLength={10}
-              />
-              <div className="text-right text-xs text-gray-400">
-                {newHashtag.length}/10
-              </div>
-            </div>
-            <button
-              onClick={handleAddHashtag}
-              className="ml-2 p-2 bg-primary-light text-white rounded whitespace-nowrap"
-            >
-              추가
-            </button>
-          </div>
+        <div className="mt-4 flex items-center space-x-2">
+          <input
+            type="text"
+            className="p-2 border rounded w-[15ch]"
+            value={newHashtag}
+            onChange={(e) => setNewHashtag(e.target.value.replace(/\s/g, ""))}
+            onKeyDown={handleKeyDown}
+            placeholder="해시태그 입력"
+            maxLength={10}
+          />
+          <button
+            onClick={handleAddHashtag}
+            className="p-2 bg-primary-light text-white rounded whitespace-nowrap"
+          >
+            추가
+          </button>
         </div>
 
-        {/* 해시태그 출력 */}
-        <div className="mt-2">
-          {diary.hashtags.map((tag) => (
-            <span
+        <div className="mt-2 flex flex-wrap gap-2">
+          {diary.hashtags.map((tag, idx) => (
+            <div
               key={tag}
-              className="p-1 bg-gray-200 rounded-full text-sm mr-2"
+              className="relative bg-gray-200 rounded-full px-3 py-1 text-sm"
             >
-              #{tag}
-            </span>
+              <span>#{tag}</span>
+              <button
+                onClick={() => handleRemoveHashtag(idx)}
+                className="absolute top-[-5px] right-[-5px] bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center"
+              >
+                x
+              </button>
+            </div>
           ))}
         </div>
+
 
         {/* 공개 범위 설정 */}
         <div className="flex gap-2 mt-2">

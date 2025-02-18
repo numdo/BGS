@@ -25,8 +25,16 @@ export default function EvaluationUpdatePage() {
         setWorkoutType(data.workoutType);
         setContent(data.content);
         setWeight(data.weight.toFixed(1));
+
+        // 기존 영상이 있으면 미리보기 URL에 설정
         if (data.videoUrl) {
           setPreviewUrl(data.videoUrl);
+        } else if (data.imageUrls && data.imageUrls.length > 0) {
+          // imageUrls 배열이 존재하면, 첫 번째 항목이 영상 파일인지 확인
+          const firstMedia = data.imageUrls[0];
+          if (firstMedia.endsWith(".mp4") || firstMedia.endsWith(".webm")) {
+            setPreviewUrl(firstMedia);
+          }
         }
       } catch (error) {
         console.error("❌ 데이터 불러오기 오류:", error);
@@ -53,7 +61,7 @@ export default function EvaluationUpdatePage() {
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    const maxAllowedSize = 100 * 1024 * 1024;
+    const maxAllowedSize = 100 * 1024 * 1024; // 최대 100MB 제한
 
     if (!selectedFile) return;
     if (!selectedFile.type.startsWith("video/")) {
@@ -90,9 +98,16 @@ export default function EvaluationUpdatePage() {
 
     const updates = { workoutType, content, weight };
     const formData = new FormData();
-    formData.append("updates", new Blob([JSON.stringify(updates)], { type: "application/json" }));
+    formData.append(
+      "updates",
+      new Blob([JSON.stringify(updates)], { type: "application/json" })
+    );
+
+    // 새 파일이 있으면 업로드, 없으면 기존 미디어 URL을 전송 (하나의 값으로)
     if (file) {
       formData.append("newImages", file);
+    } else if (previewUrl) {
+      formData.append("existingImageUrls", previewUrl);
     }
 
     try {
@@ -148,14 +163,16 @@ export default function EvaluationUpdatePage() {
           />
           <div className="flex flex-col">
             <label className="font-bold mb-2">영상 업로드 (1개만 가능)</label>
-
             <div className="flex flex-wrap gap-2">
-              {previewUrl && (
+              {previewUrl ? (
                 <div className="relative w-40 h-40">
                   <video
                     src={previewUrl}
                     className="w-full h-full object-cover rounded-md shadow-md"
                     controls
+                    playsInline
+                    webkitplaysinline="true"
+                    preload="metadata"
                   />
                   <button
                     onClick={handleRemoveFile}
@@ -164,8 +181,7 @@ export default function EvaluationUpdatePage() {
                     X
                   </button>
                 </div>
-              )}
-              {!previewUrl && (
+              ) : (
                 <div
                   className="w-40 h-40 bg-gray-200 rounded-md flex items-center justify-center cursor-pointer"
                   onClick={() => fileInputRef.current.click()}
@@ -186,7 +202,7 @@ export default function EvaluationUpdatePage() {
 
         <button
           onClick={handleEvaluationUpdate}
-          className="w-full mt-4 p-2 bg-primary text-white rounded"
+          className="w-full mt-4 p-2 bg-primary text-white rounded flex items-center justify-center"
         >
           수정 완료
         </button>

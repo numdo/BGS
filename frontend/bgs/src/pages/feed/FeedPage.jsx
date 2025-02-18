@@ -3,7 +3,6 @@ import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import FeedItem from "../../components/feed/FeedItem";
 import axiosInstance from "../../utils/axiosInstance";
-import addicon from "../../assets/icons/add.svg";
 import { useNavigate } from "react-router-dom";
 import useFeedTypeStore from "../../stores/useFeedTypeStore";
 
@@ -19,98 +18,36 @@ const FeedPage = () => {
   const [evaluationLoading, setEvaluationLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [hasMoreEvaluation, setHasMoreEvaluation] = useState(true);
+
   const { feedType, setFeedType } = useFeedTypeStore();
   const loaderRef = useRef(null);
   const evaluationLoaderRef = useRef(null);
 
   const navigate = useNavigate();
 
-  //스와이프 관련 상태
+  // 스와이프 관련 상태
   const [startX, setStartX] = useState(0);
   const [translateX, setTranslateX] = useState(0);
   const [activeIndex, setActiveIndex] = useState(feedType === "diary" ? 0 : 1);
   const containerRef = useRef(null);
 
-  //스크롤 높이 관련 상태
+  // 스크롤 영역들
   const feedRef = useRef(null);
   const evaluationRef = useRef(null);
-  const [containerHeight, setContainerHeight] = useState("auto");
 
-  //스크롤 높이 관련 함수
-  const updateContainerHeight = () => {
-    if (feedType === "diary" && feedRef.current) {
-      setContainerHeight(feedRef.current.clientHeight);
-    } else if (feedType === "evaluation" && evaluationRef.current) {
-      setContainerHeight(evaluationRef.current.clientHeight);
-    }
-  };
-
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      updateContainerHeight();
-    });
-
-    const observer = new MutationObserver(() => {
-      updateContainerHeight();
-    });
-
-    if (feedRef.current) {
-      observer.observe(feedRef.current, { childList: true, subtree: true });
-    }
-    if (evaluationRef.current) {
-      observer.observe(evaluationRef.current, {
-        childList: true,
-        subtree: true,
-      });
-    }
-
-    return () => observer.disconnect();
-  }, [feedType, feeds, evaluations]);
-
-  // 터치 시작
-  const handleTouchStart = (e) => {
-    setStartX(e.touches[0].clientX);
-  };
-
-  // 터치 이동 (실시간으로 translateX 변경)
-  const handleTouchMove = (e) => {
-    const deltaX = e.touches[0].clientX - startX;
-    setTranslateX(deltaX);
-  };
-
-  // 터치 종료 (스와이프 판별)
-  const handleTouchEnd = () => {
-    if (translateX < -50 && activeIndex === 0) {
-      setActiveIndex(1);
-      setFeedType("evaluation");
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth", // 부드러운 스크롤
-      });
-    } else if (translateX > 50 && activeIndex === 1) {
-      setActiveIndex(0);
-      setFeedType("diary");
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth", // 부드러운 스크롤
-      });
-    }
-    setTranslateX(0);
-  };
-
+  // 무한 스크롤 - 일지
   const fetchFeeds = async () => {
     if (loading || !hasMore) return;
     setLoading(true);
 
     try {
-      let url = `${DIARY_API_URL}?page=${page}&pageSize=9`;
-
+      const url = `${DIARY_API_URL}?page=${page}&pageSize=9`;
       const response = await axiosInstance.get(url);
       const newFeeds = response.data;
+
       if (newFeeds.length === 0) {
         setHasMore(false);
       } else {
-        console.log("더불러오기");
         setFeeds((prev) => [...prev, ...newFeeds]);
         setPage((prevPage) => prevPage + 1);
       }
@@ -120,15 +57,17 @@ const FeedPage = () => {
       setLoading(false);
     }
   };
+
+  // 무한 스크롤 - 평가
   const fetchEvaluations = async () => {
     if (evaluationLoading || !hasMoreEvaluation) return;
     setEvaluationLoading(true);
 
     try {
-      let url = `${EVALUATION_API_URL}?page=${evaluationPage}&pageSize=9`;
-
+      const url = `${EVALUATION_API_URL}?page=${evaluationPage}&pageSize=9`;
       const response = await axiosInstance.get(url);
       const newEvaluations = response.data;
+
       if (newEvaluations.length === 0) {
         setHasMoreEvaluation(false);
       } else {
@@ -142,9 +81,11 @@ const FeedPage = () => {
     }
   };
 
+  // 일지 IntersectionObserver
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
+        // 로더가 화면에 보여지고, 현재 로딩 중이 아니라면 fetchFeeds
         if (entries[0].isIntersecting && !loading) {
           fetchFeeds();
         }
@@ -152,12 +93,18 @@ const FeedPage = () => {
       { threshold: 1.0 }
     );
 
-    if (loaderRef.current) observer.observe(loaderRef.current);
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
     return () => {
-      if (loaderRef.current) observer.unobserve(loaderRef.current);
+      if (loaderRef.current) {
+        observer.unobserve(loaderRef.current);
+      }
     };
   }, [loading, feedType]);
 
+  // 평가 IntersectionObserver
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -168,35 +115,63 @@ const FeedPage = () => {
       { threshold: 1.0 }
     );
 
-    if (evaluationLoaderRef.current)
+    if (evaluationLoaderRef.current) {
       observer.observe(evaluationLoaderRef.current);
+    }
+
     return () => {
-      if (evaluationLoaderRef.current)
+      if (evaluationLoaderRef.current) {
         observer.unobserve(evaluationLoaderRef.current);
+      }
     };
   }, [evaluationLoaderRef, feedType]);
 
+  // 이미지 클릭시 이동
   const handleImageClick = (id) => {
-    if (feedType === "evaluation") navigate(`/feeds/evaluation/${id}`);
-    else navigate(`/feeds/diary/${id}`);
+    if (feedType === "evaluation") {
+      navigate(`/feeds/evaluation/${id}`);
+    } else {
+      navigate(`/feeds/diary/${id}`);
+    }
   };
 
+  // 탭 전환 버튼
   const handleFeedTypeChange = (type) => {
     setFeedType(type);
-    if (type === "diary") {
-      setActiveIndex(0);
-    } else {
-      setActiveIndex(1);
+    setActiveIndex(type === "diary" ? 0 : 1);
+    window.scrollTo({ top: 0 });
+  };
+
+  // 스와이프 이벤트: Touch 시작
+  const handleTouchStart = (e) => {
+    setStartX(e.touches[0].clientX);
+  };
+  // 스와이프 이벤트: Touch Move
+  const handleTouchMove = (e) => {
+    const deltaX = e.touches[0].clientX - startX;
+    setTranslateX(deltaX);
+  };
+  // 스와이프 이벤트: Touch End
+  const handleTouchEnd = () => {
+    if (translateX < -50 && activeIndex === 0) {
+      // 일지 -> 평가로 스와이프
+      handleFeedTypeChange("evaluation");
+    } else if (translateX > 50 && activeIndex === 1) {
+      // 평가 -> 일지로 스와이프
+      handleFeedTypeChange("diary");
     }
+    setTranslateX(0);
   };
 
   return (
     <>
       <TopBar />
-      <div className="max-w-4xl mx-auto p-4 h-screen">
-        {" "}
-        {/* 스와이프 이벤트 추가 */}
-        {/* 피드 타입 탭 */}
+      {/* 
+        h-screen을 없애고, 
+        min-h-screen + 하단 바 영역만큼 여백(pb-20) 부여 
+      */}
+      <div className="max-w-4xl mx-auto p-4 pb-20 min-h-screen">
+        {/* 탭 버튼들 */}
         <div className="grid grid-cols-2 gap-2 justify-between mb-4">
           <button
             onClick={() => handleFeedTypeChange("diary")}
@@ -215,17 +190,11 @@ const FeedPage = () => {
             평가
           </button>
         </div>
-        {/* 피드 리스트 */}
+
+        {/* 스와이프 컨테이너 */}
         <div
           ref={containerRef}
-          style={{
-            height: `${
-              activeIndex === 0
-                ? feeds.filter((feed) => feed.imageUrl).length * 32 + 200
-                : evaluations.filter((feed) => feed.imageUrl).length * 32 + 200
-            }px`,
-          }}
-          className="relative w-full flex-grow overflow-hidden"
+          className="relative w-full" 
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -294,6 +263,8 @@ const FeedPage = () => {
           </div>
         </div>
       </div>
+
+      {/* + 버튼 */}
       <button
         onClick={() => {
           if (feedType === "diary") {
@@ -314,6 +285,7 @@ const FeedPage = () => {
           <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="white" />
         </svg>
       </button>
+
       <BottomBar />
     </>
   );

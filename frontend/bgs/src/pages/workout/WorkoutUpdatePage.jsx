@@ -236,8 +236,8 @@ export default function WorkoutUpdatePage() {
       const workoutIds = record.workoutIds
         ? record.workoutIds
         : record.workoutId
-          ? [record.workoutId]
-          : [];
+        ? [record.workoutId]
+        : [];
       workoutIds.forEach((wid) => {
         if (!newDiaryWorkouts.some((dw) => dw.workoutId === wid)) {
           const type = getWorkoutType(wid);
@@ -330,7 +330,6 @@ export default function WorkoutUpdatePage() {
               withCredentials: true,
             }
           );
-          console.log("STT 응답 데이터:", response.data);
           if (response.data.invalidInput) {
             showErrorAlert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
             setIsLoading(false);
@@ -468,6 +467,31 @@ export default function WorkoutUpdatePage() {
     setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // 해시태그 추가 핸들러 (엔터키로도 추가)
+  const handleAddHashtag = () => {
+    const tag = newHashtag.trim();
+    if (tag && !diary.hashtags.includes(tag)) {
+      setDiary((prev) => ({ ...prev, hashtags: [...prev.hashtags, tag] }));
+      setNewHashtag("");
+    }
+  };
+
+  // 해시태그 엔터키 입력 핸들러
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddHashtag();
+    }
+  };
+
+  // 해시태그 삭제 핸들러
+  const handleRemoveHashtag = (idx) => {
+    setDiary((prev) => ({
+      ...prev,
+      hashtags: prev.hashtags.filter((_, index) => index !== idx),
+    }));
+  };
+
   // 운동일지 수정 핸들러
   const handleDiaryUpdate = async () => {
     if (!diary.diaryId) {
@@ -498,14 +522,6 @@ export default function WorkoutUpdatePage() {
     } catch (err) {
       console.error("❌ 수정 오류:", err);
       showErrorAlert("🚨 수정 실패!");
-    }
-  };
-
-  const handleAddHashtag = () => {
-    const tag = newHashtag.trim();
-    if (tag && !diary.hashtags.includes(tag)) {
-      setDiary((prev) => ({ ...prev, hashtags: [...prev.hashtags, tag] }));
-      setNewHashtag("");
     }
   };
 
@@ -581,8 +597,7 @@ export default function WorkoutUpdatePage() {
                 <span className="mr-2 font-semibold">부위: </span>
                 <button
                   onClick={() => setSelectedPartFilter("")}
-                  className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === "" ? "bg-primary-light text-white" : ""
-                    }`}
+                  className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === "" ? "bg-primary-light text-white" : ""}`}
                 >
                   전체
                 </button>
@@ -590,8 +605,7 @@ export default function WorkoutUpdatePage() {
                   <button
                     key={`part-${part}`}
                     onClick={() => setSelectedPartFilter(part)}
-                    className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === part ? "bg-primary-light text-white" : ""
-                      }`}
+                    className={`mr-2 px-2 py-1 border rounded ${selectedPartFilter === part ? "bg-primary-light text-white" : ""}`}
                   >
                     {part}
                   </button>
@@ -602,8 +616,7 @@ export default function WorkoutUpdatePage() {
                 <span className="mr-2 font-semibold">기구: </span>
                 <button
                   onClick={() => setSelectedToolFilter("")}
-                  className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === "" ? "bg-primary-light text-white" : ""
-                    }`}
+                  className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === "" ? "bg-primary-light text-white" : ""}`}
                 >
                   전체
                 </button>
@@ -611,8 +624,7 @@ export default function WorkoutUpdatePage() {
                   <button
                     key={`tool-${tool}`}
                     onClick={() => setSelectedToolFilter(tool)}
-                    className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === tool ? "bg-primary-light text-white" : ""
-                      }`}
+                    className={`mr-2 px-2 py-1 border rounded ${selectedToolFilter === tool ? "bg-primary-light text-white" : ""}`}
                   >
                     {tool}
                   </button>
@@ -952,6 +964,7 @@ export default function WorkoutUpdatePage() {
                 className="p-2 border rounded resize-none w-[15ch]"
                 value={newHashtag}
                 onChange={(e) => setNewHashtag(e.target.value.replace(/\s/g, ""))}
+                onKeyDown={handleKeyDown}
                 placeholder="해시태그 입력"
                 maxLength={10}
               />
@@ -967,12 +980,21 @@ export default function WorkoutUpdatePage() {
             </button>
           </div>
 
-          {/* 해시태그 목록 */}
-          <div className="mt-2">
-            {diary.hashtags.map((tag) => (
-              <span key={tag} className="p-1 bg-gray-200 rounded-full text-sm mr-2">
-                #{tag}
-              </span>
+          {/* 해시태그 목록 (삭제 버튼 포함) */}
+          <div className="mt-2 flex flex-wrap gap-2">
+            {diary.hashtags.map((tag, idx) => (
+              <div
+                key={tag}
+                className="relative bg-gray-200 rounded-full px-3 py-1 text-sm"
+              >
+                <span>#{tag}</span>
+                <button
+                  onClick={() => handleRemoveHashtag(idx)}
+                  className="absolute top-[-5px] right-[-5px] bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center"
+                >
+                  x
+                </button>
+              </div>
             ))}
           </div>
         </div>

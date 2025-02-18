@@ -1,10 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import addlogo from "../../assets/icons/add.svg";
-import { useNavigate } from "react-router-dom";
 import EvaluationGuide from "../../components/evaluation/EvaluationGuide";
+import BeatLoader from "../../components/common/LoadingSpinner"; // 로딩 스피너 컴포넌트 import
 
 export default function EvaluationCreatePage() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function EvaluationCreatePage() {
   const [previewUrl, setPreviewUrl] = useState(null); // 미리보기 URL
   const [showGuideModal, setShowGuideModal] = useState(false);
   const fileInputRef = useRef(null);
+  const [loading, setLoading] = useState(false); // 저장 시 로딩 상태
 
   // 파일 업로드 (영상만 허용, 1개 제한)
   const handleFileChange = (e) => {
@@ -82,6 +84,7 @@ export default function EvaluationCreatePage() {
       formData.append("images", file);
     }
 
+    setLoading(true); // 로딩 시작
     try {
       await axiosInstance.post("/evaluations", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -97,6 +100,8 @@ export default function EvaluationCreatePage() {
       } else {
         alert("🚨 저장 실패!");
       }
+    } finally {
+      setLoading(false); // 로딩 종료
     }
   };
 
@@ -156,12 +161,15 @@ export default function EvaluationCreatePage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {previewUrl && (
+              {previewUrl ? (
                 <div className="relative w-40 h-40">
                   <video
                     src={previewUrl}
                     className="w-full h-full object-cover rounded-md shadow-md"
                     controls
+                    playsInline
+                    webkitplaysinline="true"
+                    preload="metadata"
                   />
                   <button
                     onClick={handleRemoveFile}
@@ -170,8 +178,7 @@ export default function EvaluationCreatePage() {
                     X
                   </button>
                 </div>
-              )}
-              {!previewUrl && (
+              ) : (
                 <div
                   className="w-40 h-40 bg-gray-200 rounded-md flex items-center justify-center cursor-pointer"
                   onClick={() => fileInputRef.current.click()}
@@ -183,7 +190,7 @@ export default function EvaluationCreatePage() {
           </div>
         </div>
 
-        {/* 영상 설명 (글자수 제한 및 크기 조절 못하도록 설정) */}
+        {/* 영상 설명 */}
         <div className="mt-4">
           <textarea
             className="w-full h-24 mt-4 p-2 border rounded resize-none"
@@ -197,17 +204,16 @@ export default function EvaluationCreatePage() {
           </div>
         </div>
 
-
         <button
           onClick={handleEvaluationSubmit}
-          className="w-full mt-4 p-2 bg-primary text-white rounded"
+          className="w-full mt-4 p-2 bg-primary text-white rounded flex items-center justify-center"
+          disabled={loading}
         >
-          저장
+          {loading ? <BeatLoader color="#ffffff" size={15} margin={2} /> : "저장"}
         </button>
       </div>
       <BottomBar />
 
-      {/* 평가 게시물 작성 가이드 모달 */}
       {showGuideModal && (
         <EvaluationGuide onCancel={() => setShowGuideModal(false)} />
       )}
