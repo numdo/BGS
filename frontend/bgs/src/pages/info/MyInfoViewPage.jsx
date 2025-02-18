@@ -172,25 +172,25 @@ export default function MyInfoViewPage() {
           ))}
         </div>
 
-        {/* ✅ 비밀번호 변경 버튼 */}
-        <div
-          onClick={() => setIsPasswordModalOpen(true)}
-          className="w-full max-w-xl mt-6 cursor-pointer"
-        >
-          <hr className="border-gray-300 my-4" />
-          <p className="text-right text-primary font-semibold py-3 hover:text-blue-700">
-            비밀번호 변경
-          </p>
-        </div>
+        <div className="w-full max-w-xl mt-6 flex flex-col items-end">
+          {/* ✅ 비밀번호 변경 위에 선 추가 */}
+          <hr className="border-gray-300 my-4 w-full" />
 
-        {/* ✅ 로그아웃 버튼 */}
-        <div
-          onClick={confirmLogout}
-          className="w-full max-w-xl mt-6 cursor-pointer"
-        >
-          <p className="text-right text-primary font-semibold py-3 hover:text-blue-700">
+          {/* ✅ 비밀번호 변경 버튼 */}
+          <button
+            onClick={() => setIsPasswordModalOpen(true)}
+            className="text-primary font-semibold py-3 hover:text-blue-700 cursor-pointer bg-transparent border-none"
+          >
+            비밀번호 변경
+          </button>
+
+          {/* ✅ 로그아웃 버튼 */}
+          <button
+            onClick={confirmLogout}
+            className="text-primary font-semibold py-3 hover:text-blue-700 cursor-pointer bg-transparent border-none"
+          >
             로그아웃
-          </p>
+          </button>
         </div>
       </div>
 

@@ -18,6 +18,7 @@ export default function MyInfoEditPage() {
   const [isChecking, setIsChecking] = useState(false);
   const [nicknameChecked, setNicknameChecked] = useState(false);
   const [nicknameValid, setNicknameValid] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false); // ✅ 탈퇴 진행 상태 추가
 
   // ✅ 모달 상태
   const [alertData, setAlertData] = useState(null);
@@ -142,6 +143,8 @@ export default function MyInfoEditPage() {
 
   // ✅ 회원 탈퇴 처리 함수 (모달 사용)
   const handleDeleteUser = () => {
+    if (isDeleting) return; // ✅ 중복 클릭 방지
+
     setConfirmData({
       message: "정말로 탈퇴하시겠습니까?",
       confirmText: "탈퇴",
@@ -149,19 +152,27 @@ export default function MyInfoEditPage() {
       confirmColor: "bg-red-500",
       textColor: "text-white",
       onConfirm: async () => {
+        setConfirmData(null); // ✅ 탈퇴 버튼을 누르면 모달 즉시 닫기
+        setIsDeleting(true); // ✅ 로딩 시작
+
         try {
           await deleteUser();
 
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
 
-          setAlertData({
-            message: "회원 탈퇴가 완료되었습니다.",
-            success: true,
-            onClose: () => navigate("/login"),
-          });
+          // ✅ 1초 후에 모달 표시 (로딩 효과 강화)
+          setTimeout(() => {
+            setIsDeleting(false); // ✅ 로딩 종료
+            setAlertData({
+              message: "회원 탈퇴가 완료되었습니다.",
+              success: true,
+              navigateTo: "/login", // ✅ 확인 누르면 로그인 페이지 이동
+            });
+          }, 1000);
         } catch (error) {
           console.error("회원 탈퇴 실패:", error);
+          setIsDeleting(false); // ✅ 실패 시 다시 탈퇴 가능하도록 변경
           setAlertData({ message: "회원 탈퇴 중 오류가 발생했습니다." });
         }
       },
@@ -276,14 +287,18 @@ export default function MyInfoEditPage() {
             />
           </div>
         </form>
-        <div
-          onClick={handleDeleteUser}
-          className="w-full max-w-xl mt-6 cursor-pointer"
-        >
-          <hr className="border-gray-300 my-4 w-full max-w-xl mx-auto" />
-          <p className="text-right text-red-600 font-semibold py-3 hover:text-red-700">
+
+        <div className="w-full max-w-xl mt-6 flex flex-col items-end">
+          {/* ✅ 회원 탈퇴 위에 선 추가 */}
+          <hr className="border-gray-300 my-4 w-full" />
+
+          {/* ✅ 회원 탈퇴 버튼 */}
+          <button
+            onClick={handleDeleteUser}
+            className="text-red-600 font-semibold py-3 hover:text-blue-700 cursor-pointer bg-transparent border-none"
+          >
             회원 탈퇴
-          </p>
+          </button>
         </div>
       </div>
 
@@ -295,9 +310,12 @@ export default function MyInfoEditPage() {
         <ConfirmModal {...confirmData} onCancel={() => setConfirmData(null)} />
       )}
 
-      {isLoading && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <BeatLoader size={15} color="white" />
+      {isDeleting && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="text-center">
+            <BeatLoader size={20} color="white" />
+            <p className="text-white mt-4 text-lg">회원 탈퇴 중...</p>
+          </div>
         </div>
       )}
     </div>
