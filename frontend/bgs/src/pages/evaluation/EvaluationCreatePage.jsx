@@ -6,6 +6,10 @@ import TopBar from "../../components/bar/TopBar";
 import addlogo from "../../assets/icons/add.svg";
 import EvaluationGuide from "../../components/evaluation/EvaluationGuide";
 import BeatLoader from "../../components/common/LoadingSpinner"; // 로딩 스피너 컴포넌트 import
+import useFeedTypeStore from "../../stores/useFeedTypeStore";
+import { 
+  showInformAlert
+ } from "../../utils/toastrAlert";
 
 export default function EvaluationCreatePage() {
   const navigate = useNavigate();
@@ -18,6 +22,7 @@ export default function EvaluationCreatePage() {
   const [showGuideModal, setShowGuideModal] = useState(false);
   const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(false); // 저장 시 로딩 상태
+  const { feedType, setFeedType } = useFeedTypeStore();
 
   // 파일 업로드 (영상만 허용, 1개 제한)
   const handleFileChange = (e) => {
@@ -69,7 +74,12 @@ export default function EvaluationCreatePage() {
     }
 
     if (!weight) {
-      alert("중량(kg)을 입력하세요.");
+      showInformAlert("중량을 입력하세요.")
+      return;
+    }
+
+    if (!file) {
+      showInformAlert("파일을 입력하세요.")
       return;
     }
 
@@ -91,7 +101,8 @@ export default function EvaluationCreatePage() {
         withCredentials: true,
       });
       alert("✅ 평가 게시물 작성 완료!");
-      navigate("/workout");
+      setFeedType("evaluation");
+      navigate("/feeds");
     } catch (error) {
       console.error("❌ 저장 오류:", error);
       if (error.response?.status === 401) {

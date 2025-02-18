@@ -8,9 +8,11 @@ import BottomBar from "../../components/bar/BottomBar";
 import CommentInput from "../../components/feed/CommentInput"; // 댓글 입력 컴포넌트
 import CommentList from "../../components/feed/CommentList"; // 댓글 목록 컴포넌트
 import ProfileDefaultImage from "../../assets/icons/myinfo.png";
-import MoreIcon from "../../assets/icons/more.svg";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
+import { showInformAlert } from "../../utils/toastrAlert.jsx";
 
 const API_URL = "/evaluations";
 
@@ -25,7 +27,6 @@ const EvaluationDetailPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0); // 댓글 목록 갱신을 위한 상태
   const [comments, setComments] = useState([]); // 댓글 목록 상태
-
   // 평가글 데이터 불러오기
   useEffect(() => {
     axiosInstance
@@ -59,8 +60,10 @@ const EvaluationDetailPage = () => {
 
   // ✅ 프로필 클릭 시 해당 유저 프로필 페이지로 이동하는 함수
   const handleProfileClick = () => {
-    if (evaluation.userId) {
-      navigate(`/profile/${evaluation.userId}`);
+    if (evaluation.userId === me.userId) {
+      navigate(`/myinfo`); // ✅ 내 정보 페이지로 이동
+    } else {
+      navigate(`/profile/${feed.userId}`); // ✅ 해당 유저의 프로필 페이지로 이동
     }
   };
 
@@ -105,6 +108,27 @@ const EvaluationDetailPage = () => {
   // 메뉴 토글 함수
   const toggleMenu = () => {
     setIsMenuOpen((prev) => !prev);
+  };
+
+  // 게시글 수정 함수
+  const handleUpdate = () => {
+    if (evaluation.opened) {
+      showInformAlert("투표가 시작된 게시물은 수정할 수 없습니다.")
+    }
+    else navigate(`evaluationupdate/${evaluationId}`);
+  }
+
+  // 게시글 삭제 함수
+  const handleDelete = async () => {
+    if (window.confirm("정말 삭제하시겠습니까?")) {
+      try {
+        await axiosInstance.delete(`${API_URL}/${evaluationId}`);
+        alert("삭제되었습니다.");
+        navigate("/feeds");
+      } catch (error) {
+        console.error("삭제 오류:", error);
+      }
+    }
   };
 
   // 댓글 작성 함수
@@ -159,52 +183,57 @@ const EvaluationDetailPage = () => {
       <div className="relative max-w-2xl mx-auto">
         <div className="p-4 pb-20">
           {/* 프로필 & 작성자 */}
-          <div className="w-full flex items-center justify-between mb-4">
-            <div className="flex items-center">
-              <img
-                src={evaluation.profileImageUrl || ProfileDefaultImage}
-                alt="프로필"
-                className="w-10 h-10 rounded-full cursor-pointer"
-                onClick={handleProfileClick}
-              />
+          <div className="flex items-center mb-4">
+            <img
+              src={evaluation.profileImageUrl || ProfileDefaultImage}
+              alt="프로필"
+              className="w-10 h-10 rounded-full cursor-pointer m-1"
+              onClick={handleProfileClick}
+            />
+            <div className="ml-1 p-2 pb-1">
               <p
-                className="ml-2 font-bold cursor-pointer"
+                className="font-bold cursor-pointer"
                 onClick={handleProfileClick}
               >
                 {evaluation.writer}
               </p>
+              <p className="text-sm text-gray-500">
+                {formatDistanceToNow(new Date(evaluation.createdAt), {
+                  addSuffix: true,
+                  locale: ko,
+                })}
+              </p>
             </div>
-            {evaluation.userId === me.userId && (
-              <button
-                className="bg-gray-100 rounded-md w-6 h-6"
-                onClick={toggleMenu}
-              >
-                <img src={MoreIcon} alt="" />
-              </button>
-            )}
-          </div>
 
-          {/* 메뉴바 */}
-          {isMenuOpen && (
-            <div className="absolute right-0 bg-white border shadow-lg rounded-md w-40 z-10">
-              <ul>
-                <li
-                  onClick={() => {
-                    navigate(`/evaluationupdate/${evaluationId}`);
-                  }}
-                  className="px-4 py-2 cursor-pointer hover:bg-gray-200"
-                >
-                  수정
-                </li>
-                <li
-                  onClick={handleDeleteEvaluation}
-                  className="px-4 py-2 cursor-pointer hover:bg-gray-200"
-                >
-                  삭제
-                </li>
-              </ul>
+            {/* 메뉴바 */}
+            <div className="ml-auto relative">
+              {evaluation.userId === me.userId && (
+                <button onClick={toggleMenu} className="text-xl">
+                  ⋮
+                </button>
+              )}
+
+              {/* 메뉴 */}
+              {isMenuOpen && (
+                <div className="absolute right-0 mt-2 bg-white border shadow-lg rounded-md w-40 z-10">
+                  <ul>
+                    <li
+                      onClick={handleUpdate}
+                      className="px-4 py-2 cursor-pointer hover:bg-gray-200"
+                    >
+                      수정
+                    </li>
+                    <li
+                      onClick={handleDelete}
+                      className="px-4 py-2 cursor-pointer hover:bg-gray-200"
+                    >
+                      삭제
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* 이미지 캐러셀 */}
           <Slider {...settings}>
@@ -267,12 +296,12 @@ const EvaluationDetailPage = () => {
           <div className="mt-6">
             <CommentInput onCommentSubmit={handleCommentSubmit} />
             <CommentList
-                key={refreshKey}
-                comments={comments}
-                userId={me.userId}
-                onDelete={onDelete}
-                onUpdate={onUpdate}
-              />
+              key={refreshKey}
+              comments={comments}
+              userId={me.userId}
+              onDelete={onDelete}
+              onUpdate={onUpdate}
+            />
           </div>
         </div>
 
