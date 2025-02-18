@@ -50,3 +50,15 @@ export async function getPartVolume() {
     throw error;
   }
 }
+
+
+// ✅ 3대 운동 조회
+export async function getWorkoutRecord() {
+  try {
+    const response = await axiosInstance.get(`${BASE_URL}/workout-record`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}

@@ -21,7 +21,11 @@ export default function AdminUserManagement() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const data = await adminUserApi.getAllUsers(page, pageSize, searchKeyword);
+      const data = await adminUserApi.getAllUsers(
+        page,
+        pageSize,
+        searchKeyword
+      );
       // 백엔드에서 Page 객체의 content 배열과 totalElements를 반환한다고 가정
       setUsers(data.content);
       setTotalRecords(data.totalElements);
@@ -116,7 +120,9 @@ export default function AdminUserManagement() {
       </div>
 
       {loading ? (
-        <p>로딩중...</p>
+        <div className="flex items-center justify-center h-screen">
+          <LoadingSpinner />
+        </div>
       ) : (
         <>
           <AdminUserList

@@ -113,7 +113,7 @@ export default function AdminItemManagement() {
     }
     return formData;
   };
-  
+
   // 신규 아이템 등록 시 FormData 생성 (모달)
   const createNewItemFormData = () => {
     const formData = new FormData();
@@ -376,7 +376,9 @@ export default function AdminItemManagement() {
 
       {/* 아이템 목록 테이블 */}
       {loading ? (
-        <p>로딩중...</p>
+        <div className="flex items-center justify-center h-screen">
+          <LoadingSpinner />
+        </div>
       ) : (
         <table className="w-full border-collapse border border-gray-300">
           <thead>
