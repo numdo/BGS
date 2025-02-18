@@ -906,24 +906,31 @@ export default function WorkoutCreatePage() {
         </div>
 
         {/* 해시태그 추가 */}
-        <div className="mt-4 flex items-center space-x-2">
-          <input
-            type="text"
-            className="p-2 border rounded w-[15ch]"
-            value={newHashtag}
-            onChange={(e) => setNewHashtag(e.target.value.replace(/\s/g, ""))}
-            onKeyDown={handleKeyDown}
-            placeholder="해시태그 입력"
-            maxLength={10}
-          />
+        <div className="mt-1 flex items-start">
+          <div className="relative">
+            <input
+              type="text"
+              className="p-2 border rounded resize-none w-[15ch]"
+              value={newHashtag}
+              onChange={(e) => setNewHashtag(e.target.value.replace(/\s/g, ""))}
+              onKeyDown={handleKeyDown}
+              placeholder="해시태그 입력"
+              maxLength={10}
+            />
+            {/* 입력창 바로 아래 우측 하단에 0/10 표시 */}
+            <div className="absolute -bottom-5 right-0 text-xs text-gray-400">
+              {newHashtag.length}/10
+            </div>
+          </div>
           <button
             onClick={handleAddHashtag}
-            className="p-2 bg-primary-light text-white rounded whitespace-nowrap"
+            className="ml-2 p-2 bg-primary-light text-white rounded whitespace-nowrap"
           >
             추가
           </button>
         </div>
 
+        {/* 해시태그 목록 (삭제 버튼 포함) */}
         <div className="mt-2 flex flex-wrap gap-2">
           {diary.hashtags.map((tag, idx) => (
             <div
@@ -942,8 +949,13 @@ export default function WorkoutCreatePage() {
         </div>
 
 
+
+
+
+
+
         {/* 공개 범위 설정 */}
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mt-7">
           <div className="flex items-center">
             <input
               type="radio"

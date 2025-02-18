@@ -236,8 +236,8 @@ export default function WorkoutUpdatePage() {
       const workoutIds = record.workoutIds
         ? record.workoutIds
         : record.workoutId
-        ? [record.workoutId]
-        : [];
+          ? [record.workoutId]
+          : [];
       workoutIds.forEach((wid) => {
         if (!newDiaryWorkouts.some((dw) => dw.workoutId === wid)) {
           const type = getWorkoutType(wid);
@@ -956,9 +956,9 @@ export default function WorkoutUpdatePage() {
         </div>
 
         {/* 해시태그 추가 */}
-        <div className="mt-4">
+        <div className="mt-1">
           <div className="flex items-center">
-            <div className="flex flex-col">
+            <div className="relative">
               <input
                 type="text"
                 className="p-2 border rounded resize-none w-[15ch]"
@@ -968,7 +968,7 @@ export default function WorkoutUpdatePage() {
                 placeholder="해시태그 입력"
                 maxLength={10}
               />
-              <div className="text-right text-xs text-gray-400">
+              <div className="absolute -bottom-5 right-0 text-xs text-gray-400">
                 {newHashtag.length}/10
               </div>
             </div>
@@ -999,8 +999,9 @@ export default function WorkoutUpdatePage() {
           </div>
         </div>
 
+
         {/* 공개 범위 설정 */}
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mt-7">
           <div className="flex items-center">
             <input
               type="radio"
