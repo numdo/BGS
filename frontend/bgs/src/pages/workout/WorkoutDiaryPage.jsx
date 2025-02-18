@@ -48,7 +48,6 @@ export default function WorkoutDiaryPage() {
     getDiary(diaryId)
       .then((fetchedDiary) => {
         setDiary(fetchedDiary);
-        console.log("다이어리 데이터:", fetchedDiary);
       })
       .catch((err) => {
         console.error("다이어리 불러오기 실패:", err);

@@ -33,11 +33,9 @@ const MyGymRoomEdit = () => {
   const [isDraggingMode, setIsDraggingMode] = useState(false);
 
   useEffect(() => {
-    console.log("selectedItemId changed", selectedItemId);
   }, [selectedItemId]);
 
   useEffect(() => {
-    console.log("draggingItem changed", draggingItem);
   }, [draggingItem]);
 
   const { myGym, setMyGym } = useMyGymStore();
@@ -123,7 +121,6 @@ const MyGymRoomEdit = () => {
   const toggleFlip = (id) => {
     const newArr = myGym.places.map((it) => {
       if (it.itemId === id) {
-        console.log("it.itemId", it.itemId);
         return { ...it, rotated: !it.rotated };
       }
       return it;

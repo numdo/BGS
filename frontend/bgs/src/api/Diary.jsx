@@ -14,7 +14,6 @@ export async function getDiaries(userId, year, month) {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    console.log("getDiaries executed", response.data);
     return response.data;
   } catch (error) {
     console.error(error);

@@ -330,7 +330,6 @@ export default function WorkoutUpdatePage() {
               withCredentials: true,
             }
           );
-          console.log("STT 응답 데이터:", response.data);
           if (response.data.invalidInput) {
             showErrorAlert("운동을 인식하지 못했습니다. 다시 말씀해주세요.");
             setIsLoading(false);
