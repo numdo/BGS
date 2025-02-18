@@ -4,6 +4,7 @@ import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import addlogo from "../../assets/icons/add.svg";
 import { useNavigate } from "react-router-dom";
+import EvaluationGuide from "../../components/evaluation/EvaluationGuide";
 
 export default function EvaluationCreatePage() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export default function EvaluationCreatePage() {
   const [weight, setWeight] = useState(""); // Decimal(4,1) 형식
   const [file, setFile] = useState(null); // 단일 파일
   const [previewUrl, setPreviewUrl] = useState(null); // 미리보기 URL
+  const [showGuideModal, setShowGuideModal] = useState(false);
   const fileInputRef = useRef(null);
 
   // 파일 업로드 (영상만 허용, 1개 제한)
@@ -138,7 +140,20 @@ export default function EvaluationCreatePage() {
             style={{ display: "none" }}
           />
           <div className="flex flex-col">
-            <label className="font-bold mb-2">영상 업로드 (1개만 가능)</label>
+            {/* 텍스트와 가이드 버튼을 좌우로 배치 */}
+            <div className="flex items-center">
+              <label className="font-bold mb-2">
+                영상 업로드 (1개만 가능)
+              </label>
+              <button
+                onClick={() => setShowGuideModal(true)}
+                className="ml-2 bg-yellow-500 text-white p-1 rounded-full shadow-lg hover:bg-yellow-600 transition relative -top-1"
+              >
+                <span role="img" aria-label="평가 가이드">
+                  💡
+                </span>
+              </button>
+            </div>
 
             <div className="flex flex-wrap gap-2">
               {previewUrl && (
@@ -168,12 +183,20 @@ export default function EvaluationCreatePage() {
           </div>
         </div>
 
-        <textarea
-          className="w-full h-24 mt-4 p-2 border rounded"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="운동일지 내용을 입력하세요."
-        />
+        {/* 영상 설명 (글자수 제한 및 크기 조절 못하도록 설정) */}
+        <div className="mt-4">
+          <textarea
+            className="w-full h-24 mt-4 p-2 border rounded resize-none"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="영상 설명을 입력하세요."
+            maxLength={255}
+          />
+          <div className="text-right text-xs text-gray-400">
+            {content.length}/255
+          </div>
+        </div>
+
 
         <button
           onClick={handleEvaluationSubmit}
@@ -183,6 +206,11 @@ export default function EvaluationCreatePage() {
         </button>
       </div>
       <BottomBar />
+
+      {/* 평가 게시물 작성 가이드 모달 */}
+      {showGuideModal && (
+        <EvaluationGuide onCancel={() => setShowGuideModal(false)} />
+      )}
     </>
   );
 }
