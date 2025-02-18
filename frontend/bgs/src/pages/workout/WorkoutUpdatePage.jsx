@@ -956,7 +956,7 @@ export default function WorkoutUpdatePage() {
         </div>
 
         {/* 해시태그 추가 */}
-        <div className="mt-4">
+        <div className="mt-1">
           <div className="flex items-center">
             <div className="relative">
               <input
@@ -1001,7 +1001,7 @@ export default function WorkoutUpdatePage() {
 
 
         {/* 공개 범위 설정 */}
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mt-7">
           <div className="flex items-center">
             <input
               type="radio"
