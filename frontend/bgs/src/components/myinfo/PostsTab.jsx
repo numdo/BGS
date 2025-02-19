@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getFeeds } from "../../api/Feed";
 import FeedItem from "../../components/feed/FeedItem";
-import FeedDefaultImage from "../../assets/images/feeddefaultimage.png"; // 기본 이미지
 import BeatLoader from "../../components/common/LoadingSpinner"; // ✅ 로딩 스피너 추가
 
 const PostsTab = ({ userId }) => {
@@ -25,9 +24,10 @@ const PostsTab = ({ userId }) => {
         const response = await getFeeds(userId, page);
         const userFeeds = response.map((item) => ({
           id: item.diaryId,
-          imageUrl: item.imageUrl || FeedDefaultImage,
+          imageUrl: item.imageUrl,
           likedCount: item.likedCount,
           commentCount: item.commentCount,
+          workoutDate: item.workoutDate
         }));
 
         setFeeds((prev) => {

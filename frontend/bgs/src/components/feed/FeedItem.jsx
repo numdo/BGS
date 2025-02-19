@@ -3,6 +3,11 @@ import FeedDefaultImage from "../../assets/images/feeddefaultimage.png";
 
 const DEFAULT_IMAGE_URL = FeedDefaultImage;
 
+const formatDate = (dateString) => {
+  const [year, month, day] = dateString.split("-");
+  return `${month}-${day}`;
+};
+
 const FeedItem = ({ feed, onClick }) => {
   const isVideo = feed.imageUrl?.endsWith(".mp4");
   const videoRef = useRef(null);
@@ -49,6 +54,13 @@ const FeedItem = ({ feed, onClick }) => {
           alt="Feed"
           className="w-full h-full object-cover rounded-md"
         />
+      )}
+
+      {/* 기본 이미지 위에 날짜 표시 */}
+      {!feed.imageUrl && (
+        <div className="absolute inset-0 flex items-center justify-center text-white text-lg font-bold bg-black bg-opacity-50 rounded-md">
+          {formatDate(feed.workoutDate)}
+        </div>
       )}
 
       {/* 기존 Hover 효과 포함 */}

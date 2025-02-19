@@ -31,10 +31,6 @@ export default function MainPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { fetchMe } = useUserStore();
 
-  useEffect(() => {
-    fetchMe();
-  }, [fetchMe]);
-
   const handleAttendanceCheck = async () => {
     // 사용자의 위치 정보를 가져오기 위해 Geolocation API 사용
     if (!navigator.geolocation) {
