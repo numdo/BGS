@@ -254,15 +254,10 @@ const DiaryDetailPage = () => {
                 </span>
               ))}
             </div>
-            <div className="flex justify-end mr-3">
-              <img src={fire_colored} alt="" />
-              <div className="text-gray-500 m-1"> {likedCount}</div>
-              <img src={chat} alt="" />
-              <div className="text-gray-500 m-1">{comments.length}</div>
-            </div>
             <div className="flex items-center justify-around m-2">
               <div>
                 <p className="flex text-gray-700 cursor-pointer">
+                  <div className="text-gray-500 m-1"> {likedCount}</div>
                   {isLiked ? (
                     <img onClick={onLikeToggle} src={fire_colored} alt="" />
                   ) : (
@@ -271,6 +266,7 @@ const DiaryDetailPage = () => {
                 </p>
               </div>
               <div className="flex">
+                <div className="text-gray-500 m-1">{comments.length}</div>
                 <img
                   onClick={() => {
                     setIsCommentsOpen(!isCommentsOpen);
