@@ -351,6 +351,7 @@ public class UserService {
                 .userId(user.getId())
                 .nickname(user.getNickname())
                 .introduce(user.getIntroduction())
+                .role(user.getRole())
                 .profileImageUrl(null)
                 .build();
     }

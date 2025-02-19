@@ -36,9 +36,6 @@ export default function MyInfoPage() {
     const fetchUserData = async () => {
       setIsLoading(true);
       try {
-        const res = await getUser();
-        setMe(res);
-
         const [followers, followings, postData] = await Promise.all([
           getFollowerList(),
           getFollowingList(),

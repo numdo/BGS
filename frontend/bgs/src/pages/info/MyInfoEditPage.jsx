@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useUserStore from "../../stores/useUserStore";
 import TopBar from "../../components/bar/TopBar";
@@ -10,7 +10,13 @@ import ConfirmModal from "../../components/common/ConfirmModal";
 import myinfo from "../../assets/icons/myinfo.png";
 
 export default function MyInfoEditPage() {
-  const { me, setMe } = useUserStore();
+  const [me, setMe] = useState({
+    nickname: "",
+    height: "",
+    weight: "",
+    introduction: "",
+    birthDate: "",
+  });
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [previewUrl, setPreviewUrl] = useState();
@@ -31,6 +37,16 @@ export default function MyInfoEditPage() {
     introduction: me.introduction || "",
     birthDate: me.birthDate || "",
   });
+
+  useEffect(() => {
+    getMyInfo();
+  }, [])
+
+  const getMyInfo = async () => {
+    const userData = await getUser();
+    setMe(userData);
+    setFormData(userData);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;

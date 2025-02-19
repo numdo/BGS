@@ -1,4 +1,5 @@
 // api/Auth.js
+import { jwtDecode } from "jwt-decode";
 import axiosInstance from "../utils/axiosInstance";
 import { getUser } from "../api/User";
 import useUserStore from "../stores/useUserStore";
@@ -22,19 +23,29 @@ export async function login(credentials) {
     const response = await axiosInstance.post(`${BASE_URL}/login`, credentials);
     const accessTokenHeader = response.headers["authorization"];
 
+    let token = null;
     if (accessTokenHeader) {
-      const token = accessTokenHeader.startsWith("Bearer ")
+      token = accessTokenHeader.startsWith("Bearer ")
         ? accessTokenHeader.slice(7)
         : accessTokenHeader;
       localStorage.setItem("accessToken", token);
     }
 
-    const userData = await getUser();
+    if (!token) throw new Error("Access token이 없습니다.");
+
+    // ✅ accessToken에서 sub(userId) 추출
+    const decoded = jwtDecode(token);
+    const userId = decoded.sub; // sub 값 사용
+
+    if (!userId) throw new Error("토큰에서 userId를 찾을 수 없습니다.");
+
+    // ✅ userId로 getUser 호출
+    const userData = await getUser(userId);
     useUserStore.getState().setMe(userData);
 
     return response.data;
   } catch (error) {
-    console.error(error);
+    console.error("로그인 실패:", error);
     throw error;
   }
 }

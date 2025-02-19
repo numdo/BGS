@@ -18,7 +18,7 @@ import useUserStore from "../../stores/useUserStore";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import BeatLoader from "../../components/common/LoadingSpinner";
-import DeleteConfirmAlert from "../../components/common/DeleteConfirmAlert"; // 삭제 확인 모달 import
+import { showInformAlert } from "../../utils/toastrAlert";
 
 const API_URL = "/diaries";
 
@@ -34,20 +34,6 @@ const DiaryDetailPage = () => {
   const [isWorkoutsOpen, setIsWorkoutsOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [comments, setComments] = useState([]);
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false); // 삭제 확인 모달 상태
-
-  // 댓글 작성 함수 추가
-  const handleCommentSubmit = async (content) => {
-    try {
-      await axiosInstance.post(`${API_URL}/${diaryId}/comments`, {
-        diaryId,
-        content,
-      });
-      setRefreshKey((prev) => prev + 1); // 댓글 추가 후 목록 갱신
-    } catch (error) {
-      console.error("댓글 작성 오류:", error);
-    }
-  };
 
   // 댓글 목록 불러오기
   useEffect(() => {
@@ -114,15 +100,39 @@ const DiaryDetailPage = () => {
     }
   };
 
-  // 삭제 확인 모달에서 "삭제"를 누르면 바로 삭제 처리
-  const handleDeleteConfirm = async () => {
+  // 게시글 수정 함수
+  const handleUpdate = () => {
+    if (feed.userId !== me.userId) {
+      showInformAlert("본인의 게시물이 아니면 수정할 수 없습니다.");
+    }
+    else {
+      navigate(`/workoutupdate/${diaryId}`);
+    }
+  }
+
+  // 게시글 삭제 함수
+  const handleDelete = async () => {
+    if (window.confirm("정말 삭제하시겠습니까?")) {
+      try {
+        await axiosInstance.delete(`${API_URL}/${diaryId}`);
+        alert("삭제되었습니다.");
+        navigate("/feeds");
+      } catch (error) {
+        console.error("삭제 오류:", error);
+      }
+    }
+  };
+
+  // 댓글 작성 함수
+  const handleCommentSubmit = async (content) => {
     try {
-      await axiosInstance.delete(`${API_URL}/${diaryId}`);
-      navigate("/feeds");
+      await axiosInstance.post(`${API_URL}/${diaryId}/comments`, {
+        diaryId,
+        content,
+      });
+      setRefreshKey((prev) => prev + 1); // 댓글 추가 후 목록 갱신
     } catch (error) {
-      console.error("삭제 오류:", error);
-    } finally {
-      setShowDeleteAlert(false);
+      console.error("댓글 작성 오류:", error);
     }
   };
 
@@ -193,7 +203,7 @@ const DiaryDetailPage = () => {
 
             {/* 메뉴바 */}
             <div className="ml-auto relative">
-              {feed.userId === me.userId && (
+              {(feed.userId === me.userId || me.role === "ADMIN") && (
                 <button onClick={toggleMenu} className="text-xl">
                   ⋮
                 </button>
@@ -202,15 +212,13 @@ const DiaryDetailPage = () => {
                 <div className="absolute right-0 mt-2 bg-white border shadow-lg rounded-md w-40 z-10">
                   <ul>
                     <li
-                      onClick={() => {
-                        navigate(`/workoutupdate/${diaryId}`);
-                      }}
+                      onClick={handleUpdate}
                       className="px-4 py-2 cursor-pointer hover:bg-gray-200"
                     >
                       수정
                     </li>
                     <li
-                      onClick={() => setShowDeleteAlert(true)}
+                      onClick={handleDelete}
                       className="px-4 py-2 cursor-pointer hover:bg-gray-200"
                     >
                       삭제
@@ -254,10 +262,15 @@ const DiaryDetailPage = () => {
                 </span>
               ))}
             </div>
+            <div className="flex justify-end mr-3">
+              <img src={fire_colored} alt="" />
+              <div className="text-gray-500 m-1"> {likedCount}</div>
+              <img src={chat} alt="" />
+              <div className="text-gray-500 m-1">{comments.length}</div>
+            </div>
             <div className="flex items-center justify-around m-2">
               <div>
                 <p className="flex text-gray-700 cursor-pointer">
-                  <div className="text-gray-500 m-1"> {likedCount}</div>
                   {isLiked ? (
                     <img onClick={onLikeToggle} src={fire_colored} alt="" />
                   ) : (
@@ -266,7 +279,6 @@ const DiaryDetailPage = () => {
                 </p>
               </div>
               <div className="flex">
-                <div className="text-gray-500 m-1">{comments.length}</div>
                 <img
                   onClick={() => {
                     setIsCommentsOpen(!isCommentsOpen);
@@ -357,15 +369,6 @@ const DiaryDetailPage = () => {
 
         <BottomBar />
       </div>
-
-      {/* 삭제 확인 모달 (추가 알림 없이 바로 삭제 처리) */}
-      {showDeleteAlert && (
-        <DeleteConfirmAlert
-          message="정말 삭제하시겠습니까?"
-          onConfirm={handleDeleteConfirm}
-          onCancel={() => setShowDeleteAlert(false)}
-        />
-      )}
     </>
   );
 };

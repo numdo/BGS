@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useUserStore from "../../stores/useUserStore";
+import { getUser } from "../../api/User";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
 import myinfo from "../../assets/icons/myinfo.png";
@@ -14,7 +14,19 @@ import { IconButton, InputAdornment, TextField } from "@mui/material";
 
 export default function MyInfoViewPage() {
   const navigate = useNavigate();
-  const { me } = useUserStore();
+  const [me, setMe] = useState({
+    name: "",
+    nickname: "",
+    birthDate: "",
+    introduction: "",
+    sex: "",
+    height: "",
+    weight: "",
+    strickAttendance: "",
+    lastAttendance: "",
+    coin: "",
+    totalWeight: "",
+  })
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     currentPassword: "",
@@ -29,6 +41,15 @@ export default function MyInfoViewPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    getMyInfo();
+  }, [])
+
+  const getMyInfo = async () => {
+    const userData = await getUser();
+    setMe(userData);
+  };
 
   // ✅ 비밀번호 입력값 변경 핸들러
   const handleChange = (e) => {

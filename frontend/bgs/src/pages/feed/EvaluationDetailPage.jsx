@@ -1,19 +1,18 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import useUserStore from "../../stores/useUserStore";
+import useUserStore from "../../stores/useUserStore.jsx";
 import axiosInstance from "../../utils/axiosInstance";
 import Slider from "react-slick";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
-import CommentInput from "../../components/feed/CommentInput";
-import CommentList from "../../components/feed/CommentList";
+import CommentInput from "../../components/feed/CommentInput"; // 댓글 입력 컴포넌트
+import CommentList from "../../components/feed/CommentList"; // 댓글 목록 컴포넌트
 import ProfileDefaultImage from "../../assets/icons/myinfo.png";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
-import { showInformAlert } from "../../utils/toastrAlert";
-import DeleteConfirmAlert from "../../components/common/DeleteConfirmAlert"; // 삭제 확인 모달
+import { showInformAlert } from "../../utils/toastrAlert.jsx";
 
 const API_URL = "/evaluations";
 
@@ -26,10 +25,8 @@ const EvaluationDetailPage = () => {
   const [voteCount, setVoteCount] = useState(0);
   const [voted, setVoted] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [comments, setComments] = useState([]);
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
-
+  const [refreshKey, setRefreshKey] = useState(0); // 댓글 목록 갱신을 위한 상태
+  const [comments, setComments] = useState([]); // 댓글 목록 상태
   // 평가글 데이터 불러오기
   useEffect(() => {
     axiosInstance
@@ -61,16 +58,16 @@ const EvaluationDetailPage = () => {
 
   if (!evaluation) return <p>로딩 중...</p>;
 
-  // 프로필 클릭 시 페이지 이동
+  // ✅ 프로필 클릭 시 해당 유저 프로필 페이지로 이동하는 함수
   const handleProfileClick = () => {
     if (evaluation.userId === me.userId) {
-      navigate(`/myinfo`);
+      navigate(`/myinfo`); // ✅ 내 정보 페이지로 이동
     } else {
-      navigate(`/profile/${evaluation.userId}`);
+      navigate(`/profile/${evaluation.userId}`); // ✅ 해당 유저의 프로필 페이지로 이동
     }
   };
 
-  // 투표 기능 (찬성/반대/취소)
+  // ✅ 투표 기능 (찬성 / 반대 / 취소)
   const handleVote = async (approval) => {
     const newVote = voted === approval ? null : approval;
 
@@ -80,6 +77,8 @@ const EvaluationDetailPage = () => {
       });
 
       setVoted(newVote);
+
+      // 투표 상태 변경 반영
       setApprovalCount((prevApproval) => {
         if (newVote === true) {
           return voted === false
@@ -113,27 +112,25 @@ const EvaluationDetailPage = () => {
 
   // 게시글 수정 함수
   const handleUpdate = () => {
-    if (evaluation.opened) {
-      showInformAlert("투표가 시작된 게시물은 수정할 수 없습니다.");
-    } else {
-      navigate(`/evaluationupdate/${evaluationId}`);
+    if (evaluation.userId !== me.userId) {
+      showInformAlert("본인의 게시물이 아니면 수정할 수 없습니다.")
     }
-  };
+    else if (evaluation.opened) {
+      showInformAlert("투표가 시작된 게시물은 수정할 수 없습니다.")
+    }
+    else navigate(`/evaluationupdate/${evaluationId}`);
+  }
 
-  // 삭제 버튼 클릭 시 DeleteConfirmAlert 모달 표시
-  const handleDelete = () => {
-    setShowDeleteAlert(true);
-  };
-
-  // DeleteConfirmAlert의 "삭제" 버튼 클릭 시 바로 삭제 처리
-  const handleDeleteConfirm = async () => {
-    try {
-      await axiosInstance.delete(`${API_URL}/${evaluationId}`);
-      navigate("/feeds");
-    } catch (error) {
-      console.error("삭제 오류:", error);
-    } finally {
-      setShowDeleteAlert(false);
+  // 게시글 삭제 함수
+  const handleDelete = async () => {
+    if (window.confirm("정말 삭제하시겠습니까?")) {
+      try {
+        await axiosInstance.delete(`${API_URL}/${evaluationId}`);
+        alert("삭제되었습니다.");
+        navigate("/feeds");
+      } catch (error) {
+        console.error("삭제 오류:", error);
+      }
     }
   };
 
@@ -144,7 +141,8 @@ const EvaluationDetailPage = () => {
         diaryId: evaluationId,
         content,
       });
-      setRefreshKey((prev) => prev + 1);
+
+      setRefreshKey((prev) => prev + 1); // 댓글 추가 후 목록 갱신
     } catch (error) {
       console.error("댓글 작성 오류:", error);
     }
@@ -155,7 +153,7 @@ const EvaluationDetailPage = () => {
     setComments((prev) =>
       prev.filter((comment) => comment.commentId !== commentId)
     );
-    axiosInstance.delete(`${API_URL}/${evaluationId}/comments/${commentId}`);
+    axiosInstance.delete(`/evaluations/${evaluationId}/comments/${commentId}`);
   };
 
   // 댓글 수정 함수
@@ -167,7 +165,7 @@ const EvaluationDetailPage = () => {
           : comment
       )
     );
-    axiosInstance.patch(`${API_URL}/${evaluationId}/comments/${commentId}`, {
+    axiosInstance.patch(`/evaluations/${evaluationId}/comments/${commentId}`, {
       commentId,
       content,
     });
@@ -196,7 +194,10 @@ const EvaluationDetailPage = () => {
               onClick={handleProfileClick}
             />
             <div className="ml-1 p-2 pb-1">
-              <p className="font-bold cursor-pointer" onClick={handleProfileClick}>
+              <p
+                className="font-bold cursor-pointer"
+                onClick={handleProfileClick}
+              >
                 {evaluation.writer}
               </p>
               <p className="text-sm text-gray-500">
@@ -209,11 +210,13 @@ const EvaluationDetailPage = () => {
 
             {/* 메뉴바 */}
             <div className="ml-auto relative">
-              {evaluation.userId === me.userId && (
+              {(evaluation.userId === me.userId || me.role === "ADMIN") && (
                 <button onClick={toggleMenu} className="text-xl">
                   ⋮
                 </button>
               )}
+
+              {/* 메뉴 */}
               {isMenuOpen && (
                 <div className="absolute right-0 mt-2 bg-white border shadow-lg rounded-md w-40 z-10">
                   <ul>
@@ -268,12 +271,14 @@ const EvaluationDetailPage = () => {
             <p className="mt-2 text-sm text-gray-700">{evaluation.weight}kg</p>
           </div>
 
-          {/* 투표 (찬성 / 반대) */}
+          {/* ✅ 투표 (찬성 / 반대) */}
           <div className="mt-4 flex gap-4">
             <button
               onClick={() => handleVote(true)}
               className={`px-4 py-2 rounded-md ${
-                voted === true ? "bg-green-700 text-white" : "bg-green-500 text-white"
+                voted === true
+                  ? "bg-green-700 text-white"
+                  : "bg-green-500 text-white"
               }`}
             >
               찬성 👍 {approvalCount}
@@ -281,7 +286,9 @@ const EvaluationDetailPage = () => {
             <button
               onClick={() => handleVote(false)}
               className={`px-4 py-2 rounded-md ${
-                voted === false ? "bg-red-700 text-white" : "bg-red-500 text-white"
+                voted === false
+                  ? "bg-red-700 text-white"
+                  : "bg-red-500 text-white"
               }`}
             >
               반대 👎 {voteCount - approvalCount}
@@ -303,15 +310,6 @@ const EvaluationDetailPage = () => {
 
         <BottomBar />
       </div>
-
-      {/* 삭제 확인 모달 (DeleteConfirmAlert 사용) */}
-      {showDeleteAlert && (
-        <DeleteConfirmAlert
-          message="정말 삭제하시겠습니까?"
-          onConfirm={handleDeleteConfirm}
-          onCancel={() => setShowDeleteAlert(false)}
-        />
-      )}
     </>
   );
 };

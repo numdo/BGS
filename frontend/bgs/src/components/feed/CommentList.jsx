@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { formatDistance } from "date-fns";
 import { ko } from "date-fns/locale";
+import useUserStore from "../../stores/useUserStore.jsx";
 import person from "../../assets/icons/person.svg";
 import more_horiz from "../../assets/icons/more_horiz.svg";
 import editicon from "../../assets/icons/commentedit.png";
@@ -11,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 
 const CommentList = ({ comments, userId, onDelete, onUpdate }) => {
   const navigate = useNavigate();
+  const { me } = useUserStore();
   const [showActionsId, setShowActionsId] = useState(null);
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editedContent, setEditedContent] = useState("");
@@ -86,7 +88,7 @@ const CommentList = ({ comments, userId, onDelete, onUpdate }) => {
                   )}
                 </div>
 
-                {userId === comment.userId && (
+                {(userId === comment.userId || me.role === "ADMIN") && (
                   <div className="ml-auto">
                     {showActionsId === comment.commentId ? (
                       // ✨ 더보기 버튼을 클릭하면 수정/삭제/취소 버튼 표시

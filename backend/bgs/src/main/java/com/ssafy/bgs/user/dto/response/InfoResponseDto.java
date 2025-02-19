@@ -9,5 +9,6 @@ public class InfoResponseDto {
     private Integer userId;
     private String nickname;
     private String introduce;
+    private String role;
     private String profileImageUrl;
 }
