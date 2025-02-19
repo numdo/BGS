@@ -214,29 +214,52 @@ export default function WorkoutCreatePage() {
     closeExerciseModal();
   };
 
-  // 이전 기록 / 최근 운동 추가 핸들러
+  // 이전 기록 추가 핸들러 수정
+  // 이전 기록 추가 핸들러 수정
   const handleAddRecord = (record) => {
     setDiary((prevDiary) => {
       const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
+      // record.workoutIds가 배열이거나 단일 workoutId일 수 있음
       const workoutIds = record.workoutIds
         ? record.workoutIds
         : record.workoutId
           ? [record.workoutId]
           : [];
       workoutIds.forEach((wid) => {
+        // 이미 추가된 운동은 건너뛰기
         if (!newDiaryWorkouts.some((dw) => dw.workoutId === wid)) {
           const type = getWorkoutType(wid);
-          let defaultSet;
-          if (type === "time") {
-            defaultSet = { workoutTime: 10 };
-          } else if (type === "repetitionOnly") {
-            defaultSet = { repetition: 10 };
+          let defaultSets = [];
+          if (record.sets && record.sets.length > 0) {
+            // 해당 운동에 해당하는 세트만 필터링
+            const filteredSets = record.sets.filter(
+              (s) => s.workoutId === wid
+            );
+            if (filteredSets.length > 0) {
+              defaultSets = filteredSets;
+            } else {
+              // 해당 운동의 세트 정보가 없으면 타입에 따른 기본값 사용
+              if (type === "time") {
+                defaultSets = [{ workoutTime: 10 }];
+              } else if (type === "repetitionOnly") {
+                defaultSets = [{ repetition: 10 }];
+              } else {
+                defaultSets = [{ weight: 10, repetition: 10 }];
+              }
+            }
           } else {
-            defaultSet = { weight: 10, repetition: 10 };
+            // record에 세트 정보가 전혀 없으면 기본값 사용
+            if (type === "time") {
+              defaultSets = [{ workoutTime: 10 }];
+            } else if (type === "repetitionOnly") {
+              defaultSets = [{ repetition: 10 }];
+            } else {
+              defaultSets = [{ weight: 10, repetition: 10 }];
+            }
           }
           newDiaryWorkouts.push({
             workoutId: wid,
-            sets: [defaultSet],
+            sets: defaultSets,
           });
         }
       });
@@ -245,6 +268,7 @@ export default function WorkoutCreatePage() {
     showSuccessAlert(`"${record.workoutName}" 운동들이 추가되었습니다.`);
     closePreviousModal();
   };
+
 
   // 음성 녹음 관련 핸들러
   const handleRecordButton = () => {
@@ -359,19 +383,27 @@ export default function WorkoutCreatePage() {
     }));
   };
 
+  // 세트 추가 핸들러 수정
   const handleAddSet = (wIndex) => {
-    const workoutId = diary.diaryWorkouts[wIndex].workoutId;
-    const type = getWorkoutType(workoutId);
-    let newSet;
-    if (type === "time") {
-      newSet = { workoutTime: 10 };
-    } else if (type === "repetitionOnly") {
-      newSet = { repetition: 10 };
-    } else {
-      newSet = { weight: 10, repetition: 10 };
-    }
     setDiary((prevDiary) => {
       const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
+      const currentSets = newDiaryWorkouts[wIndex].sets;
+      let newSet;
+      // 만약 이미 세트가 있다면 마지막 세트 값을 복사
+      if (currentSets.length > 0) {
+        newSet = { ...currentSets[currentSets.length - 1] };
+      } else {
+        // 없을 경우, workout 타입에 따른 기본값 사용
+        const workoutId = newDiaryWorkouts[wIndex].workoutId;
+        const type = getWorkoutType(workoutId);
+        if (type === "time") {
+          newSet = { workoutTime: 10 };
+        } else if (type === "repetitionOnly") {
+          newSet = { repetition: 10 };
+        } else {
+          newSet = { weight: 10, repetition: 10 };
+        }
+      }
       newDiaryWorkouts[wIndex] = {
         ...newDiaryWorkouts[wIndex],
         sets: [...newDiaryWorkouts[wIndex].sets, newSet],
