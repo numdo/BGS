@@ -26,7 +26,9 @@ const VisitorMemo = ({ userId }) => {
           // 첫 페이지 외 나머지 페이지들도 조회
           for (let page = 1; page < data.totalPages; page++) {
             const pageData = await getGuestBooks(userId, page, 10);
-            nonDeletedCount += pageData.content.filter((memo) => !memo.deleted).length;
+            nonDeletedCount += pageData.content.filter(
+              (memo) => !memo.deleted
+            ).length;
           }
         }
         setTotalCount(nonDeletedCount);
@@ -35,7 +37,9 @@ const VisitorMemo = ({ userId }) => {
         if (data.totalPages > 1) {
           const lastPage = data.totalPages - 1;
           const lastData = await getGuestBooks(userId, lastPage, 10);
-          const freshLastPage = lastData.content.filter((memo) => !memo.deleted);
+          const freshLastPage = lastData.content.filter(
+            (memo) => !memo.deleted
+          );
           if (freshLastPage.length > 0) {
             setLastMemo(freshLastPage[freshLastPage.length - 1]);
           }

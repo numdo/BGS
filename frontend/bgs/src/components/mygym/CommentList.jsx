@@ -53,8 +53,12 @@ const CommentList = React.memo(
 
     // 프로필 클릭 시 이동
     const handleProfileClick = useCallback(() => {
-      navigate(`/profile/${memo.guestId}`);
-    }, [memo.guestId, navigate]);
+      if (memo.guestId === currentUserId) {
+        navigate("/myinfo"); // ✅ 내 프로필이면 myinfo로 이동
+      } else {
+        navigate(`/userinfo/${memo.guestId}`); // ✅ 다른 유저 프로필이면 userinfo/:userId로 이동
+      }
+    }, [memo.guestId, currentUserId, navigate]);
 
     return (
       <div className="flex items-start space-x-3 p-2 border-b">
