@@ -1,6 +1,5 @@
 // src/components/mygym/VisitorMemoModal.jsx
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   createGuestBooks,
   deleteGuestBook,
@@ -21,7 +20,8 @@ const VisitorMemoModal = ({
   const [newComment, setNewComment] = useState("");
   const [isLoading, setIsLoading] = useState(false); // ✅ 로딩 상태 추가
   const [startX, setStartX] = useState(0); // 🔄 스와이프 감지 변수
-  const navigate = useNavigate();
+  const [modalHeight, setModalHeight] = useState("65vh");
+  const topOffset = 150;
 
   // 댓글 수정 상태 관리
   const [editingCommentId, setEditingCommentId] = useState(null);
@@ -33,6 +33,21 @@ const VisitorMemoModal = ({
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
+
+    // ✅ 화면 크기에 맞게 모달 하단 조정
+    const updateModalSize = () => {
+      const windowHeight = window.innerHeight;
+      const calculatedHeight = windowHeight - topOffset - 291; // ✅ 화면 높이 - 상단 고정 값
+
+      setModalHeight(`${calculatedHeight}px`);
+    };
+
+    if (isOpen) {
+      updateModalSize();
+      window.addEventListener("resize", updateModalSize);
+    }
+
+    return () => window.removeEventListener("resize", updateModalSize);
   }, [isOpen]);
 
   // 페이지 번호에 따른 댓글 로드 함수
@@ -122,9 +137,13 @@ const VisitorMemoModal = ({
       >
         {/* 하단에서 올라오는 방명록 모달 */}
         <div
-          className={`w-full max-w-md bg-white shadow-lg fixed bottom-0 left-1/2 transform -translate-x-1/2 ${
+          className={`w-full max-w-md bg-white shadow-lg fixed left-1/2 transform -translate-x-1/2 ${
             isOpen ? "translate-y-0" : "translate-y-full"
-          } transition-transform duration-500 rounded-t-3xl overflow-y-auto h-[calc(100%-4rem)] p-4`}
+          } transition-transform duration-500 rounded-t-3xl overflow-hidden`}
+          style={{
+            top: `${topOffset}px`, // ✅ 상단 고정
+            height: modalHeight, // ✅ 동적 높이 조절 (최대 80vh, 최소 60vh)
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* 닫기 버튼 */}
@@ -169,44 +188,47 @@ const VisitorMemoModal = ({
                   방명록을 작성하여 친구에게 인사해보세요!
                 </div>
               ) : (
-                visitorMemos.slice().reverse().map((memo) => (
-                  <CommentList
-                    key={memo.guestbookId}
-                    memo={memo}
-                    editingCommentId={editingCommentId}
-                    editingContent={editingContent}
-                    setEditingContent={setEditingContent}
-                    onStartEditing={(memo) => {
-                      setEditingCommentId(memo.guestbookId);
-                      setEditingContent(memo.content);
-                    }}
-                    onCancelEditing={() => {
-                      setEditingCommentId(null);
-                      setEditingContent("");
-                    }}
-                    onSaveEditing={async (guestbookId) => {
-                      try {
-                        const payload = { content: editingContent };
-                        await updateGuestBook(userId, guestbookId, payload);
-                        loadComments(0);
+                visitorMemos
+                  .slice()
+                  .reverse()
+                  .map((memo) => (
+                    <CommentList
+                      key={memo.guestbookId}
+                      memo={memo}
+                      editingCommentId={editingCommentId}
+                      editingContent={editingContent}
+                      setEditingContent={setEditingContent}
+                      onStartEditing={(memo) => {
+                        setEditingCommentId(memo.guestbookId);
+                        setEditingContent(memo.content);
+                      }}
+                      onCancelEditing={() => {
                         setEditingCommentId(null);
                         setEditingContent("");
-                      } catch (error) {
-                        console.error("댓글 수정 실패:", error);
-                      }
-                    }}
-                    onDeleteMemo={async (guestbookId) => {
-                      setIsLoading(true); // ✅ 로딩 시작
-                      try {
-                        await deleteGuestBook(userId, guestbookId);
-                        await loadComments(0);
-                      } catch (error) {
-                        console.error("댓글 삭제 실패:", error);
-                      }
-                      setIsLoading(false); // ✅ 로딩 종료
-                    }}
-                  />
-                ))
+                      }}
+                      onSaveEditing={async (guestbookId) => {
+                        try {
+                          const payload = { content: editingContent };
+                          await updateGuestBook(userId, guestbookId, payload);
+                          loadComments(0);
+                          setEditingCommentId(null);
+                          setEditingContent("");
+                        } catch (error) {
+                          console.error("댓글 수정 실패:", error);
+                        }
+                      }}
+                      onDeleteMemo={async (guestbookId) => {
+                        setIsLoading(true); // ✅ 로딩 시작
+                        try {
+                          await deleteGuestBook(userId, guestbookId);
+                          await loadComments(0);
+                        } catch (error) {
+                          console.error("댓글 삭제 실패:", error);
+                        }
+                        setIsLoading(false); // ✅ 로딩 종료
+                      }}
+                    />
+                  ))
               )}
             </div>
 

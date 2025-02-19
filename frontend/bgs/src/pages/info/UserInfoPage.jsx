@@ -172,16 +172,19 @@ export default function UserInfoPage() {
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            <div className="w-full flex-shrink-0 max-w-full overflow-hidden">
+            <div className="w-full flex-shrink-0 max-w-full overflow-hidden min-h-[80vh]">
               <MyGymTab friendId={user.userId} />
             </div>
-            <div className="w-full flex-shrink-0">
+            <div className="w-full flex-shrink-0 min-h-[80vh]">
               <PostsTab userId={user.userId} />
             </div>
           </div>
         </div>
       </div>
-      <BottomBar />
+      {/* ✅ 하단바 공간 확보 */}
+      <div className="pb-24">
+        <BottomBar />
+      </div>
 
       {/* ✅ 프로필 이미지 확대 모달 */}
       {isImageModalOpen && (

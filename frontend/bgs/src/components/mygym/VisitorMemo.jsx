@@ -91,7 +91,13 @@ const VisitorMemo = ({ userId }) => {
             </p>
           )}
         </div>
-        <p className="text-blue-500 font-bold">방명록 {totalCount}개</p>
+
+        {/* ✅ totalCount가 1 이하이면 안보이게, 99 이상이면 "+99"로 고정 */}
+        {totalCount > 1 && (
+          <p className="text-blue-500 font-bold">
+            +{totalCount > 99 ? 99 : totalCount - 1}
+          </p>
+        )}
       </div>
 
       {/* 모달 컴포넌트 */}
