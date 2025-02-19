@@ -275,7 +275,7 @@ public class EvaluationService {
         }
 
         // 2. 투표가 시작된 게시물은 삭제 불가
-        if (!user.getRole().equals("ADMIN") || Boolean.TRUE.equals(evaluation.getOpened())) {
+        if (!user.getRole().equals("ADMIN") && Boolean.TRUE.equals(evaluation.getOpened())) {
             throw new UnauthorizedAccessException("투표가 시작된 게시물은 삭제할 수 없습니다.");
         }
 

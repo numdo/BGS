@@ -4,10 +4,8 @@ import axiosInstance from "../../utils/axiosInstance";
 import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import addlogo from "../../assets/icons/add.svg";
-import { 
-  showInformAlert
- } from "../../utils/toastrAlert";
-
+import { showInformAlert } from "../../utils/toastrAlert";
+  
 export default function EvaluationUpdatePage() {
   const { evaluationId } = useParams();
   const navigate = useNavigate();
@@ -33,7 +31,6 @@ export default function EvaluationUpdatePage() {
         if (data.videoUrl) {
           setPreviewUrl(data.videoUrl);
         } else if (data.imageUrls && data.imageUrls.length > 0) {
-          // imageUrls 배열이 존재하면, 첫 번째 항목이 영상 파일인지 확인
           const firstMedia = data.imageUrls[0];
           if (firstMedia.endsWith(".mp4") || firstMedia.endsWith(".webm")) {
             setPreviewUrl(firstMedia);
@@ -52,20 +49,17 @@ export default function EvaluationUpdatePage() {
   const handleWeightChange = (e) => {
     let value = e.target.value;
     if (!/^\d*\.?\d*$/.test(value)) return;
-
     if (value.includes(".")) {
       const parts = value.split(".");
       if (parts[1].length > 1) return;
     }
-
     if (parseFloat(value) > 999.9) return;
     setWeight(value);
   };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    const maxAllowedSize = 100 * 1024 * 1024; // 최대 100MB 제한
-
+    const maxAllowedSize = 100 * 1024 * 1024;
     if (!selectedFile) return;
     if (!selectedFile.type.startsWith("video/")) {
       alert("영상 파일만 업로드할 수 있습니다.");
@@ -75,7 +69,6 @@ export default function EvaluationUpdatePage() {
       alert(`파일이 너무 큽니다: ${selectedFile.name}`);
       return;
     }
-
     setFile(selectedFile);
     setPreviewUrl(URL.createObjectURL(selectedFile));
   };
@@ -93,12 +86,10 @@ export default function EvaluationUpdatePage() {
       navigate("/login");
       return;
     }
-
     if (!weight) {
       showInformAlert("중량을 입력하세요.");
       return;
     }
-
     if (!file && !previewUrl) {
       showInformAlert("파일을 입력하세요.");
       return;
@@ -110,8 +101,6 @@ export default function EvaluationUpdatePage() {
       "updates",
       new Blob([JSON.stringify(updates)], { type: "application/json" })
     );
-
-    // 새 파일이 있으면 업로드, 없으면 기존 미디어 URL을 전송 (하나의 값으로)
     if (file) {
       formData.append("newImages", file);
     } else if (previewUrl) {
@@ -123,7 +112,7 @@ export default function EvaluationUpdatePage() {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
-      alert("✅ 평가 수정 완료!");
+      showInformAlert("평가 수정 완료!");
       navigate(`/feeds/evaluation/${evaluationId}`);
     } catch (error) {
       console.error("❌ 수정 오류:", error);
@@ -202,12 +191,12 @@ export default function EvaluationUpdatePage() {
         </div>
 
         <textarea
-          className="w-full h-24 mt-4 p-2 border rounded"
+          className="w-full h-24 mt-4 p-2 border rounded resize-none"
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="운동일지 내용을 입력하세요."
+          maxLength={255}
         />
-
         <button
           onClick={handleEvaluationUpdate}
           className="w-full mt-4 p-2 bg-primary text-white rounded flex items-center justify-center"

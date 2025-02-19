@@ -7,9 +7,7 @@ import addlogo from "../../assets/icons/add.svg";
 import EvaluationGuide from "../../components/evaluation/EvaluationGuide";
 import BeatLoader from "../../components/common/LoadingSpinner"; // 로딩 스피너 컴포넌트 import
 import useFeedTypeStore from "../../stores/useFeedTypeStore";
-import { 
-  showInformAlert
- } from "../../utils/toastrAlert";
+import { showInformAlert } from "../../utils/toastrAlert";
 
 export default function EvaluationCreatePage() {
   const navigate = useNavigate();
@@ -74,12 +72,12 @@ export default function EvaluationCreatePage() {
     }
 
     if (!weight) {
-      showInformAlert("중량을 입력하세요.")
+      showInformAlert("중량을 입력하세요.");
       return;
     }
 
     if (!file) {
-      showInformAlert("파일을 입력하세요.")
+      showInformAlert("파일을 입력하세요.");
       return;
     }
 
@@ -100,7 +98,7 @@ export default function EvaluationCreatePage() {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
-      alert("✅ 평가 게시물 작성 완료!");
+      showInformAlert("평가 게시물 작성 완료!");
       setFeedType("evaluation");
       navigate("/feeds");
     } catch (error) {
