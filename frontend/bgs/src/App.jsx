@@ -1,4 +1,5 @@
 import { Route, Routes, BrowserRouter } from "react-router-dom";
+import LayoutWrapper from "./components/common/LayoutWrapper";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LoginPage from "./pages/auth/LoginPage";
@@ -30,15 +31,15 @@ import ProtectedLayout from "./components/auth/ProtectedLayout";
 import AtomicPage from "./pages/admin/AtomicPage";
 import FollowerFollowingListPage from "./pages/info/FollowerFollowingListPage";
 import AdminMainPage from "./pages/admin/AdminMainPage";
-import ForbiddenPage from "./pages/error/ForbiddenPage"; // 403 페이지 추가
+import ForbiddenPage from "./pages/error/ForbiddenPage";
 import ItemShopPage from "./pages/mygym/ItemShopPage";
 import MyInfoViewPage from "./pages/info/MyInfoViewPage";
 import NotFoundPage from "./pages/error/NotFoundPage";
 
 function App() {
   return (
-    <div className="min-w-[320px] max-w-[600px] mx-auto">
-      <BrowserRouter>
+    <BrowserRouter>
+      <LayoutWrapper> {/* ✅ LayoutWrapper로 감싸기 */}
         <Routes>
           {/* Public Routes: 로그인/회원가입 등 */}
           <Route path="/login" element={<LoginPage />} />
@@ -62,52 +63,27 @@ function App() {
               <Route path="/mygym" element={<MyGymPage />} />
               <Route path="/shop" element={<ItemShopPage />} />
               <Route path="/admin-item" element={<AdminItemPage />} />
-              <Route path="/admin-item" element={<AdminItemPage />} />
               <Route path="/feeds" element={<FeedPage />} />
-              <Route
-                path="/feeds/diary/:diaryId"
-                element={<DiaryDetailPage />}
-              />
-              <Route
-                path="/feeds/evaluation/:evaluationId"
-                element={<EvaluationDetailPage />}
-              />
+              <Route path="/feeds/diary/:diaryId" element={<DiaryDetailPage />} />
+              <Route path="/feeds/evaluation/:evaluationId" element={<EvaluationDetailPage />} />
               <Route path="/myinfo" element={<MyInfoPage />} />
               <Route path="/myinfoview" element={<MyInfoViewPage />} />
               <Route path="/myinfoedit" element={<MyInfoEditPage />} />
               <Route path="/profile/:userId" element={<UserInfoPage />} />
-              <Route
-                path="/follow/:type"
-                element={<FollowerFollowingListPage />}
-              />
+              <Route path="/follow/:type" element={<FollowerFollowingListPage />} />
               <Route path="/workout" element={<WorkoutPage />} />
-              <Route
-                path="/workoutdiary/:diaryId"
-                element={<WorkoutDiaryPage />}
-              />
+              <Route path="/workoutdiary/:diaryId" element={<WorkoutDiaryPage />} />
               <Route path="/workoutcreate" element={<WorkoutCreatePage />} />
-              <Route
-                path="/workoutupdate/:diaryId"
-                element={<WorkoutUpdatePage />}
-              />
-              <Route
-                path="/workoutrealtime"
-                element={<WorkoutRealtimePage />}
-              />
-              <Route
-                path="/evaluationcreate"
-                element={<EvaluationCreatePage />}
-              />
-              <Route
-                path="/evaluationupdate/:evaluationId"
-                element={<EvaluationUpdatePage />}
-              />
+              <Route path="/workoutupdate/:diaryId" element={<WorkoutUpdatePage />} />
+              <Route path="/workoutrealtime" element={<WorkoutRealtimePage />} />
+              <Route path="/evaluationcreate" element={<EvaluationCreatePage />} />
+              <Route path="/evaluationupdate/:evaluationId" element={<EvaluationUpdatePage />} />
               <Route path="/atomic" element={<AtomicPage />} />
             </Route>
           </Route>
         </Routes>
-      </BrowserRouter>
-    </div>
+      </LayoutWrapper>
+    </BrowserRouter>
   );
 }
 

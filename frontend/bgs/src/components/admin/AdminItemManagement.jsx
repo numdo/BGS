@@ -275,7 +275,7 @@ export default function AdminItemManagement() {
               placeholder="아이템 이름"
               value={editingData.itemName}
               onChange={handleChange}
-              className="p-2 border rounded w-1/4"
+              className="p-2 border rounded w-1/5"
             />
             <input
               type="number"
