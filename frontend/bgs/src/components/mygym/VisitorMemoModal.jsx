@@ -169,7 +169,7 @@ const VisitorMemoModal = ({
                   방명록을 작성하여 친구에게 인사해보세요!
                 </div>
               ) : (
-                visitorMemos.map((memo) => (
+                visitorMemos.slice().reverse().map((memo) => (
                   <CommentList
                     key={memo.guestbookId}
                     memo={memo}
