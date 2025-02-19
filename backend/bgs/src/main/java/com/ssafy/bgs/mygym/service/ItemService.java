@@ -52,6 +52,7 @@ public class ItemService {
             itemResponseDto.setWidth(item.getWidth());
             itemResponseDto.setHeight(item.getHeight());
             itemResponseDto.setPrice(item.getPrice());
+            itemResponseDto.setCopyrighter(item.getCopyrighter());
             itemResponseDto.setUsable(item.getUsable());
 
             // 아이템 보유 여부 조회

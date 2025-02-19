@@ -73,6 +73,17 @@ export default function AdminItemCreateModal({
               />
               <label htmlFor="price">가격</label>
             </span>
+            {/* 이미지 저작자 */}
+            <span className="p-float-label">
+              <InputText
+                id="copyrighter"
+                name="copyrighter"
+                value={newItemData.copyrighter}
+                onChange={onNewItemChange}
+                className="w-80 h-10 m-2"
+              />
+              <label htmlFor="price">이미지 저작자</label>
+            </span>
             {/* 파일 업로드 - antd Upload 사용 */}
             <div className="m-2">
               <Upload

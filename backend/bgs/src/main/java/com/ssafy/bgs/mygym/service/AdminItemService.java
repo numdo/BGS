@@ -13,9 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Service
 public class AdminItemService {
     private final ItemRepository itemRepository;
@@ -41,6 +38,7 @@ public class AdminItemService {
             dto.setWidth(item.getWidth());
             dto.setHeight(item.getHeight());
             dto.setPrice(item.getPrice());
+            dto.setCopyrighter(item.getCopyrighter());
             dto.setUsable(item.getUsable());
 
             // 사진 조회 및 URL 변환
@@ -65,13 +63,14 @@ public class AdminItemService {
     public void updateItem(ItemUpdateRequestDto itemDto, MultipartFile file) {
         // 기존 엔티티 조회 (존재하지 않으면 예외 발생)
         Item existingItem = itemRepository.findById(itemDto.getItemId())
-                .orElseThrow(() -> new RuntimeException("Item not found"));
+                .orElseThrow(() -> new ItemNotFoundException(itemDto.getItemId()));
 
         // DTO의 값을 기존 엔티티에 반영 (필요한 필드만 업데이트)
         existingItem.setItemName(itemDto.getItemName());
         existingItem.setWidth(itemDto.getWidth());
         existingItem.setHeight(itemDto.getHeight());
         existingItem.setPrice(itemDto.getPrice());
+        existingItem.setCopyrighter(itemDto.getCopyrighter());
         existingItem.setUsable(itemDto.getUsable());
         // 만약 imageUrl도 업데이트하려면 추가
 

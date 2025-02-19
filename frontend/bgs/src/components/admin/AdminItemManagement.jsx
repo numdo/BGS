@@ -25,6 +25,7 @@ export default function AdminItemManagement() {
     width: "",
     height: "",
     price: "",
+    copyrighter: "",
     usable: true,
   });
   const [image, setImage] = useState(null);
@@ -36,6 +37,7 @@ export default function AdminItemManagement() {
     width: "",
     height: "",
     price: "",
+    copyrighter: "",
     usable: true,
   });
   const [newImage, setNewImage] = useState(null);
@@ -143,6 +145,7 @@ export default function AdminItemManagement() {
         width: "",
         height: "",
         price: "",
+        copyrighter: "",
         usable: true,
       });
       setImage(null);
@@ -172,6 +175,7 @@ export default function AdminItemManagement() {
       width: item.width,
       height: item.height,
       price: item.price,
+      copyrighter: item.copyrighter,
       usable: item.usable,
       imageUrl: item.imageUrl, // 기존 이미지 URL 추가
     });
@@ -197,6 +201,7 @@ export default function AdminItemManagement() {
       width: "",
       height: "",
       price: "",
+      copyrighter: "",
       usable: true,
     });
     setNewImage(null);
@@ -296,6 +301,14 @@ export default function AdminItemManagement() {
               onChange={handleChange}
               className="p-2 border rounded w-1/6"
             />
+            <input
+              type="text"
+              name="copyrighter"
+              placeholder="이미지 저작자"
+              value={editingData.copyrighter}
+              onChange={handleChange}
+              className="p-2 border rounded w-1/4"
+            />
             {/* antd Upload 컴포넌트로 파일 업로드 */}
             <div className="w-1/4 m-2">
               <Upload
@@ -389,6 +402,7 @@ export default function AdminItemManagement() {
               <th className="border p-2">너비</th>
               <th className="border p-2">높이</th>
               <th className="border p-2">가격</th>
+              <th className="border p-2">저작자</th>
               <th className="border p-2">사용 가능</th>
               <th className="border p-2">이미지</th>
               <th className="border p-2">관리</th>
@@ -403,6 +417,7 @@ export default function AdminItemManagement() {
                   <td className="border p-2">{item.width}</td>
                   <td className="border p-2">{item.height}</td>
                   <td className="border p-2">{item.price}</td>
+                  <td className="border p-2">{item.copyrighter}</td>
                   <td className="border p-2">{item.usable ? "✅" : "❌"}</td>
                   <td className="border p-2 text-center align-middle">
                     {item.imageUrl ? (

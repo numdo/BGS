@@ -12,6 +12,7 @@ public class ItemResponseDto {
     private Integer width;
     private Integer height;
     private Integer price;
+    private String copyrighter;
     private Boolean usable;
     private String imageUrl;
 }
