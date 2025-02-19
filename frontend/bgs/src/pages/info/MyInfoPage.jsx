@@ -39,7 +39,7 @@ export default function MyInfoPage() {
         const [followers, followings, postData] = await Promise.all([
           getFollowerList(),
           getFollowingList(),
-          getUserPostCount(res.userId),
+          getUserPostCount(me.userId),
         ]);
 
         setFollowerCount(followers.length);
