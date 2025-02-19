@@ -11,6 +11,8 @@ import WeightHistoryChart from "../../components/stat/WeightHistoryChart";
 import WorkoutBalanceRadarChart from "../../components/stat/WorkoutBalanceRadarChart";
 import PartVolumeBarChart from "../../components/stat/PartVolumeBarChart";
 import useUserStore from "../../stores/useUserStore";
+import WorkoutRecordChart from "../../components/stat/WorkoutRecordChart";
+import PredictedOneRMCard from "../../components/stat/PredictedOneRMCard";
 
 // toastrAlert 함수들 import
 import {
@@ -164,11 +166,12 @@ export default function MainPage() {
             </p>
           </button>
         </div>
-        <div className="mt-8">
+        <div className="mt-8 mb-4">
           <WeightRecordCard />
         </div>
+        <PredictedOneRMCard />
         {/* 레이더 차트 */}
-        <div className="mt-12 mb-12">
+        <div className="mt-4 mb-12">
           <WeightHistoryChart />
         </div>
         <div className="mt-12 mb-12">
@@ -176,6 +179,9 @@ export default function MainPage() {
         </div>
         <div className="mt-12 mb-12">
           <PartVolumeBarChart />
+        </div>
+        <div className="mt-12 mb-12">
+          <WorkoutRecordChart />
         </div>
       </div>
 

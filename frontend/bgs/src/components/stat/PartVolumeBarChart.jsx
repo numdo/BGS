@@ -52,8 +52,8 @@ function hexToRgba(hex, alpha) {
   2주전: danger, 가장 낮은 강조 (alpha 0.5)
 */
 const thisWeekColor = hexToRgba(primaryDefault, 0.9);
-const lastWeekColor = hexToRgba(primaryLight, 0.7);
-const twoWeekColor = hexToRgba(danger, 0.5);
+const lastWeekColor = "#8D78F2";
+const twoWeekColor = hexToRgba(primaryLight, 0.7);
 
 export default function PartVolumeBarChart() {
   const { partVolume, fetchPartVolume } = useStatsStore();
