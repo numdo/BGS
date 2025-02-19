@@ -475,6 +475,13 @@ export default function WorkoutCreatePage() {
   // 운동일지 저장 핸들러
   const handleDiarySubmit = async (e) => {
     e.preventDefault();
+
+    // 메모가 비어있으면 저장되지 않도록 함
+    if (!diary.content.trim()) {
+      showErrorAlert("메모를 입력해주세요!");
+      return;
+    }
+
     const token = localStorage.getItem("accessToken");
     if (!token) {
       await showErrorAlert("로그인이 필요합니다.");
@@ -493,7 +500,13 @@ export default function WorkoutCreatePage() {
         withCredentials: true,
       });
       // 저장 성공 후 바로 /workout 페이지로 이동 (성공 알림은 이동한 페이지에서 toastr로 뜹니다.)
-      navigate("/workout", { state: { showSuccessMessage: "저장이 완료되었습니다" } });
+      navigate("/workout", { 
+        state: { 
+          showSuccessMessage: "저장이 완료되었습니다", 
+          selectedDate: diary.workoutDate   // 또는 기존 selectedDate
+        } 
+      });
+      
     } catch (error) {
       console.error("❌ 저장 오류:", error);
       if (error.response && error.response.status === 401) {

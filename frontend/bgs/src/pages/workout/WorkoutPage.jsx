@@ -9,13 +9,12 @@ import useDiaryStore from "../../stores/useDiaryStore";
 import useUserStore from "../../stores/useUserStore";
 import { deleteDiary, getDiaries } from "../../api/Diary";
 import { getUser } from "../../api/User";
-import { getCurrentMonthAttendance } from "../../api/Attendance"; 
+import { getCurrentMonthAttendance } from "../../api/Attendance";
 import { buildStreakSegments } from "../../utils/streakUtil";
 import DeleteConfirmAlert from "../../components/common/DeleteConfirmAlert";
 import { showSuccessAlert } from "../../utils/toastrAlert";
 import moment from "moment";
 
-// 페이지 전체 배경 컨테이너
 const PageWrapper = styled.div`
   background-color: rgb(255, 255, 255);
   min-height: 100vh;
@@ -27,33 +26,66 @@ export default function WorkoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 이전 페이지에서 전달된 성공 메시지 처리
-  useEffect(() => {
-    if (location.state && location.state.showSuccessMessage) {
-      showSuccessAlert(location.state.showSuccessMessage);
-    }
-  }, [location]);
+  // location.state를 중복 처리하지 않도록 하는 플래그
+  const hasProcessedLocation = useRef(false);
 
-  // 선택한 날짜 (예: 2025-01-22)
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  // 현재 조회할 달의 연도, 월 정보 (초기값은 selectedDate 기준)
-  const [currentMonthYear, setCurrentMonthYear] = useState({
-    year: moment(new Date()).year(),
-    month: moment(new Date()).month() + 1,
+  /**
+   *  1) localStorage에서 이전에 저장한 selectedDate가 있으면 그걸 사용
+   *     없으면 오늘 날짜를 기본값으로 사용
+   */
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const saved = localStorage.getItem("mySelectedDate");
+    if (saved) {
+      return new Date(saved); // 저장된 문자열(ISO 포맷)을 Date 객체로 변환
+    }
+    return new Date();
   });
+
+  // 달력의 월/년
+  const [currentMonthYear, setCurrentMonthYear] = useState({
+    year: moment(selectedDate).year(),
+    month: moment(selectedDate).month() + 1,
+  });
+
   const [filteredDiaries, setFilteredDiaries] = useState([]);
   const [diaryDates, setDiaryDates] = useState([]);
   const [streakSegments, setStreakSegments] = useState([]);
 
+  // 드롭다운
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const dropdownRefs = useRef({});
 
-  // 삭제 확인 모달 state
+  // 삭제 모달
   const [confirmDeleteDiaryId, setConfirmDeleteDiaryId] = useState(null);
 
-  const toggleDropdown = (id) => {
-    setOpenDropdownId(openDropdownId === id ? null : id);
-  };
+  /**
+   *  2) location.state.selectedDate가 있으면 한 번만 처리
+   *     (예: WorkoutCreatePage에서 navigate("/workout",{state:{selectedDate}}) 로 넘어온 경우)
+   *     이 때도 localStorage에 저장해둬야 뒤로가기로 마운트 시 재사용 가능
+   */
+  useEffect(() => {
+    if (!hasProcessedLocation.current && location.state) {
+      if (location.state.showSuccessMessage) {
+        showSuccessAlert(location.state.showSuccessMessage);
+      }
+      // 만약 날짜가 넘어왔다면 적용
+      if (location.state.selectedDate) {
+        const newDate = new Date(location.state.selectedDate);
+        setSelectedDate(newDate);
+        localStorage.setItem("mySelectedDate", newDate.toISOString());
+      }
+      hasProcessedLocation.current = true;
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
+
+  /**
+   *  3) selectedDate가 바뀔 때마다 localStorage에도 저장
+   *     -> 뒤로가기 시 컴포넌트가 언마운트되어도, 다음 마운트 시 다시 불러올 수 있음
+   */
+  useEffect(() => {
+    localStorage.setItem("mySelectedDate", selectedDate.toISOString());
+  }, [selectedDate]);
 
   // 외부 클릭 시 드롭다운 닫기
   useEffect(() => {
@@ -72,98 +104,77 @@ export default function WorkoutPage() {
     };
   }, [openDropdownId]);
 
-  // 사용자 정보 및 현재 달의 데이터를 초기 로딩 시 함께 fetch
+  /**
+   *  4) 사용자 정보 + 달력 표시용 다이어리 목록/출석 한 번에 fetch
+   *     (selectedDate의 연/월을 기준)
+   */
   useEffect(() => {
     async function fetchUserAndDiaries() {
       try {
-        // 사용자 정보 fetch (이미 로컬에 있으면 바로 사용)
         let userData = user;
         if (!userData || !userData.userId) {
           userData = await getUser();
           setUser(userData);
         }
-        // 현재 선택된 날짜에서 연도와 월을 추출 (초기값은 오늘)
         const year = moment(selectedDate).year();
         const month = moment(selectedDate).month() + 1;
         setCurrentMonthYear({ year, month });
-        // 해당 월의 다이어리 데이터 fetch
+
+        // 다이어리 목록 fetch
         const diariesData = await getDiaries(userData.userId, year, month);
-        const formattedDiaries = diariesData.map((d) => ({
+        const formatted = diariesData.map((d) => ({
           ...d,
           workoutDate: moment(d.workoutDate).format("YYYY-MM-DD"),
         }));
-        setDiaries(formattedDiaries);
-        setDiaryDates(
-          Array.from(new Set(formattedDiaries.map((d) => d.workoutDate)))
-        );
-        // 출석 데이터도 fetch (현재 달 기준)
+        setDiaries(formatted);
+
+        // 달력의 "운동일지 있는 날짜"
+        setDiaryDates(Array.from(new Set(formatted.map((d) => d.workoutDate))));
+
+        // 출석 streak
         const attendanceList = await getCurrentMonthAttendance(userData.userId);
         const attendanceDates = attendanceList.map((item) =>
           moment(item.attendanceDate).format("YYYY-MM-DD")
         );
-        const segments = buildStreakSegments(attendanceDates);
-        setStreakSegments(segments);
+        setStreakSegments(buildStreakSegments(attendanceDates));
       } catch (error) {
-        console.error("초기 데이터 로딩 오류:", error);
+        console.error("데이터 로딩 오류:", error);
       }
     }
     fetchUserAndDiaries();
-    // 의존성에 user가 없으면 매번 호출될 수 있으므로,
-    // 최초 마운트 시 한 번 실행되도록 함
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedDate, user, setUser, setDiaries]);
 
-  // 선택한 날짜(selectedDate)에 해당하는 다이어리만 필터링
+  /**
+   *  5) '선택한 날짜'에 해당하는 일지들만 필터링
+   */
   useEffect(() => {
-    const formattedDate = moment(selectedDate).format("YYYY-MM-DD");
-    setFilteredDiaries(
-      diaries.filter((diary) => diary.workoutDate === formattedDate)
-    );
+    const formatted = moment(selectedDate).format("YYYY-MM-DD");
+    setFilteredDiaries(diaries.filter((d) => d.workoutDate === formatted));
   }, [diaries, selectedDate]);
 
-  // 달력이 월이 바뀔 때 호출되는 콜백 (WorkoutCalendar에서 전달)
+  // 달력이 월 변경
   const handleMonthChange = (year, month) => {
     setCurrentMonthYear({ year, month });
-    // 달력이 월 변경될 때 새 데이터를 fetch합니다.
-    async function fetchDiariesAndAttendance() {
-      if (user && user.userId) {
-        try {
-          const diariesData = await getDiaries(user.userId, year, month);
-          const formattedDiaries = diariesData.map((d) => ({
-            ...d,
-            workoutDate: moment(d.workoutDate).format("YYYY-MM-DD"),
-          }));
-          setDiaries(formattedDiaries);
-          setDiaryDates(
-            Array.from(new Set(formattedDiaries.map((d) => d.workoutDate)))
-          );
-
-          const attendanceList = await getCurrentMonthAttendance(user.userId);
-          const attendanceDates = attendanceList.map((item) =>
-            moment(item.attendanceDate).format("YYYY-MM-DD")
-          );
-          const segments = buildStreakSegments(attendanceDates);
-          setStreakSegments(segments);
-        } catch (error) {
-          console.error("월 변경 시 데이터 로딩 오류:", error);
-        }
-      }
-    }
-    fetchDiariesAndAttendance();
   };
 
+  // 달력에서 날짜 선택 시
   const handleDateSelect = (date) => {
     setSelectedDate(date);
   };
 
-  // 삭제 확인 모달 "확인" 버튼 처리
+  // 드롭다운 제어
+  const toggleDropdown = (id) => {
+    setOpenDropdownId(openDropdownId === id ? null : id);
+  };
+
+  // 삭제 확인 모달
   const confirmDelete = async () => {
     if (confirmDeleteDiaryId) {
       try {
         await deleteDiary(confirmDeleteDiaryId);
         setDiaries(diaries.filter((d) => d.diaryId !== confirmDeleteDiaryId));
       } catch (error) {
-        console.error("삭제 중 오류:", error);
+        console.error("삭제 오류:", error);
       } finally {
         setConfirmDeleteDiaryId(null);
       }
@@ -179,10 +190,10 @@ export default function WorkoutPage() {
           selectedDate={selectedDate}
           diaryDates={diaryDates}
           streakSegments={streakSegments}
-          onMonthChange={handleMonthChange} // 달력 월 변경 시 콜백 전달
+          onMonthChange={handleMonthChange}
         />
 
-        {/* 다이어리 목록 영역 */}
+        {/* 다이어리 목록 */}
         <div className="space-y-5 mt-4">
           {filteredDiaries.length > 0 ? (
             filteredDiaries.map((diary) => (
@@ -244,9 +255,7 @@ export default function WorkoutPage() {
 
         <div className="w-full h-32"></div>
         <button
-          onClick={() =>
-            navigate("/workoutcreate", { state: { selectedDate } })
-          }
+          onClick={() => navigate("/workoutcreate", { state: { selectedDate } })}
           className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-[#5968eb] text-white font-bold py-3 px-6 rounded-full transition-all duration-300"
         >
           운동 기록하기

@@ -494,6 +494,11 @@ export default function WorkoutUpdatePage() {
 
   // 운동일지 수정 핸들러
   const handleDiaryUpdate = async () => {
+    if (!diary.content.trim()) {
+      showErrorAlert("메모를 입력해주세요!");
+      return;
+    }
+    
     if (!diary.diaryId) {
       showErrorAlert("수정할 일지 ID가 없습니다!");
       return;
