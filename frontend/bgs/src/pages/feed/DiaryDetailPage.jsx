@@ -18,6 +18,7 @@ import useUserStore from "../../stores/useUserStore";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import BeatLoader from "../../components/common/LoadingSpinner";
+import DeleteConfirmAlert from "../../components/common/DeleteConfirmAlert"; // 삭제 확인 모달 import
 
 const API_URL = "/diaries";
 
@@ -33,6 +34,20 @@ const DiaryDetailPage = () => {
   const [isWorkoutsOpen, setIsWorkoutsOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [comments, setComments] = useState([]);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false); // 삭제 확인 모달 상태
+
+  // 댓글 작성 함수 추가
+  const handleCommentSubmit = async (content) => {
+    try {
+      await axiosInstance.post(`${API_URL}/${diaryId}/comments`, {
+        diaryId,
+        content,
+      });
+      setRefreshKey((prev) => prev + 1); // 댓글 추가 후 목록 갱신
+    } catch (error) {
+      console.error("댓글 작성 오류:", error);
+    }
+  };
 
   // 댓글 목록 불러오기
   useEffect(() => {
@@ -99,29 +114,15 @@ const DiaryDetailPage = () => {
     }
   };
 
-  // 게시글 삭제 함수
-  const handleDelete = async () => {
-    if (window.confirm("정말 삭제하시겠습니까?")) {
-      try {
-        await axiosInstance.delete(`${API_URL}/${diaryId}`);
-        alert("삭제되었습니다.");
-        navigate("/feeds");
-      } catch (error) {
-        console.error("삭제 오류:", error);
-      }
-    }
-  };
-
-  // 댓글 작성 함수
-  const handleCommentSubmit = async (content) => {
+  // 삭제 확인 모달에서 "삭제"를 누르면 바로 삭제 처리
+  const handleDeleteConfirm = async () => {
     try {
-      await axiosInstance.post(`${API_URL}/${diaryId}/comments`, {
-        diaryId,
-        content,
-      });
-      setRefreshKey((prev) => prev + 1); // 댓글 추가 후 목록 갱신
+      await axiosInstance.delete(`${API_URL}/${diaryId}`);
+      navigate("/feeds");
     } catch (error) {
-      console.error("댓글 작성 오류:", error);
+      console.error("삭제 오류:", error);
+    } finally {
+      setShowDeleteAlert(false);
     }
   };
 
@@ -209,7 +210,7 @@ const DiaryDetailPage = () => {
                       수정
                     </li>
                     <li
-                      onClick={handleDelete}
+                      onClick={() => setShowDeleteAlert(true)}
                       className="px-4 py-2 cursor-pointer hover:bg-gray-200"
                     >
                       삭제
@@ -360,6 +361,15 @@ const DiaryDetailPage = () => {
 
         <BottomBar />
       </div>
+
+      {/* 삭제 확인 모달 (추가 알림 없이 바로 삭제 처리) */}
+      {showDeleteAlert && (
+        <DeleteConfirmAlert
+          message="정말 삭제하시겠습니까?"
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setShowDeleteAlert(false)}
+        />
+      )}
     </>
   );
 };
