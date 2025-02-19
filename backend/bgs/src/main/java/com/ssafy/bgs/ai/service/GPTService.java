@@ -1,9 +1,14 @@
 package com.ssafy.bgs.ai.service;
 
 import com.ssafy.bgs.ai.util.GPTUtil;
+import com.ssafy.bgs.stat.dto.response.WorkoutBalanceResponseDto;
+import com.ssafy.bgs.stat.dto.response.PartVolumeResponseDto;
+import com.ssafy.bgs.stat.dto.response.WorkoutRecordResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -189,5 +194,101 @@ public class GPTService {
 
         log.info("🔍 GPT prompt = {}", prompt);
         return gptUtil.askChatGPT(prompt);
+    }
+
+    public String analyzeComprehensive(
+            WorkoutBalanceResponseDto balance,
+            Map<String, PartVolumeResponseDto> partVolume, // thisWeek, lastWeek, twoWeeksAgo
+            WorkoutRecordResponseDto record,
+            Double recentWeight,   // 혹은 List<WeightHistory>
+            Double userHeight,
+            Integer userAge
+    ) {
+        String prompt = buildComprehensivePrompt(
+                balance, partVolume, record, recentWeight, userHeight, userAge
+        );
+
+        log.info("🔍 GPT analyzeComprehensive prompt = {}", prompt);
+        return gptUtil.askChatGPT(prompt);
+    }
+
+    private String buildComprehensivePrompt(
+            WorkoutBalanceResponseDto balance,
+            Map<String, PartVolumeResponseDto> partVolume,
+            WorkoutRecordResponseDto record,
+            Double recentWeight,
+            Double userHeight,
+            Integer userAge
+    ) {
+        // partVolume에 "thisWeek", "lastWeek", "twoWeeksAgo" 등이 들어있고,
+        // 각 value는 chest, lat, shoulder, biceps, triceps, leg 등을 가짐.
+
+        // 1) 밸런스: chest, lat, triceps, leg, biceps, shoulder...
+        // 2) 3대 운동: bench, dead, squat
+        // 3) partVolume: thisWeek, lastWeek, twoWeeksAgo
+        // 4) recentWeight, userHeight, userAge
+
+        // 편의상, partVolume["thisWeek"] 등만 예시로 보여줍니다.
+        PartVolumeResponseDto thisWeek = partVolume.get("thisWeek");
+        PartVolumeResponseDto lastWeek = partVolume.get("lastWeek");
+        PartVolumeResponseDto twoWeeksAgo = partVolume.get("twoWeeksAgo");
+
+        // 아래는 예시 프롬프트. 실제로는 원하는 질문/지시사항을 적절히 작성하세요.
+        return """
+                당신은 헬스 트레이너 AI입니다.
+                사용자의 기본 정보:
+                - 나이: %d세
+                - 키: %.1fcm
+                - 현재 몸무게: %.1fkg
+
+                3대 운동 기록 (최고 중량):
+                - 벤치프레스: %.1fkg
+                - 데드리프트: %.1fkg
+                - 스쿼트: %.1fkg
+
+                최근 3주간 부위별 운동량(볼륨):
+                - 이번주: 가슴=%d, 등=%d, 어깨=%d, 이두=%d, 삼두=%d, 하체=%d
+                - 저번주: 가슴=%d, 등=%d, 어깨=%d, 이두=%d, 삼두=%d, 하체=%d
+                - 2주전:  가슴=%d, 등=%d, 어깨=%d, 이두=%d, 삼두=%d, 하체=%d
+
+                전반적인 운동 밸런스 (0~100%%):
+                - 가슴: %d
+                - 등: %d
+                - 삼두: %d
+                - 이두: %d
+                - 어깨: %d
+                - 하체: %d
+
+                위 데이터를 바탕으로:
+                1) 현재 운동 루틴에 대한 평가 (부족/과잉 부위)
+                2) 3대 운동 기록 대비 발전 방향
+                3) 체중과 키, 나이를 고려한 식단/유산소/보조운동 제안
+                4) 200자 이내의 간단한 한국어 문장으로 작성
+                
+                """.formatted(
+                userAge != null ? userAge : 0,
+                userHeight != null ? userHeight : 0.0,
+                recentWeight != null ? recentWeight : 0.0,
+
+                record.getBench(),
+                record.getDead(),
+                record.getSquat(),
+
+                thisWeek.getChest(), thisWeek.getLat(), thisWeek.getShoulder(),
+                thisWeek.getBiceps(), thisWeek.getTriceps(), thisWeek.getLeg(),
+
+                lastWeek.getChest(), lastWeek.getLat(), lastWeek.getShoulder(),
+                lastWeek.getBiceps(), lastWeek.getTriceps(), lastWeek.getLeg(),
+
+                twoWeeksAgo.getChest(), twoWeeksAgo.getLat(), twoWeeksAgo.getShoulder(),
+                twoWeeksAgo.getBiceps(), twoWeeksAgo.getTriceps(), twoWeeksAgo.getLeg(),
+
+                balance.getChest(),
+                balance.getLat(),
+                balance.getTriceps(),
+                balance.getBiceps(),
+                balance.getShoulder(),
+                balance.getLeg()
+        );
     }
 }

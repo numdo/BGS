@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
@@ -10,17 +10,10 @@ import WeightRecordCard from "../../components/stat/WeightRecordCard";
 import WeightHistoryChart from "../../components/stat/WeightHistoryChart";
 import WorkoutBalanceRadarChart from "../../components/stat/WorkoutBalanceRadarChart";
 import PartVolumeBarChart from "../../components/stat/PartVolumeBarChart";
-import useUserStore from "../../stores/useUserStore";
 import WorkoutRecordChart from "../../components/stat/WorkoutRecordChart";
 import PredictedOneRMCard from "../../components/stat/PredictedOneRMCard";
 import AttendanceCheck from "../../components/attendance/AttendanceCheck";
-// toastrAlert 함수들 import
-import {
-  showConfirmAlert,
-  showErrorAlert,
-  showSuccessAlert,
-  showInformAlert,
-} from "../../utils/toastrAlert";
+import ComprehensiveAdviceCard from "../../components/stat/ComprehensiveAdviceCard";
 // 출석 API import
 // LoadingSpinner (예: 로딩 표시)
 import LoadingSpinner from "../../components/common/LoadingSpinner";
@@ -28,9 +21,6 @@ import LoadingSpinner from "../../components/common/LoadingSpinner";
 export default function MainPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [isAttended, setIsAttended] = useState(false); // 출석 여부 상태
-  const { fetchMe } = useUserStore();
-
 
   return (
     <>
@@ -52,7 +42,7 @@ export default function MainPage() {
 
         {/* 상단 그리드: 2개의 버튼 */}
         <div className="grid grid-cols-2 gap-4">
-          <AttendanceCheck/>
+          <AttendanceCheck />
 
           <button
             onClick={() => navigate("/mygym")}
@@ -105,27 +95,31 @@ export default function MainPage() {
               <span className="text-2xl">⭐</span>
             </div>
             <p className="text-sm text-gray-600 mt-1 text-left break-keep">
-              3대 운동을 자랑하고 평가해보세요요!
+              3대 운동을 자랑하고 평가해보세요!
             </p>
           </button>
         </div>
-        <div className="mt-8 mb-4">
+        <div className="mt-4 mb-4">
           <WeightRecordCard />
         </div>
         <PredictedOneRMCard />
+        <div className="mt-4 mb-4">
+          <ComprehensiveAdviceCard />
+        </div>
         {/* 레이더 차트 */}
-        <div className="mt-4 mb-12">
+        <div className="mt-4 mb-4">
           <WeightHistoryChart />
         </div>
-        <div className="mt-12 mb-12">
+        <div className="mt-4 mb-4">
           <WorkoutBalanceRadarChart />
         </div>
-        <div className="mt-12 mb-12">
+        <div className="mt-4 mb-4">
           <PartVolumeBarChart />
         </div>
-        <div className="mt-12 mb-12">
+        <div className="mt-4 mb-4">
           <WorkoutRecordChart />
         </div>
+
       </div>
 
       <BottomBar />

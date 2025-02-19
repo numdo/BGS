@@ -18,7 +18,6 @@ export default function AttendanceCheck() {
       const today = format(new Date(), "yyyy-MM-dd");
       try {
         const result = await getAttendanceByDate(today);
-        console.log("오늘 출석 결과:", result);
         // 백엔드에서 오늘 출석 기록이 하나라도 있다면 출석한 것으로 간주합니다.
         if (result && Array.isArray(result) && result.length > 0) {
           setIsAttended(true);

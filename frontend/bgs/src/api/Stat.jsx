@@ -73,3 +73,15 @@ export async function getOrm() {
     throw error;
   }
 }
+
+// ✅ GPT-3 통한 종합 조언 조회
+export async function getComprehensiveAdvice() {
+  try {
+    const response = await axiosInstance.get(`/stats/comprehensive-advice`);
+    return response.data; // GPT 응답(문자열)
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
