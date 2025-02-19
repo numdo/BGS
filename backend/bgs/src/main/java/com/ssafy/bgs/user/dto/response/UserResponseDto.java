@@ -29,4 +29,5 @@ public class UserResponseDto {
     private Integer coin;
     private String profileImageUrl;
     private AccountType accountType;
+    private String role;
 }
