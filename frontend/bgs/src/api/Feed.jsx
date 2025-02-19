@@ -29,6 +29,31 @@ export async function getFeeds(userId = "", page = 1, pageSize = 9) {
   }
 }
 
+export async function fetchDiaryFeeds(page, pageSize = 9) {
+  try {
+    const response = await axiosInstance.get("/diaries/feeds", {
+      params: { page, pageSize },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("일지 피드를 불러오는 중 오류 발생:", error);
+    throw error;
+  }
+}
+
+
+export async function fetchEvaluationFeeds(page, pageSize = 9, closed = undefined) {
+  try {
+    const response = await axiosInstance.get("/evaluations/feeds", {
+      params: { page, pageSize, closed },
+    });
+    // 백엔드가 배열을 반환하므로 그대로 리턴
+    return response.data;
+  } catch (error) {
+    console.error("평가 피드를 불러오는 중 오류 발생:", error);
+    throw error;
+  }
+}
 // ✅ 다이어리 좋아요
 export async function likeDiary(diaryId, userId) {
   try {

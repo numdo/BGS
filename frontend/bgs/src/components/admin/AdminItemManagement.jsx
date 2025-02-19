@@ -8,6 +8,7 @@ import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 import AdminItemCreateModal from "./AdminItemCreateModal";
+import BeatLoader from "../common/LoadingSpinner";
 
 export default function AdminItemManagement() {
   const [items, setItems] = useState([]);
@@ -113,7 +114,7 @@ export default function AdminItemManagement() {
     }
     return formData;
   };
-  
+
   // 신규 아이템 등록 시 FormData 생성 (모달)
   const createNewItemFormData = () => {
     const formData = new FormData();
@@ -376,7 +377,9 @@ export default function AdminItemManagement() {
 
       {/* 아이템 목록 테이블 */}
       {loading ? (
-        <p>로딩중...</p>
+        <div className="flex items-center justify-center h-screen">
+          <BeatLoader />
+        </div>
       ) : (
         <table className="w-full border-collapse border border-gray-300">
           <thead>

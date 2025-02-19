@@ -4,6 +4,9 @@ import axiosInstance from "../../utils/axiosInstance";
 import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import addlogo from "../../assets/icons/add.svg";
+import { 
+  showInformAlert
+ } from "../../utils/toastrAlert";
 
 export default function EvaluationUpdatePage() {
   const { evaluationId } = useParams();
@@ -92,7 +95,12 @@ export default function EvaluationUpdatePage() {
     }
 
     if (!weight) {
-      alert("중량(kg)을 입력하세요.");
+      showInformAlert("중량을 입력하세요.");
+      return;
+    }
+
+    if (!file && !previewUrl) {
+      showInformAlert("파일을 입력하세요.");
       return;
     }
 
