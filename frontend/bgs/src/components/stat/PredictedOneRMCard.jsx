@@ -1,12 +1,15 @@
 // src/components/stat/PredictedOneRMCard.jsx
 import React, { useState, useEffect } from "react";
-import { getOrm } from "../../api/Stat"; // API 모듈에서 getOrm 함수 import
-import { showErrorAlert } from "../../utils/toastrAlert"; // 필요시 toastrAlert 사용
+import { getOrm } from "../../api/Stat"; // API 호출
+import { showErrorAlert } from "../../utils/toastrAlert"; // 필요 시
+import { InformationCircleIcon } from "@heroicons/react/24/outline"; // 정보 아이콘 (Heroicons)
+import OneRmFormulaModal from "./OneRmFormulaModal"; // 모달 컴포넌트 import
 
 export default function PredictedOneRMCard() {
   const [orm, setOrm] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState("bench");
+  const [openModal, setOpenModal] = useState(false); // 모달 열림/닫힘 상태
 
   useEffect(() => {
     const fetchOrm = async () => {
@@ -63,28 +66,43 @@ export default function PredictedOneRMCard() {
   };
 
   return (
-    <div className="p-4 bg-white border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-      <h3 className="text-xl font-bold mb-3 text-center">예상 1RM을 확인해보세요!</h3>
+    <>
+      {/* 모달 표시 */}
+      {openModal && <OneRmFormulaModal onClose={() => setOpenModal(false)} />}
 
-      {/* Active Tab UI - 탭 버튼이 가로로 꽉 차게 */}
-      <div className="flex border-b mb-4">
-        {tabs.map((tab) => (
-          <div
-            key={tab.key}
-            onClick={() => setSelectedExercise(tab.key)}
-            className={`flex-1 text-center cursor-pointer px-4 py-2
+      <div className="p-4 bg-white border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+        {/* 제목 + 정보 아이콘 */}
+        <div className="flex items-center justify-center mb-3">
+          <h3 className="text-xl font-bold text-center mr-2">
+            예상 1RM을 확인해보세요!
+          </h3>
+          {/* 아이콘 클릭 시 모달 열림 */}
+          <InformationCircleIcon
+            className="w-5 h-5 text-gray-500 cursor-pointer"
+            onClick={() => setOpenModal(true)}
+          />
+        </div>
+
+        {/* 탭 UI */}
+        <div className="flex border-b mb-4">
+          {tabs.map((tab) => (
+            <div
+              key={tab.key}
+              onClick={() => setSelectedExercise(tab.key)}
+              className={`flex-1 text-center cursor-pointer px-4 py-2
               ${
                 selectedExercise === tab.key
                   ? "border-b-2 border-primary text-primary font-bold"
                   : "text-gray-600 hover:text-primary"
               }`}
-          >
-            {tab.label}
-          </div>
-        ))}
-      </div>
+            >
+              {tab.label}
+            </div>
+          ))}
+        </div>
 
-      <div className="text-center">{renderResult()}</div>
-    </div>
+        <div className="text-center">{renderResult()}</div>
+      </div>
+    </>
   );
 }
