@@ -9,5 +9,5 @@ import java.util.List;
 
 public interface ItemRepository extends JpaRepository<Item, Integer> {
     Page<Item> findByItemNameContaining(String keyword, Pageable pageable);
-    List<Item> findByUsableTrue(Pageable pageable);
+    List<Item> findByUsableTrue();
 }
