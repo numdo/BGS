@@ -3,6 +3,7 @@ import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
 import { useNavigate } from "react-router-dom";
 import mascot from "../../assets/images/mascot.png";
+import cutemascot from "../../assets/images/cutemascot.png";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
@@ -86,7 +87,7 @@ export default function MainPage() {
                        top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
           />
           <img
-            src={mascot}
+            src={cutemascot}
             alt="마스코트 이미지"
             className="w-64 h-auto drop-shadow-2xl"
           />
