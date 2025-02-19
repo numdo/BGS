@@ -168,18 +168,43 @@ export default function WorkoutPage() {
   };
 
   // 삭제 확인 모달
-  const confirmDelete = async () => {
-    if (confirmDeleteDiaryId) {
-      try {
-        await deleteDiary(confirmDeleteDiaryId);
-        setDiaries(diaries.filter((d) => d.diaryId !== confirmDeleteDiaryId));
-      } catch (error) {
-        console.error("삭제 오류:", error);
-      } finally {
-        setConfirmDeleteDiaryId(null);
+  // 수정된 confirmDelete 예시
+
+const confirmDelete = async () => {
+  if (confirmDeleteDiaryId) {
+    try {
+      // 1) 서버에 삭제 요청
+      await deleteDiary(confirmDeleteDiaryId);
+
+      // 2) 현재 diaries 상태에서 삭제된 일지 찾기
+      const removedDiary = diaries.find((d) => d.diaryId === confirmDeleteDiaryId);
+
+      // 3) 삭제된 일지를 제외한 새 목록
+      const newDiaries = diaries.filter((d) => d.diaryId !== confirmDeleteDiaryId);
+
+      // 4) diaries 상태 갱신
+      setDiaries(newDiaries);
+
+      // 5) 만약 해당 날짜에 더 이상 일지가 없다면 diaryDates에서 제거
+      if (removedDiary) {
+        const removedDate = removedDiary.workoutDate; // "YYYY-MM-DD" 형식
+        const stillExist = newDiaries.some(d => d.workoutDate === removedDate);
+
+        // 해당 날짜가 더 이상 없으면 diaryDates에서도 제거
+        if (!stillExist) {
+          setDiaryDates((prevDates) =>
+            prevDates.filter((date) => date !== removedDate)
+          );
+        }
       }
+    } catch (error) {
+      console.error("삭제 오류:", error);
+    } finally {
+      setConfirmDeleteDiaryId(null);
     }
-  };
+  }
+};
+
 
   return (
     <PageWrapper>
