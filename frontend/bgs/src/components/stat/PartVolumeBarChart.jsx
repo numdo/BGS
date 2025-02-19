@@ -151,7 +151,12 @@ export default function PartVolumeBarChart() {
       legend: { position: "top" },
       title: {
         display: true,
-        font: { size: 18, weight: "bold" },
+        text: "🚀반복횟수 x 들어올린 무게(kg)",
+        font: {
+          family: '"42dot Sans", serif',
+          size: 14,
+          weight: "bold",
+        },
         padding: { bottom: 10 },
       },
     },
