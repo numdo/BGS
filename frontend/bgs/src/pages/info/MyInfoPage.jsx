@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import useUserStore from "../../stores/useUserStore";
 import { getUser } from "../../api/User"; // ✅ 유저 정보 API
@@ -16,7 +16,7 @@ import ConfirmModal from "../../components/common/ConfirmModal"; // ✅ 확인 �
 
 export default function MyInfoPage() {
   const navigate = useNavigate();
-  const { me, setMe } = useUserStore();
+  const { me, fetchMe } = useUserStore();
   const [activeTab, setActiveTab] = useState("myGym");
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
@@ -33,6 +33,7 @@ export default function MyInfoPage() {
   const containerRef = useRef(null);
 
   useEffect(() => {
+    console.log("현재 me 정보:", me);
     const fetchUserData = async () => {
       setIsLoading(true);
       try {
@@ -55,21 +56,28 @@ export default function MyInfoPage() {
       }
     };
 
-    fetchUserData();
-  }, [setMe]);
+    if (me.userId !== 0) {
+      fetchUserData();
+    }
+  }, [me.userId]);
 
-  // 터치 시작
+  // ✅ **탭 이동 함수 (useCallback 적용)**
+  const moveTab = useCallback((index) => {
+    setActiveIndex(index);
+    setActiveTab(["myGym", "stats", "posts"][index]);
+    window.scrollTo({ top: 0, behavior: "smooth" }); // ✅ 스크롤 최상단 이동
+  }, []);
+
+  // ✅ **터치 이벤트 핸들러**
   const handleTouchStart = (e) => {
     setStartX(e.touches[0].clientX);
   };
 
-  // 터치 이동 (실시간으로 translateX 변경)
   const handleTouchMove = (e) => {
     const deltaX = e.touches[0].clientX - startX;
     setTranslateX(deltaX);
   };
 
-  // 터치 종료 (스와이프 판별)
   const handleTouchEnd = () => {
     if (translateX < -50 && activeIndex < 2) {
       moveTab(activeIndex + 1);
@@ -77,13 +85,6 @@ export default function MyInfoPage() {
       moveTab(activeIndex - 1);
     }
     setTranslateX(0);
-  };
-
-  // ✅ **탭 이동 시 최상단 스크롤 이동**
-  const moveTab = (index) => {
-    setActiveIndex(index);
-    setActiveTab(["myGym", "stats", "posts"][index]);
-    window.scrollTo({ top: 0, behavior: "smooth" }); // ✅ 스크롤 최상단 이동
   };
 
   return (
