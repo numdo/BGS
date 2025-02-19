@@ -73,7 +73,7 @@ public class AiDiaryService {
                     WorkoutSetRequestDto ws = new WorkoutSetRequestDto();
                     ws.setWeight((float) setNode.path("weight").asDouble());
                     ws.setRepetition(setNode.path("reps").asInt());
-                    ws.setWorkoutTime(0);
+                    ws.setWorkoutTime(setNode.path("time").asInt());
                     setList.add(ws);
                 }
                 workoutReq.setSets(setList);
