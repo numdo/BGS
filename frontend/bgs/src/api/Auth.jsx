@@ -1,5 +1,7 @@
 // api/Auth.js
 import axiosInstance from "../utils/axiosInstance";
+import { getUser } from "../api/User";
+import useUserStore from "../stores/useUserStore";
 
 const BASE_URL = "/auth";
 
@@ -26,6 +28,9 @@ export async function login(credentials) {
         : accessTokenHeader;
       localStorage.setItem("accessToken", token);
     }
+
+    const userData = await getUser();
+    useUserStore.getState().setMe(userData);
 
     return response.data;
   } catch (error) {
