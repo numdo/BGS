@@ -25,6 +25,8 @@ public class Item {
     @Column
     private Integer price;
     @Column
+    private String copyrighter;
+    @Column
     private Boolean usable;
     @Column
     private Timestamp createdAt;

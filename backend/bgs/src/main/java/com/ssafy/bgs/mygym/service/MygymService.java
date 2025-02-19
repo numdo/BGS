@@ -8,7 +8,6 @@ import com.ssafy.bgs.mygym.dto.request.PlaceRequestDto;
 import com.ssafy.bgs.mygym.dto.response.*;
 import com.ssafy.bgs.mygym.entity.*;
 import com.ssafy.bgs.mygym.exception.GuestbookNotFoundException;
-import com.ssafy.bgs.mygym.exception.ItemNotFoundException;
 import com.ssafy.bgs.mygym.exception.PlaceNotFoundException;
 import com.ssafy.bgs.mygym.repository.*;
 import com.ssafy.bgs.user.entity.User;
@@ -19,9 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -165,52 +162,6 @@ public class MygymService {
         // 방명록 soft delete
         guestbook.setDeleted(true);
         guestbookRepository.save(guestbook);
-    }
-
-    public List<ItemResponseDto> getItemList() {
-        List<ItemResponseDto> itemList = new ArrayList<>();
-
-        itemRepository.findAll().forEach(item -> {
-            ItemResponseDto itemResponseDto = new ItemResponseDto();
-            itemResponseDto.setItemId(item.getItemId());
-            itemResponseDto.setItemName(item.getItemName());
-            itemResponseDto.setWidth(item.getWidth());
-            itemResponseDto.setHeight(item.getHeight());
-            itemResponseDto.setPrice(item.getPrice());
-            itemResponseDto.setUsable(item.getUsable());
-
-            ImageResponseDto image = imageService.getImage("item", item.getItemId());
-            itemResponseDto.setImageUrl(imageService.getS3Url(image.getUrl()));
-
-            itemList.add(itemResponseDto);
-        });
-
-        return itemList;
-    }
-
-    public void addItem(Item item, MultipartFile file) {
-        Item savedItem = itemRepository.save(item);
-        imageService.uploadImage(file, "item", Long.valueOf(savedItem.getItemId()));
-    }
-
-    public void updateItem(Item item, MultipartFile file) {
-        Item savedItem = itemRepository.save(item);
-        if (file != null) {
-            imageService.deleteImage(imageService.getImage("item", savedItem.getItemId()).getImageId());
-            imageService.uploadImage(file, "item", Long.valueOf(savedItem.getItemId()));
-        }
-    }
-
-    public void enableItem(Integer itemId) {
-        Item savedItem = itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException(itemId));
-        savedItem.setUsable(true);
-        itemRepository.save(savedItem);
-    }
-
-    public void disableItem(Integer itemId) {
-        Item savedItem = itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException(itemId));
-        savedItem.setUsable(false);
-        itemRepository.save(savedItem);
     }
 
     public List<CoinHistoryResponseDto> getCoinHistory(Integer userId) {

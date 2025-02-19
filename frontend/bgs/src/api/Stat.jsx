@@ -62,3 +62,14 @@ export async function getWorkoutRecord() {
     throw error;
   }
 }
+
+// ✅ 3대 운동 예상 1RM 조회
+export async function getOrm() {
+  try {
+    const response = await axiosInstance.get(`${BASE_URL}/orm`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}

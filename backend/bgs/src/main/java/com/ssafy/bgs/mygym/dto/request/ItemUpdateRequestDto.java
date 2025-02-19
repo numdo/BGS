@@ -14,5 +14,6 @@ public class ItemUpdateRequestDto {
     private Integer height;
     private String imageUrl;
     private Integer price;
+    private String copyrighter;
     private Boolean usable;
 }

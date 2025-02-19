@@ -23,6 +23,7 @@ import bgimg2 from "../../assets/images/backimg2.jpg";
 import bgimg3 from "../../assets/images/backimg3.jpg";
 import bgimg4 from "../../assets/images/backimg4.jpg";
 import bgimg5 from "../../assets/images/backimg5.jpg";
+import bgimg6 from "../../assets/images/backimg6.jpg";
 
 const backgroundImages = {
   bgimg: backimg,
@@ -31,6 +32,7 @@ const backgroundImages = {
   bgimg3: bgimg3,
   bgimg4: bgimg4,
   bgimg5: bgimg5,
+  bgimg6: bgimg6,
 };
 
 import ItemShopPage from "./ItemShopPage";
@@ -101,7 +103,9 @@ const MyGymPage = () => {
     <div
       style={{
         minHeight: "100vh",
-        backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg})`,
+        backgroundImage: `url(${
+          backgroundImages[myGym.backgroundColor] || backimg
+        })`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "repeat-x",
@@ -155,7 +159,9 @@ const MyGymPage = () => {
               <div
                 className="w-6 h-6 rounded"
                 style={{
-                  backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg})`,
+                  backgroundImage: `url(${
+                    backgroundImages[myGym.backgroundColor] || backimg
+                  })`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}
@@ -168,7 +174,10 @@ const MyGymPage = () => {
               <img src={effecticon} alt="effect icon" className="w-7 h-7" />
             </button>
           </div>
-          <SelectColor setRoomColor={setWallColor} onClick={handlePaletteClick} />
+          <SelectColor
+            setRoomColor={setWallColor}
+            onClick={handlePaletteClick}
+          />
           <MyGymItem setItems={setItems} forceOpen={isItemOpen} />
         </>
       ) : (
@@ -250,7 +259,7 @@ const MyGymPage = () => {
                 <div
                   onClick={() => {
                     setIsBgMoving(true);
-                    setMyGym({...myGym,flowed:true});
+                    setMyGym({ ...myGym, flowed: true });
                     setIsEffectModalOpen(false);
                   }}
                   className="cursor-pointer border p-2 rounded-md"
@@ -260,7 +269,9 @@ const MyGymPage = () => {
                     <div
                       className="absolute top-0 left-0 w-full h-full"
                       style={{
-                        backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg})`,
+                        backgroundImage: `url(${
+                          backgroundImages[myGym.backgroundColor] || backimg
+                        })`,
                         backgroundSize: "cover",
                         animation: "moveBg 30s linear infinite",
                       }}
@@ -281,7 +292,9 @@ const MyGymPage = () => {
                     <div
                       className="w-full h-full"
                       style={{
-                        backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg})`,
+                        backgroundImage: `url(${
+                          backgroundImages[myGym.backgroundColor] || backimg
+                        })`,
                         backgroundSize: "cover",
                       }}
                     ></div>
