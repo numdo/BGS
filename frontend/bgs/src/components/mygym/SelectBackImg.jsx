@@ -7,6 +7,7 @@ import bgimg2 from "../../assets/images/backimg2.jpg";
 import bgimg3 from "../../assets/images/backimg3.jpg";
 import bgimg4 from "../../assets/images/backimg4.jpg";
 import bgimg5 from "../../assets/images/backimg5.jpg";
+import bgimg6 from "../../assets/images/backimg6.jpg";
 
 const backgroundImages = {
   bgimg: bgimg,
@@ -15,6 +16,7 @@ const backgroundImages = {
   bgimg3: bgimg3,
   bgimg4: bgimg4,
   bgimg5: bgimg5,
+  bgimg6: bgimg6,
 };
 
 const imageKeys = Object.keys(backgroundImages);
