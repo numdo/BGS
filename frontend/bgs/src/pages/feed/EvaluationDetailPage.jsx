@@ -63,7 +63,7 @@ const EvaluationDetailPage = () => {
     if (evaluation.userId === me.userId) {
       navigate(`/myinfo`); // ✅ 내 정보 페이지로 이동
     } else {
-      navigate(`/profile/${feed.userId}`); // ✅ 해당 유저의 프로필 페이지로 이동
+      navigate(`/profile/${evaluation.userId}`); // ✅ 해당 유저의 프로필 페이지로 이동
     }
   };
 
