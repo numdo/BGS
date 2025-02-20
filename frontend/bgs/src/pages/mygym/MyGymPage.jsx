@@ -103,9 +103,8 @@ const MyGymPage = () => {
     <div
       style={{
         minHeight: "100vh",
-        backgroundImage: `url(${
-          backgroundImages[myGym.backgroundColor] || backimg
-        })`,
+        backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg
+          })`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "repeat-x",
@@ -159,9 +158,8 @@ const MyGymPage = () => {
               <div
                 className="w-6 h-6 rounded"
                 style={{
-                  backgroundImage: `url(${
-                    backgroundImages[myGym.backgroundColor] || backimg
-                  })`,
+                  backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg
+                    })`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}
@@ -184,7 +182,7 @@ const MyGymPage = () => {
         // 보기 모드
         <>
           <MyGymRoomView userId={user.userId} />
-          <div className="mt-10 mb-20">
+          <div className="mt-10" style={{ paddingBottom: "10px" }}>
             <MyGymViewVisitorMemo
               userId={user.userId}
               visitorMemos={visitorMemos}
@@ -269,9 +267,8 @@ const MyGymPage = () => {
                     <div
                       className="absolute top-0 left-0 w-full h-full"
                       style={{
-                        backgroundImage: `url(${
-                          backgroundImages[myGym.backgroundColor] || backimg
-                        })`,
+                        backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg
+                          })`,
                         backgroundSize: "cover",
                         animation: "moveBg 30s linear infinite",
                       }}
@@ -292,9 +289,8 @@ const MyGymPage = () => {
                     <div
                       className="w-full h-full"
                       style={{
-                        backgroundImage: `url(${
-                          backgroundImages[myGym.backgroundColor] || backimg
-                        })`,
+                        backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg
+                          })`,
                         backgroundSize: "cover",
                       }}
                     ></div>
