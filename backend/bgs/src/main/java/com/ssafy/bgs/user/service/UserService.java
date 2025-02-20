@@ -350,7 +350,7 @@ public class UserService {
         return InfoResponseDto.builder()
                 .userId(user.getId())
                 .nickname(user.getNickname())
-                .introduce(user.getIntroduction())
+                .introduction(user.getIntroduction())
                 .role(user.getRole())
                 .profileImageUrl(null)
                 .build();
