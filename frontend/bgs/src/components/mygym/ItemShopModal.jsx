@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import emitter from "../../utils/emitter";
 import BeatLoader from "../common/LoadingSpinner";
+import coinImg from "../../assets/images/coin.png";
 import {
   showErrorAlert,
   showSuccessAlert,
@@ -90,12 +91,12 @@ export default function ItemShopModal({ onClose }) {
         {/* 상단 영역 (sticky) - 닫기 버튼, 코인 표시 */}
         <div className="sticky top-0 z-10 bg-white border-b p-4 flex items-center justify-between">
           {/* 타이틀 */}
-          <h2 className="text-xl font-bold text-gray-800">아이템 상점</h2>
+          <h2 className="text-xl font-bold text-gray-800 ml-1">아이템 상점</h2>
 
           {/* 오른쪽: 코인 정보 + 닫기 버튼 */}
           <div className="flex items-center space-x-4">
-            <p className="font-semibold text-gray-700">
-              🪙 {userInfo?.coin ?? 0}
+            <p className="flex font-semibold text-gray-700">
+              <img src={coinImg} alt="코인" className="w-6 h-6 mr-1"/> {userInfo?.coin ?? 0}
             </p>
             <button
               onClick={onClose}
