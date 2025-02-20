@@ -13,6 +13,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { showInformAlert } from "../../utils/toastrAlert.jsx";
+import BeatLoader from "../../components/common/LoadingSpinner";
 
 const API_URL = "/evaluations";
 
@@ -56,7 +57,13 @@ const EvaluationDetailPage = () => {
     fetchComments();
   }, [evaluationId, refreshKey]);
 
-  if (!evaluation) return <p>로딩 중...</p>;
+  // 로딩 스피너 처리
+  if (!evaluation)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <BeatLoader />
+      </div>
+    );
 
   // ✅ 프로필 클릭 시 해당 유저 프로필 페이지로 이동하는 함수
   const handleProfileClick = () => {
@@ -244,8 +251,8 @@ const EvaluationDetailPage = () => {
               evaluation.imageUrls.map((media, index) => (
                 <div key={index} className="w-full">
                   {media.endsWith(".mp4") ||
-                  media.endsWith(".webm") ||
-                  media.endsWith(".avi") ? (
+                    media.endsWith(".webm") ||
+                    media.endsWith(".avi") ? (
                     <video controls className="w-full rounded-md">
                       <source src={media} type="video/mp4" />
                       브라우저가 비디오 태그를 지원하지 않습니다.
@@ -275,21 +282,19 @@ const EvaluationDetailPage = () => {
           <div className="mt-4 flex gap-4">
             <button
               onClick={() => handleVote(true)}
-              className={`px-4 py-2 rounded-md ${
-                voted === true
+              className={`px-4 py-2 rounded-md ${voted === true
                   ? "bg-green-700 text-white"
                   : "bg-green-500 text-white"
-              }`}
+                }`}
             >
               찬성 👍 {approvalCount}
             </button>
             <button
               onClick={() => handleVote(false)}
-              className={`px-4 py-2 rounded-md ${
-                voted === false
+              className={`px-4 py-2 rounded-md ${voted === false
                   ? "bg-red-700 text-white"
                   : "bg-red-500 text-white"
-              }`}
+                }`}
             >
               반대 👎 {voteCount - approvalCount}
             </button>
