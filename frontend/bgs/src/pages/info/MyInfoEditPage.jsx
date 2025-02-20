@@ -10,13 +10,7 @@ import ConfirmModal from "../../components/common/ConfirmModal";
 import myinfo from "../../assets/icons/myinfo.png";
 
 export default function MyInfoEditPage() {
-  const [me, setMe] = useState({
-    nickname: "",
-    height: "",
-    weight: "",
-    introduction: "",
-    birthDate: "",
-  });
+  const { me, setMe } = useUserStore();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [previewUrl, setPreviewUrl] = useState();
@@ -35,7 +29,6 @@ export default function MyInfoEditPage() {
     height: me.height || "",
     weight: me.weight || "",
     introduction: me.introduction || "",
-    birthDate: me.birthDate || "",
   });
 
   useEffect(() => {
@@ -44,7 +37,6 @@ export default function MyInfoEditPage() {
 
   const getMyInfo = async () => {
     const userData = await getUser();
-    setMe(userData);
     setFormData(userData);
   };
 
@@ -107,7 +99,15 @@ export default function MyInfoEditPage() {
 
       await updateUser(updateData);
       const updatedUser = await getUser();
-      setMe(updatedUser);
+      const { userId, introduction, nickname, role, profileImageUrl } = updatedUser;
+      const userData = {
+        userId,
+        introduction,
+        nickname,
+        role,
+        profileImageUrl,
+      }
+      setMe(userData);
       setAlertData({
         message: "회원정보가 성공적으로 수정되었습니다.",
         success: true,
@@ -155,6 +155,18 @@ export default function MyInfoEditPage() {
     }
     const newPreview = URL.createObjectURL(selectedFile);
     setPreviewUrl(newPreview);
+    
+    // me 변경
+    const updatedUser = await getUser();
+      const { userId, introduction, nickname, role, profileImageUrl } = updatedUser;
+      const userData = {
+        userId,
+        introduction,
+        nickname,
+        role,
+        profileImageUrl,
+      }
+      setMe(userData);
   };
 
   // ✅ 회원 탈퇴 처리 함수 (모달 사용)
