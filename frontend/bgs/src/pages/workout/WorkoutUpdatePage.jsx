@@ -17,6 +17,7 @@ import {
 export default function WorkoutUpdatePage() {
   const navigate = useNavigate();
   const { diaryId } = useParams();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 0) 일지 상태 (수정용)
   const [diary, setDiary] = useState({
@@ -236,22 +237,39 @@ export default function WorkoutUpdatePage() {
       const workoutIds = record.workoutIds
         ? record.workoutIds
         : record.workoutId
-          ? [record.workoutId]
-          : [];
+        ? [record.workoutId]
+        : [];
       workoutIds.forEach((wid) => {
         if (!newDiaryWorkouts.some((dw) => dw.workoutId === wid)) {
           const type = getWorkoutType(wid);
-          let defaultSet;
-          if (type === "time") {
-            defaultSet = { workoutTime: 10 };
-          } else if (type === "repetitionOnly") {
-            defaultSet = { repetition: 10 };
+          let defaultSets = [];
+          if (record.sets && record.sets.length > 0) {
+            const filteredSets = record.sets
+              .filter((s) => s.workoutId === wid)
+              .map(({ workoutId, createdAt, ...rest }) => rest);
+            if (filteredSets.length > 0) {
+              defaultSets = filteredSets;
+            } else {
+              if (type === "time") {
+                defaultSets = [{ workoutTime: 10 }];
+              } else if (type === "repetitionOnly") {
+                defaultSets = [{ repetition: 10 }];
+              } else {
+                defaultSets = [{ weight: 10, repetition: 10 }];
+              }
+            }
           } else {
-            defaultSet = { weight: 10, repetition: 10 };
+            if (type === "time") {
+              defaultSets = [{ workoutTime: 10 }];
+            } else if (type === "repetitionOnly") {
+              defaultSets = [{ repetition: 10 }];
+            } else {
+              defaultSets = [{ weight: 10, repetition: 10 }];
+            }
           }
           newDiaryWorkouts.push({
             workoutId: wid,
-            sets: [defaultSet],
+            sets: defaultSets,
           });
         }
       });
@@ -260,6 +278,7 @@ export default function WorkoutUpdatePage() {
     showSuccessAlert(`${record.workoutName} 운동들이 추가되었습니다.`);
     closePreviousModal();
   };
+  
 
   // STT 녹음 관련 핸들러 (Create와 거의 동일)
   const handleRecordButton = () => {
@@ -392,14 +411,19 @@ export default function WorkoutUpdatePage() {
         (dw) => dw.workoutId === workoutId
       );
       if (idx === -1) return prevDiary;
-      const type = getWorkoutType(workoutId);
+      const currentSets = prevDiary.diaryWorkouts[idx].sets;
       let newSet;
-      if (type === "time") {
-        newSet = { workoutTime: 10 };
-      } else if (type === "repetitionOnly") {
-        newSet = { repetition: 10 };
+      if (currentSets.length > 0) {
+        newSet = { ...currentSets[currentSets.length - 1] };
       } else {
-        newSet = { weight: 10, repetition: 10 };
+        const type = getWorkoutType(workoutId);
+        if (type === "time") {
+          newSet = { workoutTime: 10 };
+        } else if (type === "repetitionOnly") {
+          newSet = { repetition: 10 };
+        } else {
+          newSet = { weight: 10, repetition: 10 };
+        }
       }
       const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
       newDiaryWorkouts[idx] = {
@@ -409,6 +433,7 @@ export default function WorkoutUpdatePage() {
       return { ...prevDiary, diaryWorkouts: newDiaryWorkouts };
     });
   };
+  
 
   const handleDeleteSet = (workoutId, setIndex) => {
     setDiary((prevDiary) => {
@@ -494,6 +519,7 @@ export default function WorkoutUpdatePage() {
 
   // 운동일지 수정 핸들러
   const handleDiaryUpdate = async () => {
+    if (isSubmitting) return;
     if (!diary.content.trim()) {
       showErrorAlert("메모를 입력해주세요!");
       return;
@@ -503,6 +529,8 @@ export default function WorkoutUpdatePage() {
       showErrorAlert("수정할 일지 ID가 없습니다!");
       return;
     }
+
+    setIsSubmitting(true);
     const formData = new FormData();
     const diaryBlob = new Blob([JSON.stringify(diary)], {
       type: "application/json",
@@ -527,6 +555,7 @@ export default function WorkoutUpdatePage() {
     } catch (err) {
       console.error("❌ 수정 오류:", err);
       showErrorAlert("🚨 수정 실패!");
+      setIsSubmitting(false);
     }
   };
 
@@ -1027,11 +1056,17 @@ export default function WorkoutUpdatePage() {
 
         {/* 수정 버튼 */}
         <button
-          onClick={handleDiaryUpdate}
-          className="w-full mt-4 p-2 bg-primary text-white rounded"
-        >
-          수정
-        </button>
+  onClick={handleDiaryUpdate}
+  disabled={isSubmitting}
+  className={`w-full mt-4 p-2 bg-primary text-white rounded ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+>
+  {isSubmitting ? (
+    <LoadingSpinner size={20} color="#ffffff" />
+  ) : (
+    "수정"
+  )}
+</button>
+
       </div>
       <BottomBar />
       {/* STT 가이드 모달 */}

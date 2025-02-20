@@ -3,6 +3,7 @@ import { useRef, useState, useEffect } from "react";
 import useMyGymStore from "../../stores/useMyGymStore";
 import removeItemPng from "../../assets/icons/remove_item.png";
 import flip from "../../assets/icons/flip.png";
+import emitter from "../../utils/emitter";
 
 const polygonRatios = [
   [0.5, 0.5], // 상 ( 50% 가로, 50% 세로)
@@ -32,11 +33,19 @@ const MyGymRoomEdit = () => {
   const [startCoord, setStartCoord] = useState({ x: 0, y: 0 });
   const [isDraggingMode, setIsDraggingMode] = useState(false);
 
-  useEffect(() => {
-  }, [selectedItemId]);
+  useEffect(() => {}, [selectedItemId]);
 
   useEffect(() => {
-  }, [draggingItem]);
+    const handleItemAdded = (itemId) => {
+      setSelectedItemId(itemId);
+    };
+    emitter.on("itemAdded", handleItemAdded);
+    return () => {
+      emitter.off("itemAdded", handleItemAdded);
+    };
+  }, []);
+
+  useEffect(() => {}, [draggingItem]);
 
   const { myGym, setMyGym } = useMyGymStore();
 

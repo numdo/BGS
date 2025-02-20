@@ -19,6 +19,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import BeatLoader from "../../components/common/LoadingSpinner";
 import { showInformAlert } from "../../utils/toastrAlert";
+import DeleteConfirmAlert from "../../components/common/DeleteConfirmAlert";
 
 const API_URL = "/diaries";
 
@@ -34,6 +35,7 @@ const DiaryDetailPage = () => {
   const [isWorkoutsOpen, setIsWorkoutsOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [comments, setComments] = useState([]);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   // 댓글 목록 불러오기
   useEffect(() => {
@@ -42,8 +44,10 @@ const DiaryDetailPage = () => {
         const response = await axiosInstance.get(
           `${API_URL}/${diaryId}/comments`,
           {
-            page: 1,
-            pageSize: 100,
+            params: {
+              page: 1,
+              pageSize: 100,
+            },
           }
         );
         setComments(response.data);
@@ -67,7 +71,20 @@ const DiaryDetailPage = () => {
       .catch((error) => console.error("게시글 불러오기 오류:", error));
   }, [diaryId]);
 
-  // 평가 데이터가 아직 로드되지 않았다면 중앙에 BeatLoader 표시
+  // 댓글 작성 함수 (오류 해결을 위해 추가)
+  const handleCommentSubmit = async (content) => {
+    try {
+      await axiosInstance.post(`${API_URL}/${diaryId}/comments`, {
+        diaryId,
+        content,
+      });
+      setRefreshKey((prev) => prev + 1); // 댓글 추가 후 목록 갱신
+    } catch (error) {
+      console.error("댓글 작성 오류:", error);
+    }
+  };
+
+  // 데이터 로딩 전 로딩 스피너 표시
   if (!feed)
     return (
       <div className="flex items-center justify-center h-screen">
@@ -104,36 +121,31 @@ const DiaryDetailPage = () => {
   const handleUpdate = () => {
     if (feed.userId !== me.userId) {
       showInformAlert("본인의 게시물이 아니면 수정할 수 없습니다.");
-    }
-    else {
+    } else {
       navigate(`/workoutupdate/${diaryId}`);
-    }
-  }
-
-  // 게시글 삭제 함수
-  const handleDelete = async () => {
-    if (window.confirm("정말 삭제하시겠습니까?")) {
-      try {
-        await axiosInstance.delete(`${API_URL}/${diaryId}`);
-        alert("삭제되었습니다.");
-        navigate("/feeds");
-      } catch (error) {
-        console.error("삭제 오류:", error);
-      }
     }
   };
 
-  // 댓글 작성 함수
-  const handleCommentSubmit = async (content) => {
+  // 삭제 버튼 클릭 시 삭제 확인 모달 노출
+  const handleDeleteClick = () => {
+    setConfirmDelete(true);
+  };
+
+  // 삭제 확인 모달에서 확인 버튼 클릭 시 호출되는 함수
+  const confirmDeleteDiary = async () => {
     try {
-      await axiosInstance.post(`${API_URL}/${diaryId}/comments`, {
-        diaryId,
-        content,
-      });
-      setRefreshKey((prev) => prev + 1); // 댓글 추가 후 목록 갱신
+      await axiosInstance.delete(`${API_URL}/${diaryId}`);
+      navigate("/feeds");
     } catch (error) {
-      console.error("댓글 작성 오류:", error);
+      console.error("삭제 오류:", error);
+    } finally {
+      setConfirmDelete(false);
     }
+  };
+
+  // 삭제 취소 함수
+  const cancelDelete = () => {
+    setConfirmDelete(false);
   };
 
   // 메뉴 토글 함수
@@ -162,9 +174,7 @@ const DiaryDetailPage = () => {
   const onUpdate = (commentId, content) => {
     setComments((prev) =>
       prev.map((comment) =>
-        comment.commentId === commentId
-          ? { ...comment, content: content }
-          : comment
+        comment.commentId === commentId ? { ...comment, content } : comment
       )
     );
     axiosInstance.patch(`/diaries/${diaryId}/comments/${commentId}`, {
@@ -218,7 +228,7 @@ const DiaryDetailPage = () => {
                       수정
                     </li>
                     <li
-                      onClick={handleDelete}
+                      onClick={handleDeleteClick}
                       className="px-4 py-2 cursor-pointer hover:bg-gray-200"
                     >
                       삭제
@@ -253,9 +263,9 @@ const DiaryDetailPage = () => {
           <div className="mt-4">
             <p className="text-lg font-bold">{feed.content}</p>
             <div className="mt-2">
-              {feed.hashtags.map((tag) => (
+              {feed.hashtags.map((tag, index) => (
                 <span
-                  key={tag}
+                  key={`${tag}-${index}`}
                   className="p-1 bg-gray-200 rounded-full text-sm mr-2"
                 >
                   #{tag}
@@ -264,7 +274,7 @@ const DiaryDetailPage = () => {
             </div>
             <div className="flex justify-end mr-3">
               <img src={fire_colored} alt="" />
-              <div className="text-gray-500 m-1"> {likedCount}</div>
+              <div className="text-gray-500 m-1">{likedCount}</div>
               <img src={chat} alt="" />
               <div className="text-gray-500 m-1">{comments.length}</div>
             </div>
@@ -272,9 +282,13 @@ const DiaryDetailPage = () => {
               <div>
                 <p className="flex text-gray-700 cursor-pointer">
                   {isLiked ? (
-                    <img onClick={onLikeToggle} src={fire_colored} alt="" />
+                    <img
+                      onClick={onLikeToggle}
+                      src={fire_colored}
+                      alt="좋아요"
+                    />
                   ) : (
-                    <img onClick={onLikeToggle} src={fire} alt="" />
+                    <img onClick={onLikeToggle} src={fire} alt="좋아요" />
                   )}
                 </p>
               </div>
@@ -282,24 +296,20 @@ const DiaryDetailPage = () => {
                 <img
                   onClick={() => {
                     setIsCommentsOpen(!isCommentsOpen);
-                    if (isWorkoutsOpen) {
-                      setIsWorkoutsOpen(false);
-                    }
+                    if (isWorkoutsOpen) setIsWorkoutsOpen(false);
                   }}
                   src={chat}
-                  alt=""
+                  alt="댓글 토글"
                 />
               </div>
               <div>
                 <img
                   onClick={() => {
                     setIsWorkoutsOpen(!isWorkoutsOpen);
-                    if (isCommentsOpen) {
-                      setIsCommentsOpen(false);
-                    }
+                    if (isCommentsOpen) setIsCommentsOpen(false);
                   }}
                   src={fitness_center}
-                  alt=""
+                  alt="운동 내역 토글"
                 />
               </div>
             </div>
@@ -327,41 +337,36 @@ const DiaryDetailPage = () => {
                     <p>운동 내역이 없습니다</p>
                   </div>
                 )}
-                {(feed.diaryWorkouts || []).map((workout) => {
-                  const workoutName = workout.workoutName;
-                  return (
-                    <div
-                      key={workout.diaryWorkoutId}
-                      className="p-4 bg-gray-100 rounded-lg shadow"
-                    >
-                      <h3 className="text-lg font-semibold text-gray-800">
-                        {workoutName}
-                      </h3>
-                      <div className="mt-2 space-y-2">
-                        {workout.sets?.map((set, index) => (
-                          <div
-                            key={index}
-                            className="flex justify-between text-sm"
-                          >
-                            <span className="font-medium">
-                              세트 {index + 1}:
+                {(feed.diaryWorkouts || []).map((workout) => (
+                  <div
+                    key={workout.diaryWorkoutId}
+                    className="p-4 bg-gray-100 rounded-lg shadow"
+                  >
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {workout.workoutName}
+                    </h3>
+                    <div className="mt-2 space-y-2">
+                      {workout.sets?.map((set, index) => (
+                        <div
+                          key={`set-${workout.diaryWorkoutId}-${index}`}
+                          className="flex justify-between text-sm"
+                        >
+                          <span className="font-medium">세트 {index + 1}:</span>
+                          {set.workoutTime ? (
+                            <span className="text-gray-900">
+                              {set.workoutTime}초
                             </span>
-                            {set.workoutTime ? (
-                              <span className="text-gray-900">
-                                {set.workoutTime}초
-                              </span>
-                            ) : (
-                              <span>
-                                {set.weight ? `${set.weight}kg × ` : ""}{" "}
-                                {set.repetition ? `${set.repetition}회` : ""}
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                          ) : (
+                            <span>
+                              {set.weight ? `${set.weight}kg × ` : ""}
+                              {set.repetition ? `${set.repetition}회` : ""}
+                            </span>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -369,6 +374,17 @@ const DiaryDetailPage = () => {
 
         <BottomBar />
       </div>
+
+      {/* 삭제 확인 모달 */}
+      {confirmDelete && (
+        <DeleteConfirmAlert
+          message="정말 삭제하시겠습니까?"
+          onConfirm={confirmDeleteDiary}
+          onCancel={cancelDelete}
+        />
+      )}
+
+      {/* 예시: 화면 하단에 등록(운동 기록하기) 버튼 추가 */}
     </>
   );
 };

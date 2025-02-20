@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import emitter from "../../utils/emitter"; // 전역 emitter 임포트
 import BeatLoader from "../../components/common/LoadingSpinner";
+import { showErrorAlert, showSuccessAlert, showInformAlert } from "../../utils/toastrAlert";
 
 const ItemShopPage = () => {
   const [items, setItems] = useState([]);
@@ -31,13 +32,13 @@ const ItemShopPage = () => {
 
   const handlePurchase = async (itemId, price) => {
     if (!userInfo || userInfo.coin < price) {
-      alert("코인이 부족합니다.");
+      showInformAlert("코인이 부족합니다.");
       return;
     }
 
     try {
       await axiosInstance.post(`/items/${itemId}/buy`);
-      alert("구매 성공!");
+      showSuccessAlert("아이템이 구매 되었습니다.");
       // 구매한 아이템은 상점 목록에서 제거
       setItems((prevItems) =>
         prevItems.filter((item) => item.itemId !== itemId)
@@ -47,7 +48,7 @@ const ItemShopPage = () => {
       // 구매 후 전역 이벤트 발생
       emitter.emit("itemPurchased");
     } catch (error) {
-      alert("구매 실패: " + (error.response?.data?.message || error.message));
+      showErrorAlert("구매 실패: " + (error.response?.data?.message || error.message));
     }
   };
 

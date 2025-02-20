@@ -15,7 +15,12 @@ export default function UserInfoPage() {
   const { userId } = useParams();
   const [user, setUser] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
-  const [activeTab, setActiveTab] = useState("myGym");
+
+  // ✅ `localStorage`에서 탭 상태 가져오기
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem(`activeTab-${userId}`) || "myGym";
+  });
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [postCount, setPostCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -68,20 +73,10 @@ export default function UserInfoPage() {
     }
   };
 
-  // ✅ 터치 이벤트 (스와이프)
-  const handleTouchStart = (e) => setStartX(e.touches[0].clientX);
-  const handleTouchMove = (e) => setTranslateX(e.touches[0].clientX - startX);
-  const handleTouchEnd = () => {
-    if (translateX < -50 && activeIndex < 1) moveTab(activeIndex + 1);
-    else if (translateX > 50 && activeIndex > 0) moveTab(activeIndex - 1);
-    setTranslateX(0);
-  };
-
-  // ✅ 탭 변경 함수
-  const moveTab = (index) => {
-    setActiveIndex(index);
-    const tabKeys = ["myGym", "posts"];
-    setActiveTab(tabKeys[index]);
+  // ✅ 탭 변경 시 `localStorage`에 저장
+  const moveTab = (tabKey) => {
+    localStorage.setItem(`activeTab-${userId}`, tabKey);
+    setActiveTab(tabKey);
   };
 
   if (!user || loading) {
@@ -134,7 +129,7 @@ export default function UserInfoPage() {
             {[
               { key: "myGym", label: "마이짐" },
               { key: "posts", label: `게시물 ${postCount}` },
-            ].map((tab, index) => (
+            ].map((tab) => (
               <button
                 key={tab.key}
                 className={`flex-1 text-center py-2 transition ${
@@ -142,7 +137,7 @@ export default function UserInfoPage() {
                     ? "text-gray-900 font-semibold"
                     : "text-gray-500"
                 }`}
-                onClick={() => moveTab(index)}
+                onClick={() => moveTab(tab.key)}
               >
                 {tab.label}
               </button>
@@ -152,41 +147,29 @@ export default function UserInfoPage() {
               className="absolute bottom-0 left-0 h-[2px] bg-primary transition-transform duration-300 ease-in-out"
               style={{
                 width: "50%",
-                transform: `translateX(${activeIndex * 100}%)`,
+                transform: `translateX(${
+                  activeTab === "posts" ? "100%" : "0%"
+                })`,
               }}
             ></div>
           </div>
         </div>
 
         {/* ✅ 탭 내용 */}
-        <div className="relative w-full overflow-hidden mt-4">
-          <div
-            ref={containerRef}
-            className="flex w-full transition-transform duration-300 ease-in-out"
-            style={{
-              transform: `translateX(calc(${
-                activeIndex * -100
-              }% + ${translateX}px))`,
-            }}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            <div className="w-full flex-shrink-0 max-w-full overflow-hidden">
-              <MyGymTab friendId={user.userId} />
-            </div>
-            <div className="w-full flex-shrink-0">
-              <PostsTab userId={user.userId} />
-            </div>
-          </div>
+        <div className="mt-4">
+          {activeTab === "myGym" && <MyGymTab friendId={user.userId} />}
+          {activeTab === "posts" && <PostsTab userId={user.userId} />}
         </div>
       </div>
-      <BottomBar />
+      {/* ✅ 하단바 공간 확보 */}
+      <div className="pb-16">
+        <BottomBar />
+      </div>
 
       {/* ✅ 프로필 이미지 확대 모달 */}
       {isImageModalOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[1000]"
           onClick={() => setIsImageModalOpen(false)} // ✅ 모달 닫기
         >
           <div className="relative p-4">

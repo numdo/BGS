@@ -25,6 +25,9 @@ import bgimg4 from "../../assets/images/backimg4.jpg";
 import bgimg5 from "../../assets/images/backimg5.jpg";
 import bgimg6 from "../../assets/images/backimg6.jpg";
 
+// 가운데 모달로 띄우는 ItemShopModal
+import ItemShopModal from "../../components/mygym/ItemShopModal";
+
 const backgroundImages = {
   bgimg: backimg,
   bgimg1: bgimg1,
@@ -35,39 +38,37 @@ const backgroundImages = {
   bgimg6: bgimg6,
 };
 
-import ItemShopPage from "./ItemShopPage";
-
 const MyGymPage = () => {
-  // 유저 정보 및 마이짐 상태
   const { user, setUser } = useUserStore();
   const { myGym, setMyGym, setWallColor, setItems } = useMyGymStore();
 
   // 모달 관련 상태
-  const [isOpen, setIsOpen] = useState(true);
   const [isItemOpen, setIsItemOpen] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
-  const [isSelectBackImgOpen, setIsSelectBackImgOpen] = useState(false); // 배경 선택 모달 상태
-  const [isEffectModalOpen, setIsEffectModalOpen] = useState(false); // 이펙트 모달 상태
+  const [isSelectBackImgOpen, setIsSelectBackImgOpen] = useState(false);
+  const [isEffectModalOpen, setIsEffectModalOpen] = useState(false);
 
-  // 배경 효과 상태 (움직임 여부)
+  // 배경 효과
   const [isBgMoving, setIsBgMoving] = useState(true);
 
-  // 편집 모드 상태
+  // 편집 모드
   const [isEditing, setIsEditing] = useState(false);
 
   // 방명록(댓글) 상태
   const [visitorMemos, setVisitorMemos] = useState([]);
 
-  // 버튼 클릭 핸들러들
+  // 팔레트 아이콘 클릭 시
   const handlePaletteClick = () => {
     setIsItemOpen((prev) => !prev);
   };
 
+  // 편집 모드 켜기
   const handleEditMode = () => {
     setIsEditing(true);
     setIsItemOpen(true);
   };
 
+  // 편집 종료(저장)
   const handleFinishEdit = async () => {
     const { nickname, userId, ...obj } = myGym;
     const newPlaces = obj.places.map((item) => {
@@ -80,20 +81,22 @@ const MyGymPage = () => {
     setIsItemOpen(false);
   };
 
+  // 페이지 진입 시 유저와 마이짐 정보 로드
   useEffect(() => {
     async function enterMygymPage() {
-      const response = await getUser();
-      setUser(response);
-      getMygym(response.userId).then((MyGym) => {
+      try {
+        const response = await getUser();
+        setUser(response);
+
+        const MyGym = await getMygym(response.userId);
         setMyGym(MyGym);
         setIsBgMoving(MyGym.flowed);
-      });
-      try {
+
         const data = await getGuestBooks(response.userId, 0, 10);
         const freshMemos = data.content.filter((memo) => !memo.deleted);
         setVisitorMemos(freshMemos);
       } catch (error) {
-        console.error("방명록 불러오기 실패:", error);
+        console.error("마이짐 페이지 로딩 실패:", error);
       }
     }
     enterMygymPage();
@@ -103,9 +106,8 @@ const MyGymPage = () => {
     <div
       style={{
         minHeight: "100vh",
-        backgroundImage: `url(${
-          backgroundImages[myGym.backgroundColor] || backimg
-        })`,
+        backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg
+          })`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "repeat-x",
@@ -113,6 +115,7 @@ const MyGymPage = () => {
         position: "relative",
       }}
     >
+      {/* 상단 타이틀 */}
       <div className="flex justify-center items-center mb-5">
         <h1 className="text-3xl font-extrabold text-center py-2 drop-shadow-lg">
           {user.nickname} 마이짐
@@ -123,12 +126,14 @@ const MyGymPage = () => {
       <div className="absolute top-10 right-2 flex flex-col gap-3">
         {isEditing ? (
           <>
+            {/* 편집 완료 버튼 */}
             <button
               onClick={handleFinishEdit}
               className="bg-primary px-4 py-2 rounded-full text-white w-14 h-10"
             >
               ✔
             </button>
+            {/* 상점 열기 버튼 */}
             <button
               onClick={() => setIsShopOpen(true)}
               className="bg-white px-4 py-2 rounded-full shadow-md z-30"
@@ -137,6 +142,7 @@ const MyGymPage = () => {
             </button>
           </>
         ) : (
+          // 편집 모드 진입 버튼
           <button
             onClick={handleEditMode}
             className="bg-white px-4 py-2 rounded-full shadow-md"
@@ -146,11 +152,11 @@ const MyGymPage = () => {
         )}
       </div>
 
+      {/* 편집 모드 / 보기 모드 구분 */}
       {isEditing ? (
-        // 편집 모드
         <>
           <MyGymRoomEdit />
-          {/* 좌측 상단: 배경 선택 버튼 및 이펙트 버튼 */}
+          {/* 좌측 상단: 배경 선택 + 이펙트 버튼 */}
           <div className="absolute top-10 left-2 flex flex-col gap-3">
             <button
               onClick={() => setIsSelectBackImgOpen(true)}
@@ -159,9 +165,8 @@ const MyGymPage = () => {
               <div
                 className="w-6 h-6 rounded"
                 style={{
-                  backgroundImage: `url(${
-                    backgroundImages[myGym.backgroundColor] || backimg
-                  })`,
+                  backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg
+                    })`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}
@@ -181,10 +186,9 @@ const MyGymPage = () => {
           <MyGymItem setItems={setItems} forceOpen={isItemOpen} />
         </>
       ) : (
-        // 보기 모드
         <>
           <MyGymRoomView userId={user.userId} />
-          <div className="mt-10 mb-20">
+          <div className="mt-10" style={{ paddingBottom: "10px" }}>
             <MyGymViewVisitorMemo
               userId={user.userId}
               visitorMemos={visitorMemos}
@@ -194,26 +198,8 @@ const MyGymPage = () => {
         </>
       )}
 
-      {/* 상점 모달 */}
-      {isShopOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 flex justify-end"
-          onClick={() => setIsShopOpen(false)}
-        >
-          <div
-            className="relative w-80 bg-white shadow-lg transform transition-transform duration-500 h-[calc(100%-4rem)] rounded-t-lg overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setIsShopOpen(false)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-            >
-              ✖
-            </button>
-            <ItemShopPage />
-          </div>
-        </div>
-      )}
+      {/* 상점 모달 (오른쪽 슬라이드 대신, 중앙 모달로 단순히 띄움) */}
+      {isShopOpen && <ItemShopModal onClose={() => setIsShopOpen(false)} />}
 
       {/* 배경 선택 모달 */}
       {isSelectBackImgOpen && (
@@ -269,9 +255,8 @@ const MyGymPage = () => {
                     <div
                       className="absolute top-0 left-0 w-full h-full"
                       style={{
-                        backgroundImage: `url(${
-                          backgroundImages[myGym.backgroundColor] || backimg
-                        })`,
+                        backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg
+                          })`,
                         backgroundSize: "cover",
                         animation: "moveBg 30s linear infinite",
                       }}
@@ -292,9 +277,8 @@ const MyGymPage = () => {
                     <div
                       className="w-full h-full"
                       style={{
-                        backgroundImage: `url(${
-                          backgroundImages[myGym.backgroundColor] || backimg
-                        })`,
+                        backgroundImage: `url(${backgroundImages[myGym.backgroundColor] || backimg
+                          })`,
                         backgroundSize: "cover",
                       }}
                     ></div>
@@ -306,6 +290,7 @@ const MyGymPage = () => {
         </div>
       )}
 
+      {/* 바텀바 */}
       <div className="absolute bottom-0 w-full z-50">
         <BottomBar />
       </div>

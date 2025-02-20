@@ -8,7 +8,7 @@ import lombok.Data;
 public class InfoResponseDto {
     private Integer userId;
     private String nickname;
-    private String introduce;
+    private String introduction;
     private String role;
     private String profileImageUrl;
 }

@@ -198,8 +198,8 @@ export default function BottomBar() {
   ];
 
   return (
-    <div 
-      className="fixed bottom-0 left-1/2 transform -translate-x-1/2 bg-white border-t border-l border-r border-gray-200 shadow-lg z-50 w-full max-w-[600px]"
+    <div
+      className="fixed bottom-0 left-1/2 transform -translate-x-1/2 bg-white border-t border-l border-r border-gray-200 shadow-lg z-[100] w-full max-w-[600px]"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="flex justify-evenly items-center py-2">
@@ -210,7 +210,11 @@ export default function BottomBar() {
             className="flex flex-col items-center w-12 h-12 text-gray-800 active:bg-gray-100"
           >
             {btn.activeCondition ? btn.activeIcon : btn.inactiveIcon}
-            <span className={`text-sm font-bold ${btn.activeCondition ? "text-primary" : ""}`}>
+            <span
+              className={`text-sm font-bold ${
+                btn.activeCondition ? "text-primary" : ""
+              }`}
+            >
               {btn.name}
             </span>
           </button>

@@ -16,11 +16,16 @@ import {
   showErrorAlert,
   showSuccessAlert,
 } from "../../utils/toastrAlert";
+import { getUser } from "../../api/User"; // 서버에서 최신 유저/코인 정보 가져오기
+import useCoinStore from "../../stores/useCoinStore"; // 전역 코인 스토어 (Zustand)
 
 export default function WorkoutCreatePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const selectedDate = location.state?.selectedDate;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { setCoinCount } = useCoinStore();
 
   // 더보기 관련 상태
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -223,8 +228,8 @@ export default function WorkoutCreatePage() {
       const workoutIds = record.workoutIds
         ? record.workoutIds
         : record.workoutId
-          ? [record.workoutId]
-          : [];
+        ? [record.workoutId]
+        : [];
       workoutIds.forEach((wid) => {
         // 이미 추가된 운동은 건너뛰기
         if (!newDiaryWorkouts.some((dw) => dw.workoutId === wid)) {
@@ -232,9 +237,9 @@ export default function WorkoutCreatePage() {
           let defaultSets = [];
           if (record.sets && record.sets.length > 0) {
             // 해당 운동에 해당하는 세트만 필터링
-            const filteredSets = record.sets.filter(
-              (s) => s.workoutId === wid
-            );
+            const filteredSets = record.sets
+              .filter((s) => s.workoutId === wid)
+              .map(({ workoutId, createdAt, ...rest }) => rest);
             if (filteredSets.length > 0) {
               defaultSets = filteredSets;
             } else {
@@ -268,7 +273,6 @@ export default function WorkoutCreatePage() {
     showSuccessAlert(`"${record.workoutName}" 운동들이 추가되었습니다.`);
     closePreviousModal();
   };
-
 
   // 음성 녹음 관련 핸들러
   const handleRecordButton = () => {
@@ -471,12 +475,11 @@ export default function WorkoutCreatePage() {
     }));
   };
 
-
   // 운동일지 저장 핸들러
+  // handleDiarySubmit 함수 내 수정 부분
   const handleDiarySubmit = async (e) => {
     e.preventDefault();
-
-    // 메모가 비어있으면 저장되지 않도록 함
+    if (isSubmitting) return;
     if (!diary.content.trim()) {
       showErrorAlert("메모를 입력해주세요!");
       return;
@@ -488,25 +491,47 @@ export default function WorkoutCreatePage() {
       navigate("/login");
       return;
     }
+    setIsSubmitting(true); // 제출 시작
+
+    // diary 객체를 전송하기 전에 불필요한 필드를 제거한 sanitizedDiary 객체 생성
+    const sanitizedDiary = {
+      ...diary,
+      diaryWorkouts: diary.diaryWorkouts.map((dw) => ({
+        workoutId: dw.workoutId,
+        // deleted 필드는 없을 경우 false로 기본값 지정
+        deleted: dw.deleted || false,
+        sets: dw.sets.map((s) => ({
+          // WorkoutSetRequestDto에 필요한 필드만 남김
+          weight: s.weight,
+          repetition: s.repetition,
+          workoutTime: s.workoutTime,
+          deleted: s.deleted || false,
+        })),
+      })),
+    };
+
     const formData = new FormData();
     formData.append(
       "diary",
-      new Blob([JSON.stringify(diary)], { type: "application/json" })
+      new Blob([JSON.stringify(sanitizedDiary)], { type: "application/json" })
     );
     files.forEach((f) => formData.append("files", f));
+
     try {
       await axiosInstance.post("/diaries", formData, {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
-      // 저장 성공 후 바로 /workout 페이지로 이동 (성공 알림은 이동한 페이지에서 toastr로 뜹니다.)
-      navigate("/workout", { 
-        state: { 
-          showSuccessMessage: "저장이 완료되었습니다", 
-          selectedDate: diary.workoutDate   // 또는 기존 selectedDate
-        } 
+
+      const userData = await getUser(0); // /users/me
+      setCoinCount(userData.coin); // Zustand 스토어에 반영
+
+      navigate("/workout", {
+        state: {
+          showSuccessMessage: "저장이 완료되었습니다",
+          selectedDate: diary.workoutDate,
+        },
       });
-      
     } catch (error) {
       console.error("❌ 저장 오류:", error);
       if (error.response && error.response.status === 401) {
@@ -515,6 +540,7 @@ export default function WorkoutCreatePage() {
       } else {
         await showErrorAlert("🚨 저장 실패!");
       }
+      setIsSubmitting(false);
     }
   };
 
@@ -608,44 +634,64 @@ export default function WorkoutCreatePage() {
                 </h2>
                 {/* 부위/기구 필터 */}
                 <div className="mb-2">
-                  <span className="mr-1 font-semibold text-sm sm:text-base">부위:</span>
+                  <span className="mr-1 font-semibold text-sm sm:text-base">
+                    부위:
+                  </span>
                   <button
                     onClick={() => setSelectedPartFilter("")}
-                    className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${selectedPartFilter === "" ? "bg-primary-light text-white" : ""
-                      }`}
+                    className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${
+                      selectedPartFilter === ""
+                        ? "bg-primary-light text-white"
+                        : ""
+                    }`}
                   >
                     전체
                   </button>
-                  {[...new Set(allWorkoutList.map((w) => w.part))].map((part) => (
-                    <button
-                      key={`part-${part}`}
-                      onClick={() => setSelectedPartFilter(part)}
-                      className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${selectedPartFilter === part ? "bg-primary-light text-white" : ""
+                  {[...new Set(allWorkoutList.map((w) => w.part))].map(
+                    (part) => (
+                      <button
+                        key={`part-${part}`}
+                        onClick={() => setSelectedPartFilter(part)}
+                        className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${
+                          selectedPartFilter === part
+                            ? "bg-primary-light text-white"
+                            : ""
                         }`}
-                    >
-                      {part}
-                    </button>
-                  ))}
+                      >
+                        {part}
+                      </button>
+                    )
+                  )}
                 </div>
                 <div className="mb-2">
-                  <span className="mr-1 font-semibold text-sm sm:text-base">기구:</span>
+                  <span className="mr-1 font-semibold text-sm sm:text-base">
+                    기구:
+                  </span>
                   <button
                     onClick={() => setSelectedToolFilter("")}
-                    className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${selectedToolFilter === "" ? "bg-primary-light text-white" : ""
-                      }`}
+                    className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${
+                      selectedToolFilter === ""
+                        ? "bg-primary-light text-white"
+                        : ""
+                    }`}
                   >
                     전체
                   </button>
-                  {[...new Set(allWorkoutList.map((w) => w.tool))].map((tool) => (
-                    <button
-                      key={`tool-${tool}`}
-                      onClick={() => setSelectedToolFilter(tool)}
-                      className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${selectedToolFilter === tool ? "bg-primary-light text-white" : ""
+                  {[...new Set(allWorkoutList.map((w) => w.tool))].map(
+                    (tool) => (
+                      <button
+                        key={`tool-${tool}`}
+                        onClick={() => setSelectedToolFilter(tool)}
+                        className={`mr-1 px-2 py-1 border rounded text-xs sm:text-sm ${
+                          selectedToolFilter === tool
+                            ? "bg-primary-light text-white"
+                            : ""
                         }`}
-                    >
-                      {tool}
-                    </button>
-                  ))}
+                      >
+                        {tool}
+                      </button>
+                    )
+                  )}
                 </div>
                 {/* 검색창 및 최근 운동 토글 */}
                 <input
@@ -660,7 +706,9 @@ export default function WorkoutCreatePage() {
                     onClick={toggleRecentExercisesVisibility}
                     className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs sm:text-sm"
                   >
-                    {showRecentExercises ? "최근 운동 숨기기" : "최근 운동 보기"}
+                    {showRecentExercises
+                      ? "최근 운동 숨기기"
+                      : "최근 운동 보기"}
                   </button>
                 </div>
                 {showRecentExercises && (
@@ -677,7 +725,6 @@ export default function WorkoutCreatePage() {
                   </div>
                 )}
               </div>
-
 
               {/* 콘텐츠 영역: 운동 목록 */}
               <div className="flex-1 overflow-y-auto px-6 border-t">
@@ -723,7 +770,6 @@ export default function WorkoutCreatePage() {
             </div>
           </div>
         )}
-
 
         {/* 이전 기록 모달 */}
         {isPreviousModalOpen && (
@@ -993,12 +1039,6 @@ export default function WorkoutCreatePage() {
           ))}
         </div>
 
-
-
-
-
-
-
         {/* 공개 범위 설정 */}
         <div className="flex gap-2 mt-3">
           <div className="flex items-center">
@@ -1022,9 +1062,12 @@ export default function WorkoutCreatePage() {
         {/* 저장 버튼 */}
         <button
           onClick={handleDiarySubmit}
-          className="w-full mt-4 p-2 bg-primary text-white rounded"
+          disabled={isSubmitting}
+          className={`w-full mt-4 p-2 bg-primary text-white rounded ${
+            isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+          }`}
         >
-          저장
+          {isSubmitting ? <LoadingSpinner size={20} color="#ffffff" /> : "저장"}
         </button>
       </div>
       <BottomBar />

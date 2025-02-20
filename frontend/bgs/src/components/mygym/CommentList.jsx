@@ -22,8 +22,7 @@ const CommentList = React.memo(
   }) => {
     const [guestInfo, setGuestInfo] = useState(null);
     const [showActions, setShowActions] = useState(false);
-    const { user } = useUserStore();
-    const currentUserId = user.userId;
+    const { me } = useUserStore();
     const navigate = useNavigate();
 
     // "방금 전 / 몇분 전 / 몇시간 전..." 등 계산
@@ -31,34 +30,34 @@ const CommentList = React.memo(
 
     // 작성자 정보 가져오기
     useEffect(() => {
-      if (memo.guestId !== currentUserId) {
+      if (memo.guestId !== me.userId) {
         getUser(memo.guestId)
           .then((data) => setGuestInfo(data))
           .catch((error) => {
             console.error(`사용자 정보(${memo.guestId}) 조회 오류:`, error);
           });
       }
-    }, [memo.guestId, currentUserId]);
+    }, [memo.guestId, me.userId]);
 
     // 프로필 이미지 & 닉네임
     const profileImage =
-      memo.guestId === currentUserId
-        ? user.profileImageUrl || myinfo
+      memo.guestId === me.userId
+        ? me.profileImageUrl || myinfo
         : (guestInfo && guestInfo.profileImageUrl) || myinfo;
 
     const writerName =
-      memo.guestId === currentUserId
-        ? user.nickname || ""
+      memo.guestId === me.userId
+        ? me.nickname || ""
         : (guestInfo && guestInfo.nickname) || "";
 
     // 프로필 클릭 시 이동
     const handleProfileClick = useCallback(() => {
-      if (memo.guestId === currentUserId) {
+      if (memo.guestId === me.userId) {
         navigate("/myinfo"); // ✅ 내 프로필이면 myinfo로 이동
       } else {
-        navigate(`/userinfo/${memo.guestId}`); // ✅ 다른 유저 프로필이면 userinfo/:userId로 이동
+        navigate(`/profile/${memo.guestId}`); // ✅ 다른 유저 프로필이면 userinfo/:userId로 이동
       }
-    }, [memo.guestId, currentUserId, navigate]);
+    }, [memo.guestId, me.userId, navigate]);
 
     return (
       <div className="flex items-start space-x-3 p-2 border-b">
@@ -81,7 +80,7 @@ const CommentList = React.memo(
             </div>
 
             {/* 수정/삭제/더보기 아이콘 (작성자 본인일 때만) */}
-            {currentUserId === memo.guestId && (
+            {me.userId === memo.guestId && (
               <div className="relative">
                 {editingCommentId === memo.guestbookId ? (
                   <div className="flex items-center space-x-2">

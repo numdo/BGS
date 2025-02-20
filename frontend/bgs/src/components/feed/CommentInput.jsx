@@ -19,7 +19,7 @@ const CommentInput = ({ onCommentSubmit }) => {
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         placeholder="댓글을 입력하세요..."
-        className="flex-1 px-3 py-2 border rounded-md"
+        className="flex-1 px-3 py-2 border rounded-md w-full"
       />
       <button
         type="submit"

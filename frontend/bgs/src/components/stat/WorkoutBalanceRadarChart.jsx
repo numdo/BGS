@@ -63,7 +63,7 @@ export default function WorkoutBalanceRadarChart() {
     labels,
     datasets: [
       {
-        label: "Workout Balance (%)",
+        label: "운동 밸런스 (%)",
         data: dataValues,
         backgroundColor: "rgba(121, 133, 239, 0.2)",
         borderColor: primaryDefault,
@@ -121,7 +121,7 @@ export default function WorkoutBalanceRadarChart() {
       {" "}
       <CardContent>
         <h3 className="text-xl font-bold mb-3 mt-4 text-center">
-        {me.nickname ? `${me.nickname}의` : "나의"} <br /> 운동 밸런스 지표
+          {me.nickname ? `${me.nickname}의` : "나의"} <br /> 운동 밸런스 지표
         </h3>
         <Box sx={{ position: "relative" }}>
           <Radar data={chartData} options={options} />
