@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomBar from "../../components/bar/BottomBar";
 import TopBar from "../../components/bar/TopBar";
@@ -17,10 +17,21 @@ import ComprehensiveAdviceCard from "../../components/stat/ComprehensiveAdviceCa
 // 출석 API import
 // LoadingSpinner (예: 로딩 표시)
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import coinImg from "../../assets/images/coin.png";
 
 export default function MainPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [showCoinAnimation, setShowCoinAnimation] = useState(false);
+  useEffect(() => {
+    let timer;
+    if (showCoinAnimation) {
+      timer = setTimeout(() => {
+        setShowCoinAnimation(false);
+      }, 3000); // 3초 후에 사라짐
+    }
+    return () => clearTimeout(timer);
+  }, [showCoinAnimation]);
 
   return (
     <>
@@ -42,7 +53,9 @@ export default function MainPage() {
 
         {/* 상단 그리드: 2개의 버튼 */}
         <div className="grid grid-cols-2 gap-4">
-          <AttendanceCheck />
+          <AttendanceCheck
+            onAttendanceSuccess={() => setShowCoinAnimation(true)}
+          />
 
           <button
             onClick={() => navigate("/mygym")}
@@ -118,7 +131,6 @@ export default function MainPage() {
         <div className="mt-4 mb-4">
           <WorkoutRecordChart />
         </div>
-
       </div>
 
       <BottomBar />
@@ -127,6 +139,16 @@ export default function MainPage() {
       {isLoading && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <LoadingSpinner />
+        </div>
+      )}
+
+      {/* 출석 성공 후 동전 애니메이션 오버레이 */}
+      {showCoinAnimation && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center">
+          {/* 동전이 튀어오르는 애니메이션 (Tailwind 의 animate-bounce) */}
+          <div className="animate-bounce">
+            <img src={coinImg} alt="코인 이미지" className="w-20 h-20" />
+          </div>
         </div>
       )}
     </>

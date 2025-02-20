@@ -1,4 +1,5 @@
 // src/components/attendance/AttendanceCheck.jsx
+
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { checkAttendance, getAttendanceByDate } from "../../api/Attendance";
@@ -8,17 +9,25 @@ import {
   showInformAlert,
 } from "../../utils/toastrAlert";
 
-export default function AttendanceCheck() {
+// ✅ 유저 정보 요청 (코인 다시 조회용)
+import { getUser } from "../../api/User";
+
+// ✅ 전역 코인 스토어 (Zustand)
+import useCoinStore from "../../stores/useCoinStore";
+
+export default function AttendanceCheck({ onAttendanceSuccess }) {
   const [isAttended, setIsAttended] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 페이지 마운트 시 오늘 출석 여부를 확인 (백엔드가 List<AttendanceCheckResponseDto> 반환)
+  // 1) Zustand 스토어에서 setCoinCount 가져오기
+  const { setCoinCount } = useCoinStore();
+
+  // 마운트 시 오늘 출석 여부 확인
   useEffect(() => {
     const checkTodayAttendance = async () => {
       const today = format(new Date(), "yyyy-MM-dd");
       try {
         const result = await getAttendanceByDate(today);
-        // 백엔드에서 오늘 출석 기록이 하나라도 있다면 출석한 것으로 간주합니다.
         if (result && Array.isArray(result) && result.length > 0) {
           setIsAttended(true);
         } else {
@@ -28,12 +37,11 @@ export default function AttendanceCheck() {
         console.error("오늘 출석 여부 확인 오류:", error);
       }
     };
-
     checkTodayAttendance();
   }, []);
 
+  // 출석 체크
   const handleAttendance = async () => {
-    // 이미 출석한 경우
     if (isAttended) {
       await showInformAlert("오늘 출석을 완료 하였습니다.");
       return;
@@ -50,14 +58,30 @@ export default function AttendanceCheck() {
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
+          // 2) 출석 체크 API
           const result = await checkAttendance({ latitude, longitude });
           setIsAttended(true);
           setIsLoading(false);
+
           let successMessage = result.message || "출석 체크가 완료되었습니다!";
           if (result.streak !== undefined && result.streak !== null) {
             successMessage += ` (연속 출석 일수: ${result.streak}일)`;
           }
           await showSuccessAlert(successMessage);
+
+          // 3) 코인 다시 요청 -> 전역 스토어 업데이트
+          //    (서버에서 코인 정보가 따로 반환되지 않는다면, /users/me 재조회)
+          try {
+            const userData = await getUser(0); 
+            setCoinCount(userData.coin);
+          } catch (error) {
+            console.error("코인 재조회 실패:", error);
+          }
+
+          // 출석 후 애니메이션 or 콜백
+          if (onAttendanceSuccess) {
+            onAttendanceSuccess();
+          }
         } catch (error) {
           setIsLoading(false);
           const errorMsg =
@@ -72,7 +96,7 @@ export default function AttendanceCheck() {
         setIsLoading(false);
         await showErrorAlert("현재 위치를 가져올 수 없습니다.");
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
   };
 

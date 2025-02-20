@@ -1,3 +1,5 @@
+// src/pages/EvaluationDetailPage.jsx
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useUserStore from "../../stores/useUserStore.jsx";
@@ -5,8 +7,8 @@ import axiosInstance from "../../utils/axiosInstance";
 import Slider from "react-slick";
 import TopBar from "../../components/bar/TopBar";
 import BottomBar from "../../components/bar/BottomBar";
-import CommentInput from "../../components/feed/CommentInput"; // 댓글 입력 컴포넌트
-import CommentList from "../../components/feed/CommentList"; // 댓글 목록 컴포넌트
+import CommentInput from "../../components/feed/CommentInput";
+import CommentList from "../../components/feed/CommentList";
 import ProfileDefaultImage from "../../assets/icons/myinfo.png";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -17,6 +19,16 @@ import BeatLoader from "../../components/common/LoadingSpinner";
 
 const API_URL = "/evaluations";
 
+import useCoinStore from "../../stores/useCoinStore";
+import { getUser } from "../../api/User";
+
+// ★ 운동 타입 매핑 객체
+const workoutTypeMap = {
+  DEAD: "데드리프트",
+  BENCH: "벤치프레스",
+  SQUT: "스쿼트",
+};
+
 const EvaluationDetailPage = () => {
   const { me } = useUserStore();
   const { evaluationId } = useParams();
@@ -26,8 +38,11 @@ const EvaluationDetailPage = () => {
   const [voteCount, setVoteCount] = useState(0);
   const [voted, setVoted] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0); // 댓글 목록 갱신을 위한 상태
-  const [comments, setComments] = useState([]); // 댓글 목록 상태
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [comments, setComments] = useState([]);
+
+  const { setCoinCount } = useCoinStore();
+
   // 평가글 데이터 불러오기
   useEffect(() => {
     axiosInstance
@@ -57,78 +72,78 @@ const EvaluationDetailPage = () => {
     fetchComments();
   }, [evaluationId, refreshKey]);
 
-  // 로딩 스피너 처리
-  if (!evaluation)
+  // 로딩 스피너
+  if (!evaluation) {
     return (
       <div className="flex items-center justify-center h-screen">
         <BeatLoader />
       </div>
     );
+  }
 
-  // ✅ 프로필 클릭 시 해당 유저 프로필 페이지로 이동하는 함수
+  // 프로필 클릭 시
   const handleProfileClick = () => {
     if (evaluation.userId === me.userId) {
-      navigate(`/myinfo`); // ✅ 내 정보 페이지로 이동
+      navigate(`/myinfo`);
     } else {
-      navigate(`/profile/${evaluation.userId}`); // ✅ 해당 유저의 프로필 페이지로 이동
+      navigate(`/profile/${evaluation.userId}`);
     }
   };
 
-  // ✅ 투표 기능 (찬성 / 반대 / 취소)
+  // 투표 기능
   const handleVote = async (approval) => {
     const newVote = voted === approval ? null : approval;
-
     try {
       await axiosInstance.post(`${API_URL}/${evaluationId}/votes`, {
         approval: newVote,
       });
-
       setVoted(newVote);
 
-      // 투표 상태 변경 반영
-      setApprovalCount((prevApproval) => {
+      // 투표 수 업데이트 로직 (기존과 동일)
+      setApprovalCount((prev) => {
         if (newVote === true) {
-          return voted === false
-            ? prevApproval + 1
-            : prevApproval + (voted === null ? 1 : 0);
+          return voted === false ? prev + 1 : prev + (voted === null ? 1 : 0);
         } else if (newVote === false) {
-          return voted === true ? prevApproval - 1 : prevApproval;
+          return voted === true ? prev - 1 : prev;
         } else {
-          return voted === true ? prevApproval - 1 : prevApproval;
+          return voted === true ? prev - 1 : prev;
         }
+      });
+      setVoteCount((prev) => {
+        if (newVote === null) return prev - 1;
+        else if (voted === null) return prev + 1;
+        else return prev;
       });
 
-      setVoteCount((prevVote) => {
-        if (newVote === null) {
-          return prevVote - 1;
-        } else if (voted === null) {
-          return prevVote + 1;
-        } else {
-          return prevVote;
-        }
-      });
+      // ④ 투표 후 코인 재조회 → 전역 스토어 반영
+      try {
+        const userData = await getUser(0); // /users/me
+        setCoinCount(userData.coin);
+      } catch (err) {
+        console.error("코인 재조회 실패:", err);
+      }
     } catch (error) {
       console.error("투표 처리 오류:", error);
     }
   };
 
-  // 메뉴 토글 함수
+  // 메뉴 열기/닫기
   const toggleMenu = () => {
     setIsMenuOpen((prev) => !prev);
   };
 
-  // 게시글 수정 함수
+  // 게시글 수정
   const handleUpdate = () => {
     if (evaluation.userId !== me.userId) {
-      showInformAlert("본인의 게시물이 아니면 수정할 수 없습니다.")
+      showInformAlert("본인의 게시물이 아니면 수정할 수 없습니다.");
+    } else if (evaluation.opened) {
+      showInformAlert("투표가 시작된 게시물은 수정할 수 없습니다.");
+    } else {
+      navigate(`/evaluationupdate/${evaluationId}`);
     }
-    else if (evaluation.opened) {
-      showInformAlert("투표가 시작된 게시물은 수정할 수 없습니다.")
-    }
-    else navigate(`/evaluationupdate/${evaluationId}`);
-  }
+  };
 
-  // 게시글 삭제 함수
+  // 게시글 삭제
   const handleDelete = async () => {
     if (window.confirm("정말 삭제하시겠습니까?")) {
       try {
@@ -141,21 +156,20 @@ const EvaluationDetailPage = () => {
     }
   };
 
-  // 댓글 작성 함수
+  // 댓글 작성
   const handleCommentSubmit = async (content) => {
     try {
       await axiosInstance.post(`${API_URL}/${evaluationId}/comments`, {
         diaryId: evaluationId,
         content,
       });
-
-      setRefreshKey((prev) => prev + 1); // 댓글 추가 후 목록 갱신
+      setRefreshKey((prev) => prev + 1);
     } catch (error) {
       console.error("댓글 작성 오류:", error);
     }
   };
 
-  // 댓글 삭제 함수
+  // 댓글 삭제
   const onDelete = (commentId) => {
     setComments((prev) =>
       prev.filter((comment) => comment.commentId !== commentId)
@@ -163,7 +177,7 @@ const EvaluationDetailPage = () => {
     axiosInstance.delete(`/evaluations/${evaluationId}/comments/${commentId}`);
   };
 
-  // 댓글 수정 함수
+  // 댓글 수정
   const onUpdate = (commentId, content) => {
     setComments((prev) =>
       prev.map((comment) =>
@@ -251,8 +265,8 @@ const EvaluationDetailPage = () => {
               evaluation.imageUrls.map((media, index) => (
                 <div key={index} className="w-full">
                   {media.endsWith(".mp4") ||
-                    media.endsWith(".webm") ||
-                    media.endsWith(".avi") ? (
+                  media.endsWith(".webm") ||
+                  media.endsWith(".avi") ? (
                     <video controls className="w-full rounded-md">
                       <source src={media} type="video/mp4" />
                       브라우저가 비디오 태그를 지원하지 않습니다.
@@ -274,27 +288,32 @@ const EvaluationDetailPage = () => {
           {/* 게시글 정보 */}
           <div className="mt-4">
             <p className="text-lg font-bold">{evaluation.content}</p>
-            <p className="text-sm text-gray-500">{evaluation.workoutType}</p>
+            {/* ★ workoutType를 한국어로 표시 */}
+            <p className="text-sm text-gray-500">
+              {workoutTypeMap[evaluation.workoutType] || evaluation.workoutType}
+            </p>
             <p className="mt-2 text-sm text-gray-700">{evaluation.weight}kg</p>
           </div>
 
-          {/* ✅ 투표 (찬성 / 반대) */}
+          {/* 투표 (찬성 / 반대) */}
           <div className="mt-4 flex gap-4">
             <button
               onClick={() => handleVote(true)}
-              className={`px-4 py-2 rounded-md ${voted === true
+              className={`px-4 py-2 rounded-md ${
+                voted === true
                   ? "bg-green-700 text-white"
                   : "bg-green-500 text-white"
-                }`}
+              }`}
             >
               찬성 👍 {approvalCount}
             </button>
             <button
               onClick={() => handleVote(false)}
-              className={`px-4 py-2 rounded-md ${voted === false
+              className={`px-4 py-2 rounded-md ${
+                voted === false
                   ? "bg-red-700 text-white"
                   : "bg-red-500 text-white"
-                }`}
+              }`}
             >
               반대 👎 {voteCount - approvalCount}
             </button>
