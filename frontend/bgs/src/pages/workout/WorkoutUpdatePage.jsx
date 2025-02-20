@@ -1035,7 +1035,7 @@ export default function WorkoutUpdatePage() {
 
 
         {/* 공개 범위 설정 */}
-        <div className="flex gap-2 mt-3">
+        <div className="flex gap-2 mt-4">
           <div className="flex items-center">
             <input
               type="radio"
