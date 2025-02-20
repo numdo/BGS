@@ -33,7 +33,7 @@ export default function MyInfoEditPage() {
 
   useEffect(() => {
     getMyInfo();
-  }, [])
+  }, []);
 
   const getMyInfo = async () => {
     const userData = await getUser();
@@ -99,14 +99,15 @@ export default function MyInfoEditPage() {
 
       await updateUser(updateData);
       const updatedUser = await getUser();
-      const { userId, introduction, nickname, role, profileImageUrl } = updatedUser;
+      const { userId, introduction, nickname, role, profileImageUrl } =
+        updatedUser;
       const userData = {
         userId,
         introduction,
         nickname,
         role,
         profileImageUrl,
-      }
+      };
       setMe(userData);
       setAlertData({
         message: "회원정보가 성공적으로 수정되었습니다.",
@@ -155,18 +156,19 @@ export default function MyInfoEditPage() {
     }
     const newPreview = URL.createObjectURL(selectedFile);
     setPreviewUrl(newPreview);
-    
+
     // me 변경
     const updatedUser = await getUser();
-      const { userId, introduction, nickname, role, profileImageUrl } = updatedUser;
-      const userData = {
-        userId,
-        introduction,
-        nickname,
-        role,
-        profileImageUrl,
-      }
-      setMe(userData);
+    const { userId, introduction, nickname, role, profileImageUrl } =
+      updatedUser;
+    const userData = {
+      userId,
+      introduction,
+      nickname,
+      role,
+      profileImageUrl,
+    };
+    setMe(userData);
   };
 
   // ✅ 회원 탈퇴 처리 함수 (모달 사용)
@@ -212,14 +214,6 @@ export default function MyInfoEditPage() {
       <div className="relative z-30">
         <TopBar />
       </div>
-
-      <button
-        onClick={handleSubmit}
-        className="absolute top-3.5 right-2 z-40 text-primary font-semibold text-lg"
-      >
-        저장
-      </button>
-
       <div className="max-w-xl mx-auto p-4">
         <h1 className="text-center text-xl text-gray-600 font-bold mb-6">
           프로필 편집
@@ -314,12 +308,17 @@ export default function MyInfoEditPage() {
               placeholder="자기소개를 입력하세요"
             />
           </div>
+          <button
+            onClick={handleSubmit}
+            className="relative text-white w-full rounded-md p-2 text-base bg-primary text-center z-40"
+          >
+            저장
+          </button>
         </form>
 
         <div className="w-full max-w-xl mt-6 flex flex-col items-end">
           {/* ✅ 회원 탈퇴 위에 선 추가 */}
           <hr className="border-gray-300 my-4 w-full" />
-
           {/* ✅ 회원 탈퇴 버튼 */}
           <button
             onClick={handleDeleteUser}
