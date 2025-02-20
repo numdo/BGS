@@ -85,7 +85,7 @@ export default function ComprehensiveAdviceCard() {
       )}
 
       {/* 카드 */}
-      <div className="p-4 bg-white border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 max-w-md mx-auto">
+      <div className="p-4 bg-white border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 mx-auto">
         {/* 제목 */}
         <h2 className="text-xl font-bold text-center mb-1">
           AI 트레이너한테 조언받기
