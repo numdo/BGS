@@ -43,7 +43,7 @@ export default function SttWorkoutGuide({ onCancel, toggleRecording, isRecording
             </div>
             <div className="flex items-center space-x-2">
               <CheckCircleIcon className="w-5 h-5 text-green-500" />
-              <span className="text-gray-700">"스쿼트 100kg 5회"</span>
+              <span className="text-gray-700">"데드리프트 100kg 5회"</span>
             </div>
             <p className="text-gray-800 font-semibold mb-2">
               🎙 이렇게 하면 적용되지 않아요!
