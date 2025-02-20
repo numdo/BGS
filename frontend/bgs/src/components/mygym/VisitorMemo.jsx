@@ -19,6 +19,7 @@ const VisitorMemo = ({ userId }) => {
         const data = await getGuestBooks(userId, 0, 10);
         const freshMemos = data.content.filter((memo) => !memo.deleted);
         setVisitorMemos(freshMemos);
+        setTotalCount(data.totalElements); // ✅ 전체 개수 업데이트
 
         // 전체 삭제되지 않은 댓글 개수를 계산
         let nonDeletedCount = freshMemos.length;
@@ -56,6 +57,28 @@ const VisitorMemo = ({ userId }) => {
     fetchGuestbooks();
   }, [userId]);
 
+  // ✅ `visitorMemos` 변경 시, `lastMemo` 즉시 업데이트
+  useEffect(() => {
+    if (visitorMemos.length > 0) {
+      setLastMemo(visitorMemos[visitorMemos.length - 1]);
+    } else {
+      setLastMemo(null);
+    }
+  }, [visitorMemos]);
+
+  // ✅ `lastMemo` 변경 시, 프로필 이미지 즉시 업데이트
+  useEffect(() => {
+    if (!lastMemo) {
+      setLastMemoProfileUrl(null);
+      return;
+    }
+    if (lastMemo.guestId) {
+      getUser(lastMemo.guestId).then((res) => {
+        setLastMemoProfileUrl(res.profileImageUrl || null);
+      });
+    }
+  }, [lastMemo]);
+
   // 최근(미리보기용) 마지막 댓글 작성자 프로필 불러오기
   useEffect(() => {
     if (!lastMemo) {
@@ -68,6 +91,27 @@ const VisitorMemo = ({ userId }) => {
       });
     }
   }, [lastMemo]);
+
+  // ✅ 방명록 추가 시 즉시 반영
+  const handleAddMemo = (newMemo) => {
+    setVisitorMemos((prev) => {
+      const existingIds = new Set(prev.map((memo) => memo.guestbookId)); // ✅ 중복 확인
+      if (!existingIds.has(newMemo.guestbookId)) {
+        return [...prev, newMemo];
+      }
+      return prev;
+    });
+    setTotalCount((prev) => prev + 1); // ✅ 개수 즉시 증가
+    setLastMemo(newMemo); // ✅ 마지막 댓글 업데이트
+  };
+
+  // ✅ 방명록 삭제 시 즉시 반영
+  const handleDeleteMemo = (deletedMemoId) => {
+    setVisitorMemos((prev) =>
+      prev.filter((memo) => memo.guestbookId !== deletedMemoId)
+    );
+    setTotalCount((prev) => Math.max(0, prev - 1)); // ✅ 개수 즉시 감소
+  };
 
   return (
     <>
@@ -99,7 +143,6 @@ const VisitorMemo = ({ userId }) => {
           </p>
         )}
       </div>
-
       {/* 모달 컴포넌트 */}
       <VisitorMemoModal
         isOpen={isOpen}
@@ -107,6 +150,8 @@ const VisitorMemo = ({ userId }) => {
         visitorMemos={visitorMemos}
         setVisitorMemos={setVisitorMemos}
         userId={userId}
+        onAddMemo={handleAddMemo} // ✅ 추가 핸들러 전달
+        onDeleteMemo={handleDeleteMemo} // ✅ 삭제 핸들러 전달
       />
     </>
   );
