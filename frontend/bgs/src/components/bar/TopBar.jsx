@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import favicon from "../../assets/images/favicon.png";
 import { ChevronLeftIcon } from "@heroicons/react/24/solid"; // npm install @heroicons/react
 import { getUser } from "../../api/User"; // getUser 함수 임포트 위치 확인
-
+import coinImg from "../../assets/images/coin.png";
 import useCoinStore from "../../stores/useCoinStore";
 
 export default function TopBar() {
@@ -55,7 +55,7 @@ export default function TopBar() {
 
         {/* 코인 표시 (우측 상단) */}
         <div className="absolute right-4 text-gray-600 flex items-center">
-          <span className="text-xl">🪙</span>
+          <span className="text-xl"><img src={coinImg} className="w-8 h-8"/></span>
           {/* 코인 개수 */}
           <span className="ml-1 text-base font-semibold">{coinCount}</span>
         </div>
