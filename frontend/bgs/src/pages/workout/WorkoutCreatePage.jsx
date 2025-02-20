@@ -1046,8 +1046,12 @@ export default function WorkoutCreatePage() {
           disabled={isSubmitting}
           className={`w-full mt-4 p-2 bg-primary text-white rounded ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
         >
-          저장
-        </button>
+          {isSubmitting ? (
+    <LoadingSpinner size={20} color="#ffffff" />
+  ) : (
+    "저장"
+  )}
+</button>
       </div>
       <BottomBar />
       {/* STT 가이드 모달 */}

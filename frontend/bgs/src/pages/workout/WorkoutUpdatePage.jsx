@@ -17,6 +17,7 @@ import {
 export default function WorkoutUpdatePage() {
   const navigate = useNavigate();
   const { diaryId } = useParams();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 0) 일지 상태 (수정용)
   const [diary, setDiary] = useState({
@@ -518,6 +519,7 @@ export default function WorkoutUpdatePage() {
 
   // 운동일지 수정 핸들러
   const handleDiaryUpdate = async () => {
+    if (isSubmitting) return;
     if (!diary.content.trim()) {
       showErrorAlert("메모를 입력해주세요!");
       return;
@@ -527,6 +529,8 @@ export default function WorkoutUpdatePage() {
       showErrorAlert("수정할 일지 ID가 없습니다!");
       return;
     }
+
+    setIsSubmitting(true);
     const formData = new FormData();
     const diaryBlob = new Blob([JSON.stringify(diary)], {
       type: "application/json",
@@ -551,6 +555,7 @@ export default function WorkoutUpdatePage() {
     } catch (err) {
       console.error("❌ 수정 오류:", err);
       showErrorAlert("🚨 수정 실패!");
+      setIsSubmitting(false);
     }
   };
 
@@ -1051,11 +1056,17 @@ export default function WorkoutUpdatePage() {
 
         {/* 수정 버튼 */}
         <button
-          onClick={handleDiaryUpdate}
-          className="w-full mt-4 p-2 bg-primary text-white rounded"
-        >
-          수정
-        </button>
+  onClick={handleDiaryUpdate}
+  disabled={isSubmitting}
+  className={`w-full mt-4 p-2 bg-primary text-white rounded ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+>
+  {isSubmitting ? (
+    <LoadingSpinner size={20} color="#ffffff" />
+  ) : (
+    "수정"
+  )}
+</button>
+
       </div>
       <BottomBar />
       {/* STT 가이드 모달 */}
