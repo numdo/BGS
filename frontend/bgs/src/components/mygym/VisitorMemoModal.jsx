@@ -16,6 +16,8 @@ const VisitorMemoModal = ({
   visitorMemos,
   setVisitorMemos,
   userId,
+  onAddMemo, // ✅ 방명록 추가 핸들러
+  onDeleteMemo, // ✅ 방명록 삭제 핸들러
 }) => {
   const [newComment, setNewComment] = useState("");
   const [isLoading, setIsLoading] = useState(false); // ✅ 로딩 상태 추가
@@ -84,7 +86,8 @@ const VisitorMemoModal = ({
     setIsLoading(true); // ✅ 로딩 시작
     try {
       const payload = { content: newComment };
-      await createGuestBooks(userId, payload);
+      const newMemo = await createGuestBooks(userId, payload);
+      onAddMemo(newMemo); // ✅ 새 방명록 즉시 반영
       await loadComments(0); // ✅ 최신 목록 불러오기 (totalCount 갱신)
       setNewComment("");
     } catch (error) {
@@ -98,6 +101,7 @@ const VisitorMemoModal = ({
     setIsLoading(true); // ✅ 로딩 시작
     try {
       await deleteGuestBook(userId, guestbookId);
+      onDeleteMemo(guestbookId); // ✅ 삭제 즉시 반영
       await loadComments(0); // ✅ 최신 목록 불러오기 (totalCount 갱신)
     } catch (error) {
       console.error("댓글 삭제 실패:", error);
@@ -156,38 +160,35 @@ const VisitorMemoModal = ({
                     아직 작성된 방명록이 없습니다.
                   </div>
                 ) : (
-                  visitorMemos
-                    .slice()
-                    .reverse()
-                    .map((memo) => (
-                      <CommentList
-                        key={memo.guestbookId}
-                        memo={memo}
-                        editingCommentId={editingCommentId}
-                        editingContent={editingContent}
-                        setEditingContent={setEditingContent}
-                        onStartEditing={(memo) => {
-                          setEditingCommentId(memo.guestbookId);
-                          setEditingContent(memo.content);
-                        }}
-                        onCancelEditing={() => {
+                  visitorMemos.map((memo) => (
+                    <CommentList
+                      key={memo.guestbookId}
+                      memo={memo}
+                      editingCommentId={editingCommentId}
+                      editingContent={editingContent}
+                      setEditingContent={setEditingContent}
+                      onStartEditing={(memo) => {
+                        setEditingCommentId(memo.guestbookId);
+                        setEditingContent(memo.content);
+                      }}
+                      onCancelEditing={() => {
+                        setEditingCommentId(null);
+                        setEditingContent("");
+                      }}
+                      onSaveEditing={async (guestbookId) => {
+                        try {
+                          const payload = { content: editingContent };
+                          await updateGuestBook(userId, guestbookId, payload);
+                          loadComments(0);
                           setEditingCommentId(null);
                           setEditingContent("");
-                        }}
-                        onSaveEditing={async (guestbookId) => {
-                          try {
-                            const payload = { content: editingContent };
-                            await updateGuestBook(userId, guestbookId, payload);
-                            loadComments(0);
-                            setEditingCommentId(null);
-                            setEditingContent("");
-                          } catch (error) {
-                            console.error("댓글 수정 실패:", error);
-                          }
-                        }}
-                        onDeleteMemo={handleDeleteMemo}
-                      />
-                    ))
+                        } catch (error) {
+                          console.error("댓글 수정 실패:", error);
+                        }
+                      }}
+                      onDeleteMemo={handleDeleteMemo}
+                    />
+                  ))
                 )}
               </div>
 
