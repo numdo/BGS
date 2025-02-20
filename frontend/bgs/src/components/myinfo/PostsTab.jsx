@@ -27,7 +27,7 @@ const PostsTab = ({ userId }) => {
           imageUrl: item.imageUrl,
           likedCount: item.likedCount,
           commentCount: item.commentCount,
-          workoutDate: item.workoutDate
+          workoutDate: item.workoutDate,
         }));
 
         setFeeds((prev) => {

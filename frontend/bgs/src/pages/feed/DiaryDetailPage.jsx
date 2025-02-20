@@ -41,12 +41,15 @@ const DiaryDetailPage = () => {
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const response = await axiosInstance.get(`${API_URL}/${diaryId}/comments`, {
-          params: {
-            page: 1,
-            pageSize: 100,
-          },
-        });
+        const response = await axiosInstance.get(
+          `${API_URL}/${diaryId}/comments`,
+          {
+            params: {
+              page: 1,
+              pageSize: 100,
+            },
+          }
+        );
         setComments(response.data);
       } catch (error) {
         console.error("댓글 불러오기 오류:", error);
@@ -194,7 +197,10 @@ const DiaryDetailPage = () => {
               onClick={handleProfileClick}
             />
             <div className="ml-1 p-2 pb-1">
-              <p className="font-bold cursor-pointer" onClick={handleProfileClick}>
+              <p
+                className="font-bold cursor-pointer"
+                onClick={handleProfileClick}
+              >
                 {feed.writer}
               </p>
               <p className="text-sm text-gray-500">
@@ -276,7 +282,11 @@ const DiaryDetailPage = () => {
               <div>
                 <p className="flex text-gray-700 cursor-pointer">
                   {isLiked ? (
-                    <img onClick={onLikeToggle} src={fire_colored} alt="좋아요" />
+                    <img
+                      onClick={onLikeToggle}
+                      src={fire_colored}
+                      alt="좋아요"
+                    />
                   ) : (
                     <img onClick={onLikeToggle} src={fire} alt="좋아요" />
                   )}
