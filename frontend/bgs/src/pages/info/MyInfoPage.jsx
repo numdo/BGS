@@ -17,7 +17,9 @@ import ConfirmModal from "../../components/common/ConfirmModal"; // ✅ 확인 �
 export default function MyInfoPage() {
   const navigate = useNavigate();
   const { me, fetchMe } = useUserStore();
-  const [activeTab, setActiveTab] = useState("myGym");
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem("activeTab") || "myGym";
+  });
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [postCount, setPostCount] = useState(0);
@@ -62,6 +64,7 @@ export default function MyInfoPage() {
 
   /// ✅ **탭 변경 함수**
   const moveTab = (tabKey) => {
+    localStorage.setItem("activeTab", tabKey);
     setActiveTab(tabKey);
   };
 
@@ -167,7 +170,7 @@ export default function MyInfoPage() {
       {/* ✅ 프로필 이미지 확대 모달 */}
       {isImageModalOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[1000]"
           onClick={() => setIsImageModalOpen(false)}
         >
           <div className="relative p-4">

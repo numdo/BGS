@@ -15,7 +15,12 @@ export default function UserInfoPage() {
   const { userId } = useParams();
   const [user, setUser] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
-  const [activeTab, setActiveTab] = useState("myGym");
+
+  // ✅ `localStorage`에서 탭 상태 가져오기
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem(`activeTab-${userId}`) || "myGym";
+  });
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [postCount, setPostCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -68,8 +73,9 @@ export default function UserInfoPage() {
     }
   };
 
-  // ✅ 탭 변경 함수
+  // ✅ 탭 변경 시 `localStorage`에 저장
   const moveTab = (tabKey) => {
+    localStorage.setItem(`activeTab-${userId}`, tabKey);
     setActiveTab(tabKey);
   };
 
@@ -163,7 +169,7 @@ export default function UserInfoPage() {
       {/* ✅ 프로필 이미지 확대 모달 */}
       {isImageModalOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[1000]"
           onClick={() => setIsImageModalOpen(false)} // ✅ 모달 닫기
         >
           <div className="relative p-4">

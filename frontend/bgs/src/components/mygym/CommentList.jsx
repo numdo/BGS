@@ -52,7 +52,6 @@ const CommentList = React.memo(
 
     // 프로필 클릭 시 이동
     const handleProfileClick = useCallback(() => {
-      console.log("현재 유저:", memo.guestId, "내 유저ID:", me.userId);
       if (memo.guestId === me.userId) {
         navigate("/myinfo"); // ✅ 내 프로필이면 myinfo로 이동
       } else {
