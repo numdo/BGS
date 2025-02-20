@@ -100,13 +100,11 @@ export default function MainPage() {
           </button>
         </div>
         <div className="mt-4 mb-4">
-          <WeightRecordCard />
-        </div>
-        <PredictedOneRMCard />
-        <div className="mt-4 mb-4">
           <ComprehensiveAdviceCard />
         </div>
-        {/* 레이더 차트 */}
+        <div className="mt-4 mb-4">
+          <WeightRecordCard />
+        </div>
         <div className="mt-4 mb-4">
           <WeightHistoryChart />
         </div>
@@ -116,6 +114,7 @@ export default function MainPage() {
         <div className="mt-4 mb-4">
           <PartVolumeBarChart />
         </div>
+        <PredictedOneRMCard />
         <div className="mt-4 mb-4">
           <WorkoutRecordChart />
         </div>
