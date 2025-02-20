@@ -21,6 +21,7 @@ export default function WorkoutCreatePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const selectedDate = location.state?.selectedDate;
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 더보기 관련 상태
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -232,9 +233,9 @@ export default function WorkoutCreatePage() {
           let defaultSets = [];
           if (record.sets && record.sets.length > 0) {
             // 해당 운동에 해당하는 세트만 필터링
-            const filteredSets = record.sets.filter(
-              (s) => s.workoutId === wid
-            );
+            const filteredSets = record.sets
+              .filter((s) => s.workoutId === wid)
+              .map(({ workoutId, createdAt, ...rest }) => rest);
             if (filteredSets.length > 0) {
               defaultSets = filteredSets;
             } else {
@@ -473,10 +474,10 @@ export default function WorkoutCreatePage() {
 
 
   // 운동일지 저장 핸들러
+  // handleDiarySubmit 함수 내 수정 부분
   const handleDiarySubmit = async (e) => {
     e.preventDefault();
-
-    // 메모가 비어있으면 저장되지 않도록 함
+    if (isSubmitting) return;
     if (!diary.content.trim()) {
       showErrorAlert("메모를 입력해주세요!");
       return;
@@ -488,25 +489,43 @@ export default function WorkoutCreatePage() {
       navigate("/login");
       return;
     }
+    setIsSubmitting(true); // 제출 시작
+
+    // diary 객체를 전송하기 전에 불필요한 필드를 제거한 sanitizedDiary 객체 생성
+    const sanitizedDiary = {
+      ...diary,
+      diaryWorkouts: diary.diaryWorkouts.map((dw) => ({
+        workoutId: dw.workoutId,
+        // deleted 필드는 없을 경우 false로 기본값 지정
+        deleted: dw.deleted || false,
+        sets: dw.sets.map((s) => ({
+          // WorkoutSetRequestDto에 필요한 필드만 남김
+          weight: s.weight,
+          repetition: s.repetition,
+          workoutTime: s.workoutTime,
+          deleted: s.deleted || false,
+        })),
+      })),
+    };
+
     const formData = new FormData();
     formData.append(
       "diary",
-      new Blob([JSON.stringify(diary)], { type: "application/json" })
+      new Blob([JSON.stringify(sanitizedDiary)], { type: "application/json" })
     );
     files.forEach((f) => formData.append("files", f));
+
     try {
       await axiosInstance.post("/diaries", formData, {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
-      // 저장 성공 후 바로 /workout 페이지로 이동 (성공 알림은 이동한 페이지에서 toastr로 뜹니다.)
-      navigate("/workout", { 
-        state: { 
-          showSuccessMessage: "저장이 완료되었습니다", 
-          selectedDate: diary.workoutDate   // 또는 기존 selectedDate
-        } 
+      navigate("/workout", {
+        state: {
+          showSuccessMessage: "저장이 완료되었습니다",
+          selectedDate: diary.workoutDate,
+        },
       });
-      
     } catch (error) {
       console.error("❌ 저장 오류:", error);
       if (error.response && error.response.status === 401) {
@@ -515,8 +534,10 @@ export default function WorkoutCreatePage() {
       } else {
         await showErrorAlert("🚨 저장 실패!");
       }
+      setIsSubmitting(false);
     }
   };
+
 
   // 해시태그 추가 핸들러 (띄어쓰기는 제거)
   const handleKeyDown = (e) => {
@@ -1022,7 +1043,8 @@ export default function WorkoutCreatePage() {
         {/* 저장 버튼 */}
         <button
           onClick={handleDiarySubmit}
-          className="w-full mt-4 p-2 bg-primary text-white rounded"
+          disabled={isSubmitting}
+          className={`w-full mt-4 p-2 bg-primary text-white rounded ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
         >
           저장
         </button>

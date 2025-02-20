@@ -236,22 +236,39 @@ export default function WorkoutUpdatePage() {
       const workoutIds = record.workoutIds
         ? record.workoutIds
         : record.workoutId
-          ? [record.workoutId]
-          : [];
+        ? [record.workoutId]
+        : [];
       workoutIds.forEach((wid) => {
         if (!newDiaryWorkouts.some((dw) => dw.workoutId === wid)) {
           const type = getWorkoutType(wid);
-          let defaultSet;
-          if (type === "time") {
-            defaultSet = { workoutTime: 10 };
-          } else if (type === "repetitionOnly") {
-            defaultSet = { repetition: 10 };
+          let defaultSets = [];
+          if (record.sets && record.sets.length > 0) {
+            const filteredSets = record.sets
+              .filter((s) => s.workoutId === wid)
+              .map(({ workoutId, createdAt, ...rest }) => rest);
+            if (filteredSets.length > 0) {
+              defaultSets = filteredSets;
+            } else {
+              if (type === "time") {
+                defaultSets = [{ workoutTime: 10 }];
+              } else if (type === "repetitionOnly") {
+                defaultSets = [{ repetition: 10 }];
+              } else {
+                defaultSets = [{ weight: 10, repetition: 10 }];
+              }
+            }
           } else {
-            defaultSet = { weight: 10, repetition: 10 };
+            if (type === "time") {
+              defaultSets = [{ workoutTime: 10 }];
+            } else if (type === "repetitionOnly") {
+              defaultSets = [{ repetition: 10 }];
+            } else {
+              defaultSets = [{ weight: 10, repetition: 10 }];
+            }
           }
           newDiaryWorkouts.push({
             workoutId: wid,
-            sets: [defaultSet],
+            sets: defaultSets,
           });
         }
       });
@@ -260,6 +277,7 @@ export default function WorkoutUpdatePage() {
     showSuccessAlert(`${record.workoutName} 운동들이 추가되었습니다.`);
     closePreviousModal();
   };
+  
 
   // STT 녹음 관련 핸들러 (Create와 거의 동일)
   const handleRecordButton = () => {
@@ -392,14 +410,19 @@ export default function WorkoutUpdatePage() {
         (dw) => dw.workoutId === workoutId
       );
       if (idx === -1) return prevDiary;
-      const type = getWorkoutType(workoutId);
+      const currentSets = prevDiary.diaryWorkouts[idx].sets;
       let newSet;
-      if (type === "time") {
-        newSet = { workoutTime: 10 };
-      } else if (type === "repetitionOnly") {
-        newSet = { repetition: 10 };
+      if (currentSets.length > 0) {
+        newSet = { ...currentSets[currentSets.length - 1] };
       } else {
-        newSet = { weight: 10, repetition: 10 };
+        const type = getWorkoutType(workoutId);
+        if (type === "time") {
+          newSet = { workoutTime: 10 };
+        } else if (type === "repetitionOnly") {
+          newSet = { repetition: 10 };
+        } else {
+          newSet = { weight: 10, repetition: 10 };
+        }
       }
       const newDiaryWorkouts = [...prevDiary.diaryWorkouts];
       newDiaryWorkouts[idx] = {
@@ -409,6 +432,7 @@ export default function WorkoutUpdatePage() {
       return { ...prevDiary, diaryWorkouts: newDiaryWorkouts };
     });
   };
+  
 
   const handleDeleteSet = (workoutId, setIndex) => {
     setDiary((prevDiary) => {
