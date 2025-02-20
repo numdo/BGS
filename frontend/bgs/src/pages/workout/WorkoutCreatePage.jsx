@@ -976,7 +976,7 @@ export default function WorkoutCreatePage() {
         </div>
 
         {/* 해시태그 목록 (삭제 버튼 포함) */}
-        <div className="mt-2 flex flex-wrap gap-2">
+        <div className="mt-6 flex flex-wrap gap-2">
           {diary.hashtags.map((tag, idx) => (
             <div
               key={tag}
@@ -1000,7 +1000,7 @@ export default function WorkoutCreatePage() {
 
 
         {/* 공개 범위 설정 */}
-        <div className="flex gap-2 mt-7">
+        <div className="flex gap-2 mt-3">
           <div className="flex items-center">
             <input
               type="radio"
