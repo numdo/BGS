@@ -52,7 +52,9 @@ const MyGymItem = ({ forceOpen = false }) => {
 
   const addItem = (item) => {
     // 중복 체크
-    if (myGym.places.some((prev) => prev.itemId === item.itemId && !prev.deleted)) {
+    if (
+      myGym.places.some((prev) => prev.itemId === item.itemId && !prev.deleted)
+    ) {
       alert(`이미 '${item.itemName}'가(이) 배치되었습니다!`);
       return;
     }
@@ -68,6 +70,7 @@ const MyGymItem = ({ forceOpen = false }) => {
       deleted: false,
     };
     setMyGym({ ...myGym, places: [...myGym.places, newItem] });
+    emitter.emit("itemAdded", newItem.itemId);
     setIsOpen(false);
   };
 
@@ -85,7 +88,7 @@ const MyGymItem = ({ forceOpen = false }) => {
       `}
       style={{
         // 아래 높이/스크롤 설정으로, 화면을 넘어갈 경우 세로 스크롤
-        maxHeight: "50vh",   
+        maxHeight: "50vh",
         overflowY: "auto",
         maxWidth: "600px",
         // “가로”가 튀어나가지 않게 hidden 처리
@@ -122,7 +125,9 @@ const MyGymItem = ({ forceOpen = false }) => {
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-500 w-full">보유 중인 아이템이 없습니다.</p>
+          <p className="text-center text-gray-500 w-full">
+            보유 중인 아이템이 없습니다.
+          </p>
         )}
       </div>
     </div>

@@ -33,7 +33,6 @@ export default function MyInfoPage() {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    console.log("현재 me 정보:", me);
     const fetchUserData = async () => {
       setIsLoading(true);
       try {
@@ -61,30 +60,9 @@ export default function MyInfoPage() {
     }
   }, [me.userId]);
 
-  // ✅ **탭 이동 함수 (useCallback 적용)**
-  const moveTab = useCallback((index) => {
-    setActiveIndex(index);
-    setActiveTab(["myGym", "stats", "posts"][index]);
-    window.scrollTo({ top: 0, behavior: "smooth" }); // ✅ 스크롤 최상단 이동
-  }, []);
-
-  // ✅ **터치 이벤트 핸들러**
-  const handleTouchStart = (e) => {
-    setStartX(e.touches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    const deltaX = e.touches[0].clientX - startX;
-    setTranslateX(deltaX);
-  };
-
-  const handleTouchEnd = () => {
-    if (translateX < -50 && activeIndex < 2) {
-      moveTab(activeIndex + 1);
-    } else if (translateX > 50 && activeIndex > 0) {
-      moveTab(activeIndex - 1);
-    }
-    setTranslateX(0);
+  /// ✅ **탭 변경 함수**
+  const moveTab = (tabKey) => {
+    setActiveTab(tabKey);
   };
 
   return (
@@ -148,7 +126,7 @@ export default function MyInfoPage() {
                 { key: "myGym", label: "마이짐" },
                 { key: "stats", label: "통계" },
                 { key: "posts", label: `게시물 ${postCount}` },
-              ].map((tab, index) => (
+              ].map((tab) => (
                 <button
                   key={tab.key}
                   className={`flex-1 text-center py-2 transition ${
@@ -156,7 +134,7 @@ export default function MyInfoPage() {
                       ? "text-gray-900 font-semibold"
                       : "text-gray-500"
                   }`}
-                  onClick={() => moveTab(index)}
+                  onClick={() => moveTab(tab.key)}
                 >
                   {tab.label}
                 </button>
@@ -165,36 +143,23 @@ export default function MyInfoPage() {
                 className="absolute bottom-0 left-0 h-[2px] bg-primary transition-transform duration-300 ease-in-out"
                 style={{
                   width: "33%",
-                  transform: `translateX(${activeIndex * 100}%)`,
+                  transform: `translateX(${
+                    activeTab === "stats"
+                      ? "100%"
+                      : activeTab === "posts"
+                      ? "200%"
+                      : "0%"
+                  })`,
                 }}
               ></div>
             </div>
           </div>
 
           {/* ✅ 탭 콘텐츠 추가 */}
-          <div className="relative w-full overflow-hidden mt-4">
-            <div
-              ref={containerRef}
-              className="flex w-full transition-transform duration-300 ease-in-out"
-              style={{
-                transform: `translateX(calc(${
-                  activeIndex * -100
-                }% + ${translateX}px))`,
-              }}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-            >
-              <div className="w-full flex-shrink-0 max-w-full overflow-hidden">
-                <MyGymTab friendId={me.userId} />
-              </div>
-              <div className="w-full flex-shrink-0 p-2">
-                <StatsTab />
-              </div>
-              <div className="w-full flex-shrink-0">
-                <PostsTab userId={me.userId} />
-              </div>
-            </div>
+          <div className="mt-4">
+            {activeTab === "myGym" && <MyGymTab friendId={me.userId} />}
+            {activeTab === "stats" && <StatsTab />}
+            {activeTab === "posts" && <PostsTab userId={me.userId} />}
           </div>
         </>
       )}
@@ -216,9 +181,14 @@ export default function MyInfoPage() {
       )}
 
       {/* ✅ 하단바 공간 확보 */}
-      <div className="pb-16">
+      <div className="pb-16 z-[999]">
         <BottomBar />
       </div>
+
+      {/* ✅ 모달 적용 */}
+      {alertData && (
+        <AlertModal {...alertData} onClose={() => setAlertData(null)} />
+      )}
     </>
   );
 }
