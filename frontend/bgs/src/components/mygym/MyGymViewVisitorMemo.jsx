@@ -9,7 +9,6 @@ import {
   getGuestBooks,
   updateGuestBook,
 } from "../../api/Mygym";
-import memo from "../../assets/images/memo.png";
 import BeatLoader from "../../components/common/LoadingSpinner";
 
 const MyGymViewVisitorMemo = ({ userId }) => {
