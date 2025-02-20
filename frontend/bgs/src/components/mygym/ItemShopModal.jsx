@@ -95,7 +95,7 @@ export default function ItemShopModal({ onClose }) {
           {/* 오른쪽: 코인 정보 + 닫기 버튼 */}
           <div className="flex items-center space-x-4">
             <p className="font-semibold text-gray-700">
-              🪙  {userInfo?.coin ?? 0}
+              🪙 {userInfo?.coin ?? 0}
             </p>
             <button
               onClick={onClose}
@@ -107,7 +107,7 @@ export default function ItemShopModal({ onClose }) {
         </div>
 
         {/* 아이템 목록 영역 (스크롤) */}
-        <div className="p-4 overflow-auto h-full">
+        <div className="p-4 overflow-auto h-[calc(100%-80px)]">
           {items.length > 0 ? (
             items.map((item) => (
               <div
@@ -131,7 +131,7 @@ export default function ItemShopModal({ onClose }) {
                 <button
                   onClick={() => handlePurchase(item.itemId, item.price)}
                   disabled={userInfo?.coin < item.price}
-                  className="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
+                  className="bg-primary text-white px-4 py-2 rounded disabled:bg-gray-400"
                 >
                   구매
                 </button>
