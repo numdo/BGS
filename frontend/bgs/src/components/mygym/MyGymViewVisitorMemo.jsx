@@ -140,8 +140,6 @@ const MyGymViewVisitorMemo = ({ userId }) => {
           {visitorMemos?.length === 0 ? (
             <div className="text-center text-gray-500 mt-4">
               아직 작성된 방명록이 없습니다.
-              <br />
-              방명록을 작성하여 친구에게 인사해보세요!
             </div>
           ) : (
             visitorMemos
