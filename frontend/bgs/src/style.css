@@ -1,0 +1,9 @@
+@keyframes moveBg {
+    0% {
+      background-position: 0 0; /* 초기 위치 */
+    }
+    100% {
+      background-position: -1000px 0; /* 왼쪽으로 1000px 이동 */
+    }
+  }
+
